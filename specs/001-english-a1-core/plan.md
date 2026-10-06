@@ -100,11 +100,12 @@ lo verifica a nivel de comportamiento.
 migración que corre desde v1 hacia sí misma, de modo que la infraestructura de migración
 exista y esté probada *antes* de que haya una v2 que la necesite.
 
-**Principio II, la capa que la constitución no nombra.** El principio fija
-`ui → engine → core` y `content → core`, pero no ubica `services`. Este plan declara la regla
-que falta (ver Structure Decision) para que la prueba de arquitectura pueda aplicarla. No es
-un incumplimiento, sino un hueco del enunciado: conviene enmendar el Principio II para
-incorporarla.
+**Principio II, la capa que la constitución no nombraba.** El enunciado original fijaba
+`ui → engine → core` y `content → core` sin ubicar `services`, con lo que la prueba de
+arquitectura no tenía regla que aplicar a un tercio del código. Resuelto en la **enmienda
+v1.1.0** del 2026-10-06: el Principio II declara ahora el grafo completo capa por capa, exige
+verificarlo con una prueba de `import` y nombra `main.dart` como único archivo autorizado a
+importar contenido concreto.
 
 ## Project Structure
 
@@ -309,10 +310,13 @@ content →  core
 ```
 
 Es decir, `services` implementa contratos de `core`, puede usar `engine` (el servicio de
-sincronización llama a `progress_merger`), y **nunca** importa `ui` ni `content`. Sin esta
-declaración la prueba de arquitectura no tendría regla que aplicar a un tercio del código.
-Queda pendiente enmendar el Principio II para incorporarla; mientras eso no ocurra, el plan
-es la fuente de la regla.
+sincronización llama a `progress_merger`), y **nunca** importa `ui` ni `content`.
+
+Esta regla **ya es constitucional**: se incorporó al Principio II en la enmienda v1.1.0 del
+2026-10-06, junto con la obligación de verificarla mediante una prueba que inspeccione los
+`import` y la declaración de `main.dart` como único archivo autorizado a importar contenido
+concreto. El plan la reproduce aquí por comodidad de lectura, pero la fuente es la
+constitución.
 
 La costura entre `ui` y el resto son los proveedores de `ui/providers/`, y la costura entre
 la app y el contenido concreto es `lib/main.dart`. Ese es el mecanismo por el que añadir
