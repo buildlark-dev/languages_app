@@ -13,7 +13,7 @@ Almacén: SQLite vía Drift. Es la **fuente de verdad** del progreso. Declarado 
 
 ### `schema_meta`
 
-Una sola fila. Existe para que FR-041 sea verificable sin inferir la versión de la forma
+Una sola fila. Existe para que FR-044 sea verificable sin inferir la versión de la forma
 de los datos.
 
 | Columna | Tipo | Nota |
@@ -62,7 +62,7 @@ así que la fusión es un `MAX` literal, en Dart y en SQL.
 | `last_attempt_at` | `DATETIME` | |
 
 Guardar solo el **mejor** puntaje es lo que hace imposible que un reintento peor
-desapruebe un módulo ya aprobado (FR-026). No es una comprobación en el código de la
+desapruebe un módulo ya aprobado (FR-027). No es una comprobación en el código de la
 interfaz: es la forma del dato.
 
 ### `review_cards`
@@ -88,10 +88,16 @@ cumple.
 |---|---|---|
 | `uid` | `TEXT` | PK |
 | `course_id` | `TEXT` | PK |
-| `assigned_level_id` | `TEXT` | |
-| `mastered_level_ids` | `TEXT` | lista separada por comas |
+| `estimated_level_id` | `TEXT` | cualquier nivel MCER, incluso sin contenido |
+| `mastered_level_ids` | `TEXT` | lista separada por comas, solo niveles con contenido |
 | `skipped` | `BOOLEAN` | true si omitió la prueba |
 | `taken_at` | `DATETIME` | |
+
+El **nivel asignado no se almacena**: se deriva del estimado contra el catálogo vigente en
+cada arranque. Guardarlo obligaría a una migración cada vez que se publique un nivel nuevo,
+y a que esa migración acertara con la intención de cada estudiante. Derivarlo lo hace
+automático: el día que exista A2, quien tenga `estimated_level_id = 'B1'` empieza a estudiar
+ahí sin que nadie toque la base.
 
 ### `sync_meta`
 
@@ -116,7 +122,7 @@ en **una** transacción, porque un corte a mitad dejaría estados imposibles:
 |---|---|---|
 | Aprobar lección | `activity_results`, `student_profile`, `review_cards` | XP sumado sin lección aprobada |
 | Aprobar examen de módulo | `activity_results`, `student_profile`, `level_progress` | módulo aprobado sin desbloquear el siguiente |
-| Aprobar examen de nivel | `activity_results`, `level_progress` (dos filas) | A1 superado sin A2 desbloqueado |
+| Aprobar examen de nivel | `activity_results`, `level_progress` (el nivel superado y el siguiente **con contenido**, si existe) | nivel superado sin desbloquear el siguiente |
 | Aplicar nivelación | `placement_results`, `level_progress` (varias), `student_profile` | niveles marcados a medias |
 | Sincronizar | todas | mitad del progreso fusionado y mitad no |
 
@@ -151,7 +157,7 @@ construir el mecanismo de rescate no es cuando ya hay progreso de estudiantes en
 Si abrir o escribir la base falla —disco lleno, permisos, corrupción— el almacén cae a una
 implementación en memoria y marca `sync_meta.storage_degraded`. La interfaz muestra
 `offline_notice` con un mensaje explícito de que el avance de esta sesión no se está
-guardando (FR-040, FR-022).
+guardando (FR-043, FR-023).
 
 Nunca se falla en silencio y nunca se cierra la app: la persona puede seguir estudiando,
 sabiendo en qué condición está.

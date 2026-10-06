@@ -2,6 +2,19 @@
 
 **Feature**: `001-english-a1-core` | **Date**: 2026-10-06
 
+## Glosario
+
+Tres términos que este documento introduce y que la especificación no usa. Se definen aquí
+para que no haya deriva de vocabulario entre documentos:
+
+| Término | Significado |
+|---|---|
+| **Actividad** | Cualquier cosa calificable: una lección, un examen de módulo o un examen de nivel. Existe porque los tres se guardan en la misma tabla con la misma regla de "mejor puntaje" |
+| **Nivel estimado** | Lo que la nivelación calcula. Puede ser cualquier nivel MCER, incluso uno sin contenido |
+| **Nivel asignado** | Dónde la persona estudia de verdad: el nivel con contenido más alto que no supera al estimado |
+
+---
+
 Dos familias de datos con ciclos de vida distintos:
 
 - **Contenido** (inmutable, compilado): curso, nivel, módulo, lección, vocabulario,
@@ -25,11 +38,20 @@ nada, y el progreso puede migrar sin tocar el contenido.
 | `name` | `String` | Nombre en español. Ej.: "Inglés" |
 | `studyLanguageTag` | `String` | Etiqueta BCP 47 para la voz. Ej.: `en-US` |
 | `supportLanguageTag` | `String` | Idioma de apoyo. `es` en esta entrega |
-| `levels` | `List<Level>` | Orden MCER ascendente, sin huecos |
+| `levels` | `List<Level>` | Niveles **con contenido**. Orden MCER ascendente, sin huecos |
+| `upcomingLevelIds` | `List<String>` | Niveles anunciados pero sin contenido. Solo aviso de interfaz |
 | `placementTest` | `Exam?` | Opcional: un curso puede no tener nivelación |
 
 **Validación**: `levels` no vacío; los `id` de nivel pertenecen al conjunto MCER y
-aparecen en orden; ningún `id` de módulo repetido en todo el curso.
+aparecen en orden; ningún `id` de módulo repetido en todo el curso; `upcomingLevelIds` son
+MCER válidos, posteriores al último de `levels` y sin intersección con él.
+
+**Por qué `upcomingLevelIds` y no niveles vacíos** (FR-038): un `Level` sin módulos
+violaría las invariantes del paquete de contenido, que exigen módulos con vocabulario,
+lectura y examen. Declararlos como simples identificadores los mantiene fuera del modelo de
+contenido, y la interfaz los dibuja como tarjetas "próximo · en preparación" sin ruta de
+entrada. En esta entrega, el curso de inglés declara `levels: [A1]` y
+`upcomingLevelIds: [A2, B1, B2, C1, C2]`.
 
 ### Level
 
@@ -52,13 +74,13 @@ aparecen en orden; ningún `id` de módulo repetido en todo el curso.
 | `vocabulary` | `List<VocabularyItem>` | Mínimo 8 ítems |
 | `grammar` | `GrammarExplanation` | Explicación en español |
 | `examples` | `List<BilingualExample>` | Mínimo 3 |
-| `reading` | `ReadingPassage` | Con sus preguntas de comprensión |
+| `reading` | `ReadingPassage` | **Solo el texto.** Sus preguntas van como ejercicios de lección |
 | `lessons` | `List<Lesson>` | Mínimo 1 |
 | `moduleExam` | `Exam` | Obligatorio |
 
 **Validación de integridad** (`test/content/en/a1_integrity_test.dart`): todo módulo
 cumple los mínimos anteriores **y** contiene al menos un ejercicio de escucha y al menos
-uno de pronunciación (FR-014, FR-015). Un módulo sin destrezas orales hace fallar la suite.
+uno de pronunciación (FR-015, FR-016). Un módulo sin destrezas orales hace fallar la suite.
 
 ### Lesson
 
@@ -66,7 +88,16 @@ uno de pronunciación (FR-014, FR-015). Un módulo sin destrezas orales hace fal
 |---|---|---|
 | `id` | `String` | Único en el curso |
 | `title` | `String` | En español |
+| `readingRef` | `String?` | Id del pasaje que la lección usa como apoyo, si aplica |
 | `exercises` | `List<Exercise>` | Mínimo 5, para que el umbral del 70 % sea significativo |
+
+**Qué se puntúa y qué no** (FR-013): la lección es **la única unidad calificable**. Las
+preguntas de comprensión de la lectura son `Exercise` dentro de `exercises`, así que
+cuentan para el umbral del 70 %. El vocabulario, la explicación gramatical y los ejemplos
+bilingües son material de estudio y no se puntúan: se consultan, no se responden.
+
+Esto resuelve una ambigüedad del diseño inicial, donde las preguntas de la lectura colgaban
+del módulo y por tanto habrían quedado fuera de toda calificación.
 
 ### VocabularyItem
 
@@ -97,7 +128,7 @@ Tipo suma con cinco variantes. El campo que vuelve estructural el Principio VII:
 SC-008 no depende de que alguien se acuerde de añadirla.
 
 `explanation` es obligatorio en las cinco variantes y debe decir *por qué* la respuesta
-correcta lo es (FR-024), no solo cuál es.
+correcta lo es (FR-025), no solo cuál es.
 
 ### Exam
 
@@ -124,7 +155,7 @@ que `placement_evaluator` pueda asignar nivel.
 | `schemaVersion` | `int` | el mayor |
 | `currentLevelId` | `String` | el nivel más avanzado |
 | `xp` | `int` | **máximo** |
-| `streakCount` | `int` | **máximo** |
+| `streakCount` | `int` | máximo, y después **recalculado** (ver abajo) |
 | `lastActivityDate` | `DateTime` | la más reciente |
 | `levelStates` | `Map<String, LevelState>` | el estado más avanzado por nivel |
 | `lessonResults` | `Map<String, double>` | **máximo** por lección |
@@ -142,7 +173,7 @@ locked (0) < unlocked (1) < mastered (2) < passed (3)
 
 - `locked`: el requisito previo no está cumplido.
 - `unlocked`: accesible y en curso.
-- `mastered`: marcado como dominado por la nivelación (FR-034). Abierto para repaso; el
+- `mastered`: marcado como dominado por la nivelación (FR-037). Abierto para repaso; el
   repaso **no** lo degrada ni lo asciende.
 - `passed`: examen de nivel aprobado con ≥ 80 %.
 
@@ -150,14 +181,20 @@ locked (0) < unlocked (1) < mastered (2) < passed (3)
 
 | Desde | Hacia | Disparador |
 |---|---|---|
-| `locked` | `unlocked` | el nivel anterior pasa a `passed` (FR-023) |
-| `locked` | `mastered` | la nivelación asigna un nivel superior (FR-034) |
-| `locked` | `unlocked` | la nivelación asigna este nivel (FR-034) |
+| `locked` | `unlocked` | el nivel anterior pasa a `passed` (FR-024) |
+| `locked` | `mastered` | el nivel está por debajo del estimado por la nivelación (FR-037) |
+| `locked` | `unlocked` | el nivel es el asignado por la nivelación (FR-036) |
 | `unlocked` | `passed` | examen de nivel ≥ 80 % |
 | `mastered` | `passed` | la persona repasa y aprueba el examen de nivel |
 
 Prohibidas: cualquier transición descendente. `progression.dart` las rechaza y
 `progression_test.dart` lo verifica con la matriz completa.
+
+**Los niveles sin contenido no tienen estado** (FR-038). No son `Level`, así que no aparecen
+en `levelStates` ni pueden alcanzar `unlocked` por ninguna vía. La interfaz los dibuja desde
+`Course.upcomingLevelIds` como tarjetas "próximo · en preparación", sin ruta de entrada. Esa
+es la razón estructural por la que no existe un camino para estudiar un nivel inexistente:
+no hay dato que pudiera representarlo.
 
 ### ReviewCard
 
@@ -181,12 +218,39 @@ es perder el aprendizaje.
 
 ### PlacementResult
 
-| Campo | Tipo |
-|---|---|
-| `assignedLevelId` | `String` |
-| `takenAt` | `DateTime` |
-| `masteredLevelIds` | `List<String>` |
-| `skipped` | `bool` (true si omitió la prueba) |
+| Campo | Tipo | Nota |
+|---|---|---|
+| `estimatedLevelId` | `String` | Cualquier nivel MCER, incluso sin contenido (FR-035) |
+| `assignedLevelId` | `String` | Derivado: el nivel con contenido más alto ≤ estimado (FR-036) |
+| `masteredLevelIds` | `List<String>` | Niveles **con contenido** por debajo del estimado |
+| `skipped` | `bool` | true si omitió la prueba |
+| `takenAt` | `DateTime` | |
+
+**La distinción entre estimado y asignado es lo que hace honesta la nivelación.** Si alguien
+da B1 en la prueba, se le dice "tu nivel estimado es B1" —eso es información verdadera y
+útil— pero el nivel donde puede estudiar se limita a lo que existe. En esta entrega
+`assignedLevelId` siempre es `A1`, y `estimatedLevelId` puede ser cualquiera.
+
+`assignedLevelId` es **derivado, no almacenado como verdad independiente**: se recalcula
+contra el catálogo vigente. Cuando se construya A2, quien tenga `estimatedLevelId: B1`
+pasará a tener `assignedLevelId: A2` sin ninguna migración de datos.
+
+### BackupDocument
+
+Entidad de transporte, no de almacenamiento: existe solo mientras se exporta o se importa
+(FR-045). Detalle del formato en [contracts/services.md](./contracts/services.md#backupservice).
+
+| Campo | Tipo | Nota |
+|---|---|---|
+| `backupVersion` | `int` | versión del formato de respaldo |
+| `appVersion` | `String` | versión de la app que lo generó, para diagnóstico |
+| `courseId` | `String` | un respaldo pertenece a un curso |
+| `exportedAt` | `DateTime` | |
+| `progress` | `StudentProgress` | la instantánea completa |
+
+`progress` se serializa con **la misma forma que el documento remoto**, de modo que no hay
+dos serializaciones que mantener sincronizadas. Al importar se **fusiona**, nunca se
+reemplaza, así que un respaldo viejo no puede hacer retroceder a quien ya avanzó más.
 
 ### SyncState
 
@@ -194,7 +258,7 @@ es perder el aprendizaje.
 |---|---|---|
 | `lastSyncedAt` | `DateTime?` | null si nunca sincronizó |
 | `hasPendingChanges` | `bool` | alimenta `sync_banner` |
-| `lastError` | `String?` | visible para FR-040 |
+| `lastError` | `String?` | visible para FR-043 |
 | `storageDegraded` | `bool` | true si se cayó a memoria |
 
 Nunca se sincroniza: describe la relación de *este* dispositivo con la nube.
@@ -208,7 +272,7 @@ Seis tablas. Detalle completo y política de migración en
 
 | Tabla | Para qué | Clave |
 |---|---|---|
-| `schema_meta` | versión del esquema (FR-041) | fila única |
+| `schema_meta` | versión del esquema (FR-044) | fila única |
 | `student_profile` | uid, curso activo, XP, racha, última actividad | `uid` + `course_id` |
 | `level_progress` | estado de cada nivel | `uid` + `course_id` + `level_id` |
 | `activity_results` | mejor puntaje de lección y examen | `uid` + `course_id` + `activity_id` |
@@ -227,7 +291,7 @@ energía no puede dejar XP sumado sin la lección aprobada.
 
 ## 4. La fusión, con precisión
 
-Esta es la pieza de la que depende FR-039 y SC-005.
+Esta es la pieza de la que depende FR-042 y SC-005.
 
 Toda regla de fusión de la tabla de `StudentProgress` es un **máximo** sobre un orden
 total, o una **unión** de conjuntos. Eso convierte el progreso en un *join-semilattice*, y
@@ -248,11 +312,25 @@ comprueba las tres, más la invariante que de verdad importa:
 Es decir: fusionar **nunca** puede quitarle avance a nadie. Esa es la propiedad que hace
 que no haga falta confiar en el código, porque está comprobada.
 
-**Caso que no es monotónico, y cómo se trata**: la racha. Si un dispositivo tiene racha 7
-y otro racha 3, el máximo da 7, que es lo que FR-039 pide explícitamente ("la racha más
-alta"). No es "la racha verdadera" en sentido estricto —la persona pudo no estudiar un
-día— pero la especificación decidió favorecer al estudiante, y aquí se respeta sin
-inventar nada.
+**El caso de la racha, y por qué el máximo solo no basta**: fusionar por máximo tiene un
+efecto perverso. Imagina racha 7 en el teléfono con última actividad el lunes, y racha 1 en
+el PC con última actividad el jueves. El máximo daría racha 7 con última actividad el
+jueves: una racha de siete días que en realidad se rompió el martes. FR-031 exige que una
+racha caducada se reinicie, así que el máximo a secas **violaría FR-031 de forma
+observable**.
+
+La regla completa, por tanto, es en dos pasos:
+
+1. Fusionar `streakCount` por máximo y `lastActivityDate` por fecha más reciente.
+2. **Recalcular**: si entre la fecha de actividad más reciente y la fecha del dispositivo
+   con la racha más alta pasó más de un día, la racha se reinicia a 1.
+
+Es decir, `streak_tracker.dart` valida la racha fusionada contra las fechas, en lugar de
+aceptar el máximo ciegamente. Sigue favoreciendo al estudiante ante empates legítimos —dos
+dispositivos usados el mismo día conservan la racha mayor— sin inventar días de estudio que
+no ocurrieron.
+
+`progress_merger_test.dart` cubre explícitamente el caso de la racha caducada por fusión.
 
 **Lo que no se fusiona**: `syncState` es estado local del dispositivo. El contenido no se
 fusiona porque no se guarda.

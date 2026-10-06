@@ -7,7 +7,7 @@ almacén local (ver [local-schema.md](./local-schema.md)).
 
 **Su persistencia local queda desactivada**: dos cachés compitiendo producen estados
 divergentes, y la de Firestore resuelve conflictos por última escritura gana, que es
-exactamente lo que FR-039 prohíbe.
+exactamente lo que FR-042 prohíbe.
 
 ---
 
@@ -46,8 +46,8 @@ Ruta: `users/{uid}/courses/{courseId}`
   },
 
   "placement": {
-    "assignedLevelId":  string,
-    "masteredLevelIds": [string],
+    "estimatedLevelId": string,     // cualquier nivel MCER, incluso sin contenido
+    "masteredLevelIds": [string],   // solo niveles con contenido
     "skipped":          boolean,
     "takenAt":          timestamp
   },
@@ -61,6 +61,11 @@ clave sin ambigüedad, mientras que dos listas obligarían a emparejar elementos
 el orden. Esa elección de forma es lo que hace trivial la fusión.
 
 `syncState` **no** aparece: es estado del dispositivo, no del estudiante.
+
+`assignedLevelId` **no** aparece: es un valor derivado del nivel estimado contra el catálogo
+vigente. Almacenarlo lo convertiría en una verdad que envejece: cuando se publique el
+contenido de A2, quien tenga `estimatedLevelId: B1` debe pasar a estudiar en A2 sin ninguna
+migración, y eso solo funciona si el valor se recalcula en cada arranque.
 
 El contenido didáctico **no** aparece: va compilado en la app.
 
@@ -88,10 +93,25 @@ que ni por descuido se pueda perder progreso.
 
 Firestore no ofrece un `max` sobre campos —solo `increment`— y `increment` sería **erróneo**
 aquí: si dos dispositivos incrementaran el XP de forma independiente, el total contaría dos
-veces la misma actividad. La especificación pidió el máximo (FR-039), y el máximo exige leer
+veces la misma actividad. La especificación pidió el máximo (FR-042), y el máximo exige leer
 antes de escribir. De ahí la transacción.
 
 ---
+
+## Protocolo de lectura en vivo
+
+Mientras la app está en primer plano se mantiene una suscripción al documento
+(`SyncService.remoteChanges`). Cada emisión se fusiona con el estado local mediante la misma
+función `progress_merger` y se escribe el resultado.
+
+Sin esta suscripción, SC-004 sería incumplible: todos los disparadores de escritura son
+acciones locales, así que un segundo dispositivo abierto y ocioso nunca se enteraría de nada
+hasta que la persona lo reiniciara.
+
+Desactivar la persistencia local de Firestore **no** afecta a esta suscripción: lo que se
+desactiva es la segunda caché en disco, no la capacidad de escuchar cambios. Y como la
+fusión es idempotente, volver a recibir algo ya fusionado no tiene efecto, de modo que no
+hace falta llevar registro de qué emisión se procesó.
 
 ## Reglas de fusión
 
@@ -100,7 +120,7 @@ antes de escribir. De ahí la transacción.
 | `schemaVersion` | mayor |
 | `currentLevelId` | el nivel más avanzado |
 | `xp` | **máximo** |
-| `streakCount` | **máximo** |
+| `streakCount` | máximo, y después recalculado contra `lastActivityDate` |
 | `lastActivityDate` | más reciente |
 | `levelStates[*]` | **máximo** del entero de estado |
 | `lessonResults[*]` | **máximo** por clave, unión de claves |
@@ -112,7 +132,14 @@ antes de escribir. De ahí la transacción.
 | `placement` | el no nulo; si ambos, el de `takenAt` más reciente |
 
 Todas son máximos sobre órdenes totales o uniones de conjuntos, así que la fusión es
-conmutativa, asociativa e idempotente. Las consecuencias, verificadas en
+conmutativa, asociativa e idempotente.
+
+**Única excepción, y es deliberada**: `streakCount` se fusiona por máximo y **después** se
+valida contra `lastActivityDate`. Si entre ambas fechas pasó más de un día, la racha se
+reinicia. Sin ese segundo paso, fusionar podría resucitar una racha que FR-031 obliga a
+reiniciar: racha 7 con última actividad el lunes, más racha 1 del jueves, daría "racha de 7
+días" para alguien que no estudió el martes ni el miércoles. El recálculo es determinista y
+depende solo de los valores fusionados, así que preserva las tres propiedades. Las consecuencias, verificadas en
 `test/engine/progress_merger_test.dart`, están explicadas en
 [data-model.md](../data-model.md#4-la-fusión-con-precisión).
 

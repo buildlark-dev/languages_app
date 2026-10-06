@@ -56,7 +56,7 @@ primarias.
 
 - `shared_preferences`: sin esquema, sin migraciones y sin consultas. Averiguar las
   palabras vencidas obligaría a deserializar la cola completa en cada arranque. Es lo que
-  usaba el prototipo HTML (`localStorage`) y no escala al requisito FR-041.
+  usaba el prototipo HTML (`localStorage`) y no escala al requisito FR-044.
 - `hive`: rápido, pero sin consultas por rango y con una historia de migración más débil.
 - `isar`: continuidad del proyecto incierta; no quiero apostar el almacén de progreso.
 - `sqflite`: sin tipado; el mapeo manual multiplica los errores silenciosos.
@@ -96,7 +96,7 @@ transacción explícita de leer-fusionar-escribir.
 **Rationale — y este es el punto crítico del diseño**: Firestore resuelve conflictos por
 *última escritura gana* a nivel de documento. Si el progreso viviera en su caché offline,
 estudiar en el teléfono sin red y luego abrir el PC **borraría** el avance del teléfono al
-sincronizar. Eso viola FR-039 ("MUST NOT descartar progreso en silencio") y haría
+sincronizar. Eso viola FR-042 ("MUST NOT descartar progreso en silencio") y haría
 imposible SC-005.
 
 La solución es que **toda** magnitud del progreso se fusione con una regla monotónica:
@@ -124,7 +124,7 @@ divergentes, de ahí la desactivación explícita de la persistencia de Firestor
 **Alternatives considered**:
 
 - Confiar en la persistencia offline de Firestore como almacén único: menos código, pero
-  pérdida silenciosa de progreso. Rechazado por FR-039.
+  pérdida silenciosa de progreso. Rechazado por FR-042.
 - Diario de eventos con reproducción (event sourcing): converge igual de bien y conserva
   historia, pero multiplica el volumen de datos y la complejidad de migración para un
   beneficio que esta funcionalidad no necesita.
@@ -139,21 +139,21 @@ divergentes, de ahí la desactivación explícita de la persistencia de Firestor
 
 **Rationale**: usa el motor de voz del sistema operativo, así que una vez que el
 dispositivo tiene instalada la voz en inglés la reproducción es local y **sin conexión**,
-que es justo lo que exige FR-013. No hace falta empaquetar ni descargar audio: el
+que es justo lo que exige FR-014. No hace falta empaquetar ni descargar audio: el
 contenido declara texto y el motor lo pronuncia, lo que además mantiene el tamaño de la
 app bajo y permite añadir francés y portugués sin producir audio nuevo.
 
 **Riesgo identificado**: si el dispositivo no tiene datos de voz en inglés, la
 reproducción falla. Mitigación: al inicializar se consulta `getLanguages`; si no hay
 `en-*` disponible, la app lo informa y los ejercicios de escucha usan su alternativa
-accesible (FR-018). En web depende de las voces del navegador, que varían.
+accesible (FR-019). En web depende de las voces del navegador, que varían.
 
 **Alternatives considered**:
 
 - Audio pregrabado como assets: calidad y consistencia superiores, pero exige producir y
   versionar cientos de archivos por idioma, y multiplica el peso de la app. Contradice la
   extensibilidad que pide el Principio I.
-- Síntesis en la nube (Google Cloud TTS): mejor voz, pero rompe FR-013 (audio sin
+- Síntesis en la nube (Google Cloud TTS): mejor voz, pero rompe FR-014 (audio sin
   conexión) y añade costo por uso.
 
 ---
@@ -169,10 +169,10 @@ sesión *falla* si no está disponible, y en la práctica el dispositivo necesit
 instalado el paquete de idioma offline correspondiente. En web, la API del navegador
 envía el audio a un servicio remoto, así que exige conexión.
 
-**Esto choca de frente con FR-036** ("completar lecciones [...] sin conexión"), porque un
+**Esto choca de frente con FR-039** ("completar lecciones [...] sin conexión"), porque un
 ejercicio de pronunciación es parte de una lección.
 
-**Resolución**: la alternativa accesible que FR-018 ya exige para quien no puede usar
+**Resolución**: la alternativa accesible que FR-019 ya exige para quien no puede usar
 micrófono **cumple simultáneamente** como ruta sin conexión. Degradación en tres pasos:
 
 1. Reconocimiento en el dispositivo (`onDevice: true`) — sin conexión, preferido.
@@ -180,8 +180,8 @@ micrófono **cumple simultáneamente** como ruta sin conexión. Degradación en 
 3. Si no hay ninguno, o el permiso está denegado, o no hay micrófono: **alternativa
    accesible**, con la que la lección se puede aprobar igual.
 
-Con esto FR-036 se cumple de forma estricta: la lección siempre es completable sin
-conexión, aunque el camino concreto varíe. FR-019 refuerza que un fallo de
+Con esto FR-039 se cumple de forma estricta: la lección siempre es completable sin
+conexión, aunque el camino concreto varíe. FR-020 refuerza que un fallo de
 reconocimiento nunca cuenta como error de contenido.
 
 **Alternatives considered**:
@@ -245,7 +245,7 @@ operaciones de `Navigator`, así que la experiencia en web queda correcta. Evita
 **Decisión**: el motor nunca llama a `DateTime.now()`. Recibe un `Clock` (función que
 devuelve la fecha y hora actual) definido en `lib/core/clock.dart`.
 
-**Rationale**: la racha (FR-031) y los intervalos de repaso (FR-028) son lógica de fechas.
+**Rationale**: la racha (FR-032) y los intervalos de repaso (FR-029) son lógica de fechas.
 Probar "deja pasar un día y la racha se reinicia" con el reloj real exigiría esperar un
 día o manipular el reloj del sistema. Con el reloj inyectado, una prueba unitaria recorre
 noventa días en milisegundos. Sin esto, SC-012 y los escenarios 2 y 3 de la Historia 7 no
@@ -304,14 +304,14 @@ de consola: cada persona solo puede leer y escribir su propio documento de progr
 
 | Paquete | Versión | Para qué | Requisito que lo exige |
 |---|---|---|---|
-| `flutter_riverpod` | ^3.4.3 | estado compartido e inyección | FR-003, FR-029, FR-032 |
-| `drift` | ^2.35.1 | almacén local con esquema versionado | FR-037, FR-041 |
-| `drift_flutter` | ^0.3.1 | apertura de la base según plataforma | FR-037 |
+| `flutter_riverpod` | ^3.4.3 | estado compartido e inyección | FR-003, FR-030, FR-033 |
+| `drift` | ^2.35.1 | almacén local con esquema versionado | FR-040, FR-044 |
+| `drift_flutter` | ^0.3.1 | apertura de la base según plataforma | FR-040 |
 | `firebase_core` | ^4.15.0 | base de Firebase | FR-001 |
 | `firebase_auth` | ^6.7.0 | cuenta, sesión, restablecimiento | FR-001 a FR-005 |
-| `cloud_firestore` | ^6.10.0 | sincronización del progreso | FR-038, FR-039 |
-| `flutter_tts` | ^4.2.5 | pronunciación sin conexión | FR-013, FR-014 |
-| `speech_to_text` | ^7.5.0 | ejercicios de pronunciación | FR-015, FR-016 |
+| `cloud_firestore` | ^6.10.0 | sincronización del progreso | FR-041, FR-042 |
+| `flutter_tts` | ^4.2.5 | pronunciación sin conexión | FR-014, FR-015 |
+| `speech_to_text` | ^7.5.0 | ejercicios de pronunciación | FR-016, FR-017 |
 | `intl` | del SDK | formato de fechas y cadenas | FR-009 |
 | `flutter_localizations` | del SDK | interfaz en español | FR-009 |
 
@@ -328,4 +328,4 @@ Desarrollo: `drift_dev` y `build_runner` para la generación de código de Drift
 | Dos dispositivos con progreso divergente | Fusión monotónica (D4) | Pruebas de propiedad con permutaciones de eventos |
 | La web necesita artefactos de sqlite3 en `web/` | Tarea de configuración explícita | `flutter build web` y prueba de persistencia en navegador |
 | Reconocimiento de voz en el emulador de Android | El emulador enruta el micrófono del equipo; si falla, se verifica en dispositivo físico | Prueba manual documentada en quickstart |
-| Pérdida de progreso por fallo de almacenamiento | Degradación a memoria con aviso explícito (FR-040) | Prueba con base de datos que lanza error |
+| Pérdida de progreso por fallo de almacenamiento | Degradación a memoria con aviso explícito (FR-043) | Prueba con base de datos que lanza error |

@@ -17,7 +17,7 @@ Un paquete de contenido debe exponer:
 | Miembro | Tipo | Obligación |
 |---|---|---|
 | `courseId` | `String` | Código ISO del idioma, único en el catálogo |
-| `course` | `Course` | El curso completo, con sus niveles y módulos |
+| `course` | `Course` | El curso completo: niveles con contenido y niveles anunciados |
 | `placementTest` | `Exam?` | Nulo si el idioma no ofrece nivelación |
 
 Todo es `const` o construido en tiempo de compilación: no hay carga asíncrona, no hay
@@ -47,20 +47,20 @@ cada idioma añadido:
 8. Todo examen tiene al menos 10 ejercicios.
 9. Todo nivel tiene su `levelExam`.
 
-**Cuatro destrezas** (FR-014, FR-015)
+**Cuatro destrezas** (FR-015, FR-016)
 
 10. Todo módulo contiene al menos un `ListeningExercise`.
 11. Todo módulo contiene al menos un `PronunciationExercise`.
 12. Todo módulo contiene al menos un ejercicio de producción escrita
     (`SentenceBuilderExercise` o `GapFillExercise`).
 
-**Retroalimentación** (FR-024)
+**Retroalimentación** (FR-025)
 
 13. Todo ejercicio tiene `explanation` no vacía.
 14. Toda `explanation` explica el motivo, no solo repite la respuesta. Se verifica de forma
     aproximada exigiendo una longitud mínima; la calidad la juzga la revisión humana.
 
-**Accesibilidad** (FR-018, SC-008)
+**Accesibilidad** (FR-019, SC-008)
 
 15. Todo `ListeningExercise` declara `transcriptFallback`.
 16. Todo `PronunciationExercise` declara `writtenFallback`.
@@ -78,8 +78,22 @@ Las invariantes 15 y 16 están además garantizadas por el compilador: son pará
 
 **Nivelación**
 
-20. Si `placementTest` no es nulo, cada ejercicio declara el nivel MCER que discrimina, y
-    el conjunto de niveles cubiertos es un subconjunto de los niveles del curso.
+20. Si `placementTest` no es nulo, cada ejercicio declara el nivel MCER que discrimina. Ese
+    conjunto **puede incluir niveles sin contenido**: la prueba estima el nivel real de la
+    persona, no el nivel al que la app puede llevarla. Se exige únicamente que sean
+    identificadores MCER válidos.
+21. Los niveles anunciados sin contenido se declaran en `course.upcomingLevelIds`: son
+    identificadores MCER posteriores al último nivel con contenido, sin intersección con
+    `course.levels`. **No** se declaran como `Level` vacíos, porque eso violaría las
+    invariantes 6 y 9.
+
+**Exámenes y destrezas orales**
+
+22. Los exámenes de módulo y de nivel **pueden** incluir ejercicios de escucha y de
+    pronunciación, y cuando los incluyen se les aplican las invariantes 15 y 16: su
+    alternativa accesible es obligatoria. Un examen **no está obligado** a incluirlos, para
+    que una persona sin micrófono no quede en desventaja en la evaluación que decide su
+    paso de nivel.
 
 ---
 
@@ -95,6 +109,28 @@ Añadir un idioma es, exactamente:
 2. Implementar el contrato en `<idioma>_course.dart`.
 3. Añadir una línea al catálogo.
 4. Crear su prueba de integridad.
+
+## Organización de archivos de contenido
+
+El Principio II pide no superar ~300 líneas por archivo. Un módulo completo roza ese límite:
+el módulo de referencia en `Study/ruta-de-ingles.html` ocupa unos 5 KB, que en Dart con
+parámetros nombrados, más `explanation` en todos los ejercicios y los nuevos de escucha y
+pronunciación, se estiman en 250 a 450 líneas.
+
+Regla adoptada: **un archivo por módulo mientras quepa; al pasar de 300 líneas, se divide
+por tipo de material**, no por ejercicio individual:
+
+```
+a1_module1_identity.dart          ensambla el módulo
+a1_module1_vocabulary.dart        lista de vocabulario
+a1_module1_grammar.dart           explicación y ejemplos
+a1_module1_exercises.dart         ejercicios de las lecciones
+```
+
+El archivo que ensambla queda corto y legible, que es el objetivo del principio: poder abrir
+un archivo y saber qué contiene. Dividir por tipo de material mantiene además una
+correspondencia clara con las invariantes de este contrato, porque cada archivo responde por
+un grupo de ellas.
 
 Lo que **no** cambia: `lib/core/`, `lib/engine/`, `lib/services/`, `lib/ui/`. SC-011 lo
 verifica añadiendo un curso de prueba de un módulo y comprobando que no se modificó ningún

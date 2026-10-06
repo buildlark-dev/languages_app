@@ -94,6 +94,66 @@ a la especificación:
   informar que el nivel está "en preparación" y ofrecer repaso, en lugar de mostrar una
   pantalla vacía. Queda registrado en Assumptions como estado transitorio aceptado.
 
+### Iteración 3 — remediación tras `/speckit-analyze` (2026-10-06)
+
+El análisis cruzado encontró 15 hallazgos: 1 CRITICAL, 3 HIGH, 7 MEDIUM, 4 LOW. Cero
+duplicaciones. Resueltos:
+
+**C1 · CRITICAL — FR-045 y FR-046 sin cobertura de diseño.** La exportación e importación de
+respaldo es un MUST del Principio IV y no tenía ni contrato ni archivo. Se añadió
+`BackupService` con formato versionado, validación previa (`BackupParseResult`) e importación
+que **fusiona** en lugar de reemplazar, más `services/backup/` en el árbol, su prueba y su
+paso de validación manual.
+
+**F1 · HIGH — nivelación por encima de A1 inalcanzable.** Resuelto con decisión del
+responsable del proyecto: A2 en adelante son **aviso de interfaz**. Se separó **nivel
+estimado** (cualquier nivel MCER) de **nivel asignado** (el más alto con contenido), se añadió
+`Course.upcomingLevelIds` en lugar de niveles vacíos —que violarían las invariantes 6 y 9— y
+se reescribieron FR-034 a FR-038. El nivel asignado es **derivado, no almacenado**: el día que
+exista A2, quien tenga estimado B1 pasa a estudiar ahí sin migración alguna.
+
+**F2 · HIGH — SC-004 sin mecanismo.** Los seis disparadores de sincronización eran acciones
+locales, así que un segundo dispositivo ocioso nunca se habría enterado; el propio quickstart
+decía "recargar". Se añadió `SyncService.remoteChanges`, escucha en vivo del documento remoto,
+y SC-004 ahora exige explícitamente que no haga falta recargar.
+
+**F3 · HIGH — la fusión podía resucitar una racha caducada.** Fusionar por máximo daba "racha
+de 7 días" a quien no estudió el martes ni el miércoles, incumpliendo FR-031 de forma
+observable. FR-031 y las reglas de fusión ahora exigen **recalcular** la racha contra la fecha
+de última actividad tras fusionar.
+
+**V1 · MEDIUM** — accesibilidad sin verificación: nuevo paso de quickstart con TalkBack,
+área táctil de 48 dp y contraste WCAG AA en ambos modos.
+
+**U1 · MEDIUM** — nuevo FR-013: las preguntas de la lectura cuentan como ejercicios de la
+lección y participan del umbral del 70 %; el vocabulario, la gramática y los ejemplos no se
+puntúan. Antes colgaban del módulo y habrían quedado fuera de toda calificación.
+
+**A1 · MEDIUM** — FR-014 ya no afirma el audio sin conexión de forma incondicional: lo
+condiciona a que el dispositivo tenga voz en inglés, con la alternativa accesible como
+respaldo.
+
+**D1 · MEDIUM** — el plan declara dónde encaja `services` (`ui → services → engine → core`),
+hueco que el Principio II no cubre. Pendiente de enmienda constitucional.
+
+**U2 · MEDIUM** — regla de división de archivos de contenido, con la medición que la motiva:
+el módulo de referencia ocupa ~5 KB, estimados en 250–450 líneas de Dart.
+
+**A2 · MEDIUM** — FR-006 enumera ahora los campos permitidos (correo y contraseña) y prohíbe
+el resto.
+
+**D2 · MEDIUM** — `.gitignore` corregido: se quitaron `google-services.json` y
+`GoogleService-Info.plist`, que son configuración pública de cliente y cuya exclusión rompía
+la compilación Android de un clon nuevo.
+
+**U3, F4, F5, A3 · LOW** — invariante 22 sobre orales en exámenes; `firebase_options.dart`,
+`l10n.yaml` y `google-services.json` añadidos al árbol; glosario con "actividad", "nivel
+estimado" y "nivel asignado"; metas de rendimiento marcadas como internas salvo SC-004.
+
+**Consecuencia de numeración**: la especificación pasó de 46 a 49 requisitos funcionales por
+las inserciones de FR-013 y FR-035 a FR-038. Se renumeró en bloque y se remapearon todas las
+referencias cruzadas de los siete documentos de diseño.
+
 ### Nota de gobernanza
 
 La protección de rama sobre `main` quedó descartada por decisión del responsable del

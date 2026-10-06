@@ -124,9 +124,12 @@ escrita: eso **es** el comportamiento correcto (ver D6 de research.md), no un fa
 
 ### SC-004 · Sincronización visible en otro dispositivo en menos de 30 s
 
-Manual con dos destinos: el emulador Pixel 7 y Chrome, ambos con la misma cuenta.
-Aprobar una lección en el emulador, esperar y recargar en Chrome. Se mide desde que
-termina la lección hasta que el progreso aparece.
+Manual con dos destinos: el emulador Pixel 7 y Chrome, ambos con la misma cuenta y **ambos
+abiertos en primer plano**. Aprobar una lección en el emulador y **mirar Chrome sin tocarlo**.
+
+Criterio: el progreso aparece solo, en menos de 30 s, **sin recargar ni reiniciar**. Si hay
+que recargar para verlo, la escucha en vivo del documento remoto no está funcionando y SC-004
+no se cumple.
 
 ### SC-005 · Ninguna pérdida de progreso al sincronizar
 
@@ -165,13 +168,32 @@ alternativas accesibles. Repetir con el micrófono concedido pero sin red.
 > ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1)). Ajustar el comando
 > cuando cambie.
 
-### SC-009 · Nadie llega a A2 sin aprobar A1 o sin que la nivelación lo ubique ahí
+### SC-009 · Nadie estudia un nivel sin haber aprobado el anterior, y ningún nivel sin contenido es accesible
 
 Automático: `test/engine/progression_test.dart` recorre la matriz completa de transiciones
 de estado de nivel y rechaza toda transición descendente o indebida.
 
-Manual: intentar entrar a A2 con A1 a medias, con A1 completo pero examen suspendido, y
-tras aprobar. Más el camino de la nivelación.
+Manual, dos frentes:
+
+1. **Progresión**: intentar avanzar con el módulo anterior a medias y con el examen de nivel
+   suspendido. Criterio: bloqueado, con el motivo explicado.
+2. **Niveles anunciados**: A2 en adelante aparecen como "próximo · en preparación" y **no se
+   puede entrar por ninguna ruta** — ni tocando la tarjeta, ni tras aprobar el examen de A1,
+   ni mediante la nivelación. Criterio estructural: no existen como `Level`, así que no hay
+   dato que pudiera representar la entrada.
+
+### Nivelación · nivel estimado frente a nivel asignado
+
+Manual, el camino que tu decisión sobre A2 hace relevante. Presentar la nivelación respondiendo
+bien lo suficiente para que el estimado supere A1.
+
+Criterio:
+
+- la app informa el **nivel estimado** real (por ejemplo B1), sin rebajarlo ni ocultarlo;
+- explica que el contenido de los niveles siguientes está en preparación;
+- marca A1 como **dominado** y lo deja abierto para repaso;
+- repasar A1 no cambia la marca de dominado ni el nivel estimado;
+- la persona nunca queda sin nada que hacer: siempre se le ofrece repasar lo dominado.
 
 ### SC-010 · Usable a 360 dp con fuente del sistema al 130 %
 
@@ -195,6 +217,42 @@ adb shell wm size reset
 ```bash
 adb shell settings put system font_scale 1.0
 ```
+
+### FR-047 a FR-049 · Accesibilidad: lector de pantalla, área táctil y contraste
+
+Manual. SC-010 solo cubre tamaño y escala de fuente, así que la accesibilidad necesita su
+propio paso.
+
+Activar el lector de pantalla:
+
+```bash
+adb shell settings put secure enabled_accessibility_services com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService
+```
+
+Recorrer una lección completa **solo escuchando**: todo control debe anunciarse con una
+etiqueta que diga qué hace, no "botón" a secas. Comprobar además que ningún objetivo táctil
+baja de 48 dp y que el contraste de texto cumple WCAG AA en modo claro **y** en oscuro, con
+el inspector de accesibilidad de Flutter DevTools.
+
+Desactivar al terminar:
+
+```bash
+adb shell settings put secure enabled_accessibility_services ""
+```
+
+### FR-045 y FR-046 · Respaldo: exportar, importar y borrar
+
+Parcialmente automático: `test/services/backup/json_backup_service_test.dart` cubre la ida y
+vuelta, el rechazo de una versión no soportada y el de un archivo corrupto.
+
+Manual, y aquí está lo que de verdad importa comprobar:
+
+1. Avanzar, exportar el respaldo, seguir avanzando, **importar el respaldo viejo**.
+   Criterio: **no se pierde nada**. El progreso posterior sigue ahí, porque importar fusiona
+   en lugar de reemplazar.
+2. Importar un archivo corrupto. Criterio: mensaje claro y progreso intacto.
+3. Borrar el progreso. Criterio: pide confirmación explícita, advierte que es irreversible y
+   menciona el respaldo como única vuelta atrás.
 
 ### SC-011 · Añadir un idioma no toca el motor
 

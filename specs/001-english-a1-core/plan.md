@@ -13,11 +13,15 @@ alternativa accesible obligatoria), repetición espaciada, XP y racha, y nivelac
 salto de niveles. El responsable del proyecto descartó explícitamente una entrega
 incremental: no hay orden de rescate por fases, el diseño se hace para el conjunto.
 
+Los niveles sin contenido construido (A2 en adelante) existen únicamente como aviso de
+interfaz, por decisión del responsable del proyecto: se anuncian como "próximo · en
+preparación" y no son accesibles por ninguna ruta.
+
 El eje técnico son tres decisiones, detalladas en [research.md](./research.md):
 
 1. **El almacén local es la fuente de verdad** (Drift), y la nube sincroniza mediante una
    **fusión monotónica** (máximos y uniones). La resolución por *última escritura gana* de
-   Firestore borraría progreso en silencio, lo que FR-039 prohíbe.
+   Firestore borraría progreso en silencio, lo que FR-042 prohíbe.
 2. **La alternativa accesible de los ejercicios orales es también la ruta sin conexión**.
    El reconocimiento de habla en el dispositivo no se puede garantizar, así que la
    degradación en tres pasos termina siempre en un camino completable sin red.
@@ -52,14 +56,16 @@ macOS y Linux se mantienen compilables sin verificación visual.
 **Project Type**: Aplicación móvil y web de un solo paquete Flutter, con separación
 interna en capas (`core`, `engine`, `services`, `content`, `ui`).
 
-**Performance Goals**: 60 fps en el recorrido de lecciones en un Pixel 7 emulado ·
-arranque hasta pantalla utilizable en menos de 2 s con sesión ya iniciada · consulta de la
-cola de repaso en menos de 50 ms con 2.000 tarjetas · sincronización reflejada en el
-segundo dispositivo en menos de 30 s (SC-004).
+**Performance Goals**: sincronización reflejada en el segundo dispositivo en menos de 30 s
+(SC-004) es el único objetivo exigido por la especificación. Los demás son **metas internas
+de ingeniería**, no criterios de aceptación, y no bloquean la entrega: 60 fps en el recorrido
+de lecciones en un Pixel 7 emulado · arranque hasta pantalla utilizable en menos de 2 s con
+sesión ya iniciada · consulta de la cola de repaso en menos de 50 ms con 2.000 tarjetas (es
+lo que justifica el índice `idx_review_due`).
 
-**Constraints**: funcionamiento sin conexión tras el primer inicio de sesión (FR-036) ·
-audio disponible sin conexión (FR-013) · ninguna pérdida de progreso en ninguna
-permutación de sincronización (FR-039, SC-005) · toda pantalla usable desde 360 dp con
+**Constraints**: funcionamiento sin conexión tras el primer inicio de sesión (FR-039) ·
+audio disponible sin conexión (FR-014) · ninguna pérdida de progreso en ninguna
+permutación de sincronización (FR-042, SC-005) · toda pantalla usable desde 360 dp con
 fuente del sistema al 130 % (SC-010) · todo ejercicio oral aprobable con micrófono
 denegado y sonido apagado (SC-008) · ningún archivo de producción por encima de ~300
 líneas (Principio II).
@@ -77,7 +83,7 @@ por estudiante: decenas de filas de progreso y unos cientos de tarjetas de repas
 | **I. Contenido desacoplado del motor** | El motor no importa contenido; añadir un idioma no toca el motor | ✅ PASA | `lib/engine/` y `lib/ui/` dependen solo de los contratos de `lib/core/`. El único archivo que importa `lib/content/catalog.dart` es `lib/main.dart`, la raíz de composición. SC-011 lo verifica añadiendo un curso de prueba |
 | **II. Un archivo, una responsabilidad** | Ningún archivo de producción > ~300 líneas; dependencias en un sentido | ✅ PASA | Árbol de 80 archivos con una responsabilidad cada uno; cada módulo de A1 en su propio archivo. El sentido `ui → engine → core ← content` se verifica con una prueba que inspecciona los `import` |
 | **III. Rigor pedagógico verificable** | Niveles MCER, objetivos "puedo hacer X", cuatro destrezas, umbrales 70/80 | ✅ PASA | Umbrales centralizados en `core/thresholds.dart`; las cuatro destrezas cubiertas por los cinco tipos de ejercicio; contenido derivado de `Study/ruta-de-ingles.html` |
-| **IV. El progreso del estudiante es sagrado** | Offline, escritura atómica, esquema versionado con migración, respaldo, sin fallo silencioso | ✅ PASA | Drift con esquema v1 y política de migración escrita; fusión monotónica que no puede perder avance; `sync_banner` y `offline_notice` hacen visible cualquier degradación |
+| **IV. El progreso del estudiante es sagrado** | Offline, escritura atómica, esquema versionado con migración, **respaldo exportable e importable**, sin fallo silencioso | ✅ PASA | Drift con esquema v1 y política de migración escrita; fusión monotónica que no puede perder avance; `services/backup/` con exportación, importación que fusiona y borrado confirmado; `sync_banner` y `offline_notice` hacen visible cualquier degradación |
 | **V. Sin prueba no está terminado** | `analyze` limpio, unitarias del motor, widget por pantalla, emulador | ✅ PASA | Cada archivo de `engine/` tiene su espejo en `test/engine/`; cada pantalla su prueba de widget; quickstart documenta la verificación manual en emulador |
 | **VI. Código didáctico y socializado** | Explicación en español de cada entrega; código en inglés | ✅ PASA | Compromiso de ejecución, no de estructura. Las decisiones no triviales quedan en `research.md` |
 | **VII. Móvil primero y accesible** | 360 dp, 48 dp táctil, WCAG AA, etiquetas semánticas, audio no obligatorio, claro y oscuro | ✅ PASA | `app/theme.dart` con `ColorScheme` claro y oscuro; alternativa accesible como campo obligatorio del contrato de ejercicio oral, no como añadido opcional |
@@ -93,6 +99,12 @@ lo verifica a nivel de comportamiento.
 **Principio IV, migraciones.** El esquema v1 nace con la tabla de versión y una prueba de
 migración que corre desde v1 hacia sí misma, de modo que la infraestructura de migración
 exista y esté probada *antes* de que haya una v2 que la necesite.
+
+**Principio II, la capa que la constitución no nombra.** El principio fija
+`ui → engine → core` y `content → core`, pero no ubica `services`. Este plan declara la regla
+que falta (ver Structure Decision) para que la prueba de arquitectura pueda aplicarla. No es
+un incumplimiento, sino un hueco del enunciado: conviene enmendar el Principio II para
+incorporarla.
 
 ## Project Structure
 
@@ -120,6 +132,7 @@ specs/001-english-a1-core/
 ```text
 lib/
 ├── main.dart                          # raíz de composición: Firebase, catálogo, runApp
+├── firebase_options.dart              # generado por flutterfire configure; versionado
 ├── app/
 │   ├── app.dart                       # MaterialApp, tema, localización
 │   ├── theme.dart                     # ColorScheme claro y oscuro, tokens
@@ -151,7 +164,7 @@ lib/
 │   ├── answer_matcher.dart            # variantes, mayúsculas, espacios
 │   ├── pronunciation_matcher.dart     # comparación normalizada con la frase objetivo
 │   ├── lesson_session.dart            # estado de una lección en curso
-│   └── progress_merger.dart           # fusión monotónica (FR-039)
+│   └── progress_merger.dart           # fusión monotónica (FR-042)
 ├── services/
 │   ├── db/
 │   │   ├── app_database.dart          # Drift: declaración y versión del esquema
@@ -172,6 +185,10 @@ lib/
 │   │   ├── stt_service.dart           # contrato
 │   │   ├── speech_to_text_service.dart# degradación en tres pasos
 │   │   └── speech_availability.dart   # qué hay y qué no, para decidir la ruta
+│   ├── backup/
+│   │   ├── backup_service.dart        # contrato
+│   │   ├── json_backup_service.dart   # exportar, importar (fusionando), borrar
+│   │   └── backup_document.dart       # formato con versión
 │   └── settings/
 │       └── settings_store.dart        # tema, velocidad de voz
 ├── content/
@@ -192,6 +209,7 @@ lib/
     │   ├── content_providers.dart
     │   ├── review_providers.dart
     │   ├── speech_providers.dart
+    │   ├── backup_providers.dart
     │   └── settings_providers.dart
     ├── screens/
     │   ├── sign_in_screen.dart
@@ -221,6 +239,8 @@ lib/
         ├── level_card.dart
         ├── module_tile.dart
         ├── locked_notice.dart
+        ├── upcoming_level_notice.dart
+        ├── destructive_confirm_dialog.dart
         ├── streak_badge.dart
         ├── xp_badge.dart
         ├── progress_ring.dart
@@ -246,8 +266,10 @@ test/
 │   │   ├── app_database_test.dart
 │   │   ├── migrations_test.dart
 │   │   └── review_dao_test.dart
-│   └── sync/
-│       └── firestore_sync_service_test.dart
+│   ├── sync/
+│   │   └── firestore_sync_service_test.dart
+│   └── backup/
+│       └── json_backup_service_test.dart   # ida y vuelta, versión y archivo corrupto
 ├── content/
 │   └── en/
 │       └── a1_integrity_test.dart     # todo módulo completo y bien formado
@@ -260,7 +282,9 @@ test/
 
 firebase.json                          # Hosting: build/web con reescritura SPA
 firestore.rules                        # cada persona solo accede a su progreso
+l10n.yaml                              # configuración de generación de cadenas ARB
 web/                                   # + sqlite3.wasm y drift_worker.js (Drift en web)
+android/app/google-services.json       # configuración pública de cliente; versionada
 ```
 
 **Structure Decision**: un solo paquete Flutter con cinco capas internas, porque la
@@ -273,6 +297,22 @@ idioma) y `ui` (pantallas y widgets). El sentido de las dependencias,
 `ui → engine → core ← content` con `services` implementando contratos de `core`, no es una
 convención escrita: `test/architecture/layer_dependencies_test.dart` lo comprueba
 inspeccionando los `import` de cada archivo, de modo que una violación rompe la suite.
+
+**Dónde encaja `services`, que la constitución no especifica.** El Principio II fija
+`ui → engine → core` y `content → core`, pero no ubica la capa de infraestructura. La regla
+que adopta este plan, y que la prueba de arquitectura aplica:
+
+```
+ui  →  engine  →  core
+ui  →  services →  engine  →  core
+content →  core
+```
+
+Es decir, `services` implementa contratos de `core`, puede usar `engine` (el servicio de
+sincronización llama a `progress_merger`), y **nunca** importa `ui` ni `content`. Sin esta
+declaración la prueba de arquitectura no tendría regla que aplicar a un tercio del código.
+Queda pendiente enmendar el Principio II para incorporarla; mientras eso no ocurra, el plan
+es la fuente de la regla.
 
 La costura entre `ui` y el resto son los proveedores de `ui/providers/`, y la costura entre
 la app y el contenido concreto es `lib/main.dart`. Ese es el mecanismo por el que añadir
@@ -306,21 +346,26 @@ nuevo. Siete dependencias entran, y estas son las que requieren justificación e
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
 | `flutter_riverpod` en lugar de estado estándar | Seis ámbitos de estado compartido (sesión, progreso, cola de repaso, sincronización, lección en curso, tema) consumidos por doce pantallas; el motor debe ser probable sin `BuildContext` | `ChangeNotifier` + `InheritedNotifier` obliga a escribir a mano la inyección y la sustitución para pruebas, y acopla la lectura de estado al árbol de widgets. Sería reimplementar peor lo que ya existe |
-| `drift` en lugar de `shared_preferences` | El Principio IV exige esquema versionado con migración, y la cola de repaso necesita consultar por fecha de vencimiento sin cargarla completa | `shared_preferences` no tiene esquema, migraciones ni consultas: FR-041 sería inimplementable y la cola obligaría a deserializar todo en cada arranque |
-| Tres paquetes de Firebase | FR-001 a FR-005 exigen cuenta con restablecimiento de contraseña; FR-038 y FR-039 exigen sincronización entre dispositivos | Un backend propio obligaría a custodiar contraseñas y a construir infraestructura que Firebase ya da, en un proyecto que además ya despliega en Firebase Hosting |
-| `cloud_firestore` **sin** su persistencia offline, más `progress_merger` propio | Su resolución por última escritura gana borraría progreso en silencio, lo que FR-039 prohíbe y SC-005 detectaría | Usar su caché como almacén único es más simple en código pero incorrecto en comportamiento: perder el avance de un estudiante no es un caso borde aceptable |
+| `drift` en lugar de `shared_preferences` | El Principio IV exige esquema versionado con migración, y la cola de repaso necesita consultar por fecha de vencimiento sin cargarla completa | `shared_preferences` no tiene esquema, migraciones ni consultas: FR-044 sería inimplementable y la cola obligaría a deserializar todo en cada arranque |
+| Tres paquetes de Firebase | FR-001 a FR-005 exigen cuenta con restablecimiento de contraseña; FR-041 y FR-042 exigen sincronización entre dispositivos | Un backend propio obligaría a custodiar contraseñas y a construir infraestructura que Firebase ya da, en un proyecto que además ya despliega en Firebase Hosting |
+| `cloud_firestore` **sin** su persistencia offline, más `progress_merger` propio | Su resolución por última escritura gana borraría progreso en silencio, lo que FR-042 prohíbe y SC-005 detectaría | Usar su caché como almacén único es más simple en código pero incorrecto en comportamiento: perder el avance de un estudiante no es un caso borde aceptable |
 | `flutter_tts` + `speech_to_text`, con tres rutas de degradación | Decisión explícita del responsable del proyecto: las cuatro destrezas en A1 desde el día uno | Omitir las destrezas orales fue ofrecido y rechazado. Un modelo whisper en el dispositivo daría reconocimiento offline garantizado, pero con decenas o cientos de MB de modelo y sin soporte en web |
 
 ### Deuda reconocida, no oculta
 
 - **El reconocimiento de habla sin conexión no está garantizado** (D6 de research.md). Se
-  cumple FR-036 porque la alternativa accesible siempre permite completar la lección, pero
+  cumple FR-039 porque la alternativa accesible siempre permite completar la lección, pero
   quien esté sin red puede no poder practicar pronunciación por voz. Si las pruebas reales
   muestran que ocurre a menudo, la vía es `whisper_edge`, evaluada y aplazada, no
   descartada.
 - **`com.example.languages_app` sigue siendo el identificador de la app**
   ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1)). No bloquea esta
   funcionalidad ni el despliegue web, pero sí un release en Google Play.
-- **El `.gitignore` excluye hoy `google-services.json`**, lo que rompería la compilación
-  Android de un clon nuevo. D12 de research.md explica por qué esa precaución estaba mal
-  dirigida y qué líneas hay que quitar. Es una tarea de esta funcionalidad.
+- ~~El `.gitignore` excluye `google-services.json`~~ — **resuelto el 2026-10-06**: se
+  eliminaron las líneas `google-services.json` y `GoogleService-Info.plist`. D12 de
+  research.md explica por qué esa precaución estaba mal dirigida. Siguen ignorados los
+  secretos reales (`*-service-account*.json`, `.env`).
+- **La racha fusionada necesita recálculo, no solo máximo.** Es una excepción deliberada a la
+  pureza de la fusión monotónica, documentada en data-model.md y en
+  contracts/firestore.md. El coste es un paso extra en `streak_tracker`; el beneficio es no
+  incumplir FR-031 de forma visible para el estudiante.

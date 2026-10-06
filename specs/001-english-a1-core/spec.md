@@ -11,7 +11,9 @@
 **Decisiones de alcance resueltas** (2026-10-06): esta entrega cubre las cuatro
 destrezas, incluida pronunciación con micrófono; requiere cuenta de usuario desde el
 inicio con sincronización en la nube; y la prueba de nivelación permite saltar niveles,
-marcando el contenido omitido como dominado y disponible para repaso.
+marcando el contenido omitido como dominado y disponible para repaso. Los niveles sin
+contenido construido (A2 en adelante) existen únicamente como aviso de interfaz
+("próximo", en preparación) y no son accesibles por ninguna ruta.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -90,8 +92,8 @@ ya aprendió y practicó contenido de inglés.
 
 La persona completa las lecciones de un módulo, aprueba el examen del módulo y
 desbloquea el siguiente. Al aprobar los cuatro módulos de A1 presenta el examen del
-nivel; si lo aprueba, A1 queda superado y A2 desbloqueado. Si no, A2 sigue cerrado y
-puede reintentar.
+nivel; si lo aprueba, A1 queda superado y A2 pasa a mostrarse como próximo, en
+preparación. Si no lo aprueba, A1 sigue sin superar y puede reintentar.
 
 **Why this priority**: Es lo que convierte una colección de lecciones en una ruta con
 progresión. Sin desbloqueos y exámenes, la persona no tiene forma de saber si domina el
@@ -111,9 +113,11 @@ del 80 %.
 3. **Given** un módulo bloqueado, **When** la persona intenta abrirlo, **Then** la app
    le indica qué debe aprobar antes y no le permite entrar.
 4. **Given** los cuatro módulos de A1 aprobados, **When** la persona aprueba el examen
-   de nivel con al menos 80 %, **Then** A1 queda superado y A2 desbloqueado.
+   de nivel con al menos 80 %, **Then** A1 queda superado y A2 se muestra como próximo,
+   con el aviso de que su contenido está en preparación.
 5. **Given** los cuatro módulos de A1 aprobados, **When** obtiene menos de 80 % en el
-   examen de nivel, **Then** A2 permanece bloqueado y puede reintentarlo.
+   examen de nivel, **Then** A1 sigue sin superar, no se marca ningún avance de nivel y
+   puede reintentar el examen.
 6. **Given** un módulo ya aprobado, **When** la persona lo reintenta y obtiene un
    puntaje peor, **Then** el módulo sigue aprobado y se conserva su mejor puntaje.
 
@@ -207,16 +211,16 @@ dominado y que lo marcado sigue accesible para repaso.
    **Then** puede omitirla y empezar en A1 desde el primer módulo.
 2. **Given** la prueba presentada, **When** la persona responde mal la mayoría de los
    ítems básicos, **Then** queda ubicada en A1 desde el primer módulo.
-3. **Given** la prueba completada, **When** el resultado la ubica por encima de A1,
-   **Then** los niveles por debajo del asignado quedan marcados como dominados, el nivel
-   asignado queda desbloqueado y empieza ahí.
+3. **Given** la prueba completada, **When** el nivel estimado es superior a A1, **Then**
+   la app informa el nivel estimado, marca A1 como dominado y explica que el contenido de
+   los niveles siguientes está en preparación.
 4. **Given** un nivel marcado como dominado por la nivelación, **When** la persona lo
-   abre, **Then** puede repasar sus módulos y lecciones sin que eso altere su nivel
-   asignado.
-5. **Given** un nivel asignado por la nivelación que todavía no tiene contenido en esta
-   entrega, **When** la persona entra, **Then** la app le dice explícitamente que ese
-   nivel está en preparación y le ofrece repasar lo que quedó marcado como dominado, sin
-   dejarla en una pantalla vacía.
+   abre, **Then** puede repasar sus módulos y lecciones sin que eso altere su marca de
+   dominado ni su nivel estimado.
+5. **Given** un nivel sin contenido en esta entrega, **When** la persona lo ve en el mapa
+   de niveles, **Then** aparece como próximo con el aviso de que está en preparación, no
+   se puede entrar, y la app le ofrece repasar lo que quedó marcado como dominado en
+   lugar de dejarla sin nada que hacer.
 6. **Given** una persona que ya tiene progreso registrado, **When** vuelve a la pantalla
    de inicio, **Then** no se le vuelve a ofrecer la prueba de nivelación de forma
    intrusiva.
@@ -280,8 +284,10 @@ distintos y verificando el contador de racha y el porcentaje de avance.
   acierto, y las diferencias de mayúsculas o espacios sobrantes no penalizan.
 - **Reintento de examen**: se conserva el mejor puntaje; un reintento peor no puede
   desaprobar un módulo ya aprobado.
-- **Nivelación que ubica en un nivel sin contenido**: se informa que está en preparación y
-  se ofrece repasar lo marcado como dominado.
+- **Nivelación que estima un nivel sin contenido**: se informa el nivel estimado, se marca
+  como dominado todo lo que sí tiene contenido por debajo, y los niveles siguientes
+  aparecen como próximos con aviso de preparación. La persona nunca queda sin nada que
+  hacer: siempre puede repasar lo dominado.
 - **Pantalla de 360 dp con fuente del sistema ampliada**: las explicaciones gramaticales
   largas y las tablas de conjugación siguen legibles y sin desbordes.
 - **Cambio de modo claro a oscuro a mitad de una lección**: el estado de la lección no se
@@ -306,8 +312,9 @@ distintos y verificando el contador de racha y el porcentaje de avance.
   ofrecer reintentar sin perder lo ya escrito.
 - **FR-005**: El sistema MUST advertir qué progreso quedaría sin respaldar y pedir
   confirmación explícita antes de cerrar sesión.
-- **FR-006**: El sistema MUST tratar los datos de la cuenta como información personal:
-  solo se solicita lo necesario para autenticar y sincronizar.
+- **FR-006**: El sistema MUST solicitar únicamente correo electrónico y contraseña para
+  crear una cuenta. MUST NOT pedir nombre, fecha de nacimiento, teléfono, ubicación ni
+  ningún otro dato personal en esta entrega.
 
 **Selección de idioma y catálogo**
 
@@ -329,104 +336,122 @@ distintos y verificando el contador de racha y el porcentaje de avance.
   explicación gramatical en español, ejemplos bilingües, un texto de lectura con
   preguntas de comprensión, ejercicios de construcción de frases y ejercicios de rellenar
   huecos.
+- **FR-013**: Las preguntas de comprensión de la lectura MUST contar como ejercicios de
+  la lección a la que pertenecen, de modo que participen del umbral del 70 %. El
+  vocabulario, la explicación gramatical y los ejemplos son material de estudio y MUST NOT
+  puntuarse.
 
 **Destrezas orales**
 
-- **FR-013**: El sistema MUST permitir escuchar la pronunciación en inglés de cada ítem
-  de vocabulario y de cada ejemplo, y ese audio MUST estar disponible sin conexión.
-- **FR-014**: El sistema MUST incluir, en cada módulo de A1, ejercicios de comprensión
+- **FR-014**: El sistema MUST permitir escuchar la pronunciación en inglés de cada ítem
+  de vocabulario y de cada ejemplo. Ese audio MUST funcionar sin conexión cuando el
+  dispositivo tenga instalada una voz en inglés. Cuando no la tenga, el sistema MUST
+  informarlo y MUST presentar el ejercicio con su alternativa accesible, nunca un control
+  de audio que no suena.
+- **FR-015**: El sistema MUST incluir, en cada módulo de A1, ejercicios de comprensión
   auditiva donde la persona escucha un audio y responde sobre lo que oyó, con la
   posibilidad de repetir el audio.
-- **FR-015**: El sistema MUST incluir, en cada módulo de A1, ejercicios de pronunciación
+- **FR-016**: El sistema MUST incluir, en cada módulo de A1, ejercicios de pronunciación
   en los que la persona dice una frase objetivo y el sistema califica si lo dicho
   corresponde a esa frase.
-- **FR-016**: El sistema MUST mostrar, al fallar un ejercicio de pronunciación, qué se
+- **FR-017**: El sistema MUST mostrar, al fallar un ejercicio de pronunciación, qué se
   entendió y qué se esperaba, y MUST permitir reintentar.
-- **FR-017**: El sistema MUST solicitar el permiso de micrófono explicando para qué se
+- **FR-018**: El sistema MUST solicitar el permiso de micrófono explicando para qué se
   usa, y MUST seguir funcionando si la persona lo niega.
-- **FR-018**: El sistema MUST ofrecer, para todo ejercicio de escucha o de pronunciación,
+- **FR-019**: El sistema MUST ofrecer, para todo ejercicio de escucha o de pronunciación,
   una alternativa accesible que permita aprobar la lección sin usar micrófono ni altavoz.
-- **FR-019**: El sistema MUST permitir continuar la lección tras intentos de
+- **FR-020**: El sistema MUST permitir continuar la lección tras intentos de
   pronunciación fallidos, y los fallos de reconocimiento de voz MUST NOT contarse como
   errores de contenido.
 
 **Evaluación y progresión**
 
-- **FR-020**: El sistema MUST calificar cada lección y MUST considerarla aprobada con un
+- **FR-021**: El sistema MUST calificar cada lección y MUST considerarla aprobada con un
   70 % o más de respuestas correctas.
-- **FR-021**: El sistema MUST considerar aprobado un examen de módulo o de nivel con un
+- **FR-022**: El sistema MUST considerar aprobado un examen de módulo o de nivel con un
   80 % o más de respuestas correctas.
-- **FR-022**: El sistema MUST mantener bloqueado un módulo hasta que el anterior esté
+- **FR-023**: El sistema MUST mantener bloqueado un módulo hasta que el anterior esté
   aprobado, y MUST explicar qué falta para desbloquearlo.
-- **FR-023**: El sistema MUST mantener bloqueado el nivel A2 hasta que el examen de nivel
-  de A1 esté aprobado, salvo cuando la prueba de nivelación lo haya desbloqueado según
-  FR-034.
-- **FR-024**: El sistema MUST mostrar, tras cada respuesta incorrecta, una explicación de
+- **FR-024**: El sistema MUST mantener bloqueado todo nivel con contenido hasta que el
+  examen de nivel del anterior esté aprobado, salvo cuando la nivelación lo haya marcado
+  como dominado según FR-037. Los niveles sin contenido no se desbloquean nunca: se
+  presentan como próximos según FR-038.
+- **FR-025**: El sistema MUST mostrar, tras cada respuesta incorrecta, una explicación de
   por qué la respuesta correcta lo es.
-- **FR-025**: El sistema MUST aceptar todas las variantes correctas declaradas en un
+- **FR-026**: El sistema MUST aceptar todas las variantes correctas declaradas en un
   ejercicio de rellenar huecos, y MUST ignorar diferencias de mayúsculas y espacios
   sobrantes al calificar.
-- **FR-026**: El sistema MUST permitir reintentar lecciones y exámenes, y MUST conservar
+- **FR-027**: El sistema MUST permitir reintentar lecciones y exámenes, y MUST conservar
   el mejor resultado obtenido sin degradar un módulo ya aprobado.
 
 **Repetición espaciada**
 
-- **FR-027**: El sistema MUST incorporar a una cola de repaso el vocabulario de cada
+- **FR-028**: El sistema MUST incorporar a una cola de repaso el vocabulario de cada
   módulo que la persona empieza.
-- **FR-028**: El sistema MUST programar la siguiente revisión de cada palabra según
+- **FR-029**: El sistema MUST programar la siguiente revisión de cada palabra según
   intervalos crecientes de 1, 3, 7, 16, 35 y 90 días cuando la persona la recuerda, y
   MUST reiniciar el intervalo a 1 día cuando no la recuerda.
-- **FR-029**: El sistema MUST mostrar en la pantalla principal cuántas palabras están
+- **FR-030**: El sistema MUST mostrar en la pantalla principal cuántas palabras están
   vencidas hoy, y MUST indicar explícitamente cuando no hay ninguna pendiente.
 
 **Motivación y progreso**
 
-- **FR-030**: El sistema MUST otorgar XP por la actividad completada y MUST mostrar el XP
+- **FR-031**: El sistema MUST otorgar XP por la actividad completada y MUST mostrar el XP
   acumulado.
-- **FR-031**: El sistema MUST llevar una racha de días consecutivos con actividad, MUST
+- **FR-032**: El sistema MUST llevar una racha de días consecutivos con actividad, MUST
   incrementarla una sola vez por día y MUST reiniciarla cuando pasa un día completo sin
-  actividad.
-- **FR-032**: El sistema MUST ofrecer una pantalla de progreso con el porcentaje del
+  actividad. Tras fusionar el progreso de dos dispositivos, la racha MUST recalcularse a
+  partir de la fecha de última actividad resultante, de modo que una racha caducada no
+  pueda revivir por efecto de la fusión.
+- **FR-033**: El sistema MUST ofrecer una pantalla de progreso con el porcentaje del
   nivel aprobado, los módulos superados y el tamaño de la cola de repaso.
 
 **Nivelación**
 
-- **FR-033**: El sistema MUST ofrecer una prueba de nivelación opcional al elegir el
-  idioma, MUST permitir omitirla para empezar en A1 y MUST informar el nivel asignado al
-  terminarla.
-- **FR-034**: Cuando la nivelación asigne un nivel superior a A1, el sistema MUST marcar
-  los niveles inferiores como dominados, MUST desbloquear el nivel asignado y MUST
-  mantener los niveles dominados accesibles para repaso sin que repasarlos altere el
-  nivel asignado.
-- **FR-035**: Cuando el nivel asignado no tenga contenido disponible, el sistema MUST
-  informarlo explícitamente y MUST ofrecer repasar el contenido marcado como dominado.
+- **FR-034**: El sistema MUST ofrecer una prueba de nivelación opcional al elegir el
+  idioma y MUST permitir omitirla para empezar en A1.
+- **FR-035**: Al terminar la nivelación, el sistema MUST informar el **nivel estimado**,
+  que puede ser cualquier nivel del Marco Común Europeo, incluso uno sin contenido
+  disponible. El nivel estimado es información para la persona y no determina por sí
+  solo dónde estudia.
+- **FR-036**: El sistema MUST derivar un **nivel asignado** a partir del estimado,
+  limitado al nivel más alto que tenga contenido disponible. Cuando el estimado sea
+  superior al asignado, el sistema MUST explicar la diferencia en lugar de presentar el
+  estimado como punto de partida.
+- **FR-037**: Cuando el nivel estimado sea superior a A1, el sistema MUST marcar como
+  dominados todos los niveles con contenido por debajo del estimado, MUST mantenerlos
+  accesibles para repaso y MUST NOT alterar su marca de dominado por repasarlos.
+- **FR-038**: El sistema MUST presentar los niveles sin contenido como **próximos**, con
+  un aviso explícito de que están en preparación, y MUST NOT permitir entrar en ellos.
+  Cuando no quede contenido nuevo por estudiar, MUST ofrecer repasar el contenido
+  marcado como dominado en lugar de dejar una pantalla vacía.
 
 **Persistencia, funcionamiento sin conexión y sincronización**
 
-- **FR-036**: El sistema MUST permitir completar lecciones, exámenes, audio y repasos sin
+- **FR-039**: El sistema MUST permitir completar lecciones, exámenes, audio y repasos sin
   conexión a internet, una vez iniciada la sesión por primera vez.
-- **FR-037**: El sistema MUST conservar el progreso de la persona (nivel, módulos
+- **FR-040**: El sistema MUST conservar el progreso de la persona (nivel, módulos
   aprobados, cola de repaso, XP y racha) entre cierres y reaperturas de la app.
-- **FR-038**: El sistema MUST sincronizar el progreso con la cuenta cuando haya conexión,
+- **FR-041**: El sistema MUST sincronizar el progreso con la cuenta cuando haya conexión,
   sin requerir ninguna acción de la persona.
-- **FR-039**: Al resolver diferencias entre dispositivos, el sistema MUST conservar el
+- **FR-042**: Al resolver diferencias entre dispositivos, el sistema MUST conservar el
   avance más favorable para la persona: el mejor puntaje de cada lección y examen, el XP
   y la racha más altos, y la unión de las colas de repaso con la fecha de vencimiento más
   próxima por palabra. El sistema MUST NOT descartar progreso en silencio.
-- **FR-040**: El sistema MUST avisar explícitamente cuando no logre guardar el progreso,
+- **FR-043**: El sistema MUST avisar explícitamente cuando no logre guardar el progreso,
   y MUST seguir usable durante esa sesión.
-- **FR-041**: El sistema MUST versionar los datos guardados de modo que una versión futura
+- **FR-044**: El sistema MUST versionar los datos guardados de modo que una versión futura
   de la app pueda leer el progreso creado por esta.
-- **FR-042**: El sistema MUST permitir exportar e importar una copia de seguridad del
+- **FR-045**: El sistema MUST permitir exportar e importar una copia de seguridad del
   progreso.
-- **FR-043**: El sistema MUST pedir confirmación explícita antes de borrar el progreso.
+- **FR-046**: El sistema MUST pedir confirmación explícita antes de borrar el progreso.
 
 **Presentación y accesibilidad**
 
-- **FR-044**: El sistema MUST funcionar sin desbordes ni recortes en pantallas desde
+- **FR-047**: El sistema MUST funcionar sin desbordes ni recortes en pantallas desde
   360 dp de ancho, y MUST respetar el tamaño de fuente configurado en el dispositivo.
-- **FR-045**: El sistema MUST ofrecer modo claro y modo oscuro.
-- **FR-046**: El sistema MUST exponer etiquetas descriptivas en todos los elementos
+- **FR-048**: El sistema MUST ofrecer modo claro y modo oscuro.
+- **FR-049**: El sistema MUST exponer etiquetas descriptivas en todos los elementos
   interactivos para lectores de pantalla, y MUST usar objetivos táctiles de al menos
   48 dp.
 
@@ -454,8 +479,10 @@ distintos y verificando el contador de racha y el porcentaje de avance.
 - **Progreso del estudiante**: el estado acumulado. Guarda nivel actual, estado de cada
   nivel, lecciones y módulos aprobados con su mejor puntaje, XP, racha, último día con
   actividad, estado de sincronización y versión del esquema de datos.
-- **Resultado de nivelación**: el nivel asignado por la prueba inicial, la fecha en que se
-  obtuvo y qué niveles quedaron marcados como dominados.
+- **Resultado de nivelación**: el **nivel estimado** por la prueba inicial (cualquier nivel
+  del Marco Común Europeo), el **nivel asignado** que de él se deriva (limitado al nivel más
+  alto con contenido disponible), la fecha en que se obtuvo y qué niveles quedaron marcados
+  como dominados.
 
 ## Success Criteria *(mandatory)*
 
@@ -469,7 +496,8 @@ distintos y verificando el contador de racha y el porcentaje de avance.
   audio de pronunciación— funciona con el dispositivo en modo avión, sin una sola pantalla
   bloqueada o vacía.
 - **SC-004**: El progreso hecho en un dispositivo aparece en otro con la misma cuenta en
-  menos de 30 segundos desde que hay conexión en ambos.
+  menos de 30 segundos desde que hay conexión en ambos, **sin que la persona recargue ni
+  reinicie la app** en el segundo dispositivo.
 - **SC-005**: Ninguna combinación de progreso divergente entre dos dispositivos produce
   pérdida de avance: tras sincronizar, cada lección conserva su mejor puntaje.
 - **SC-006**: Una persona puede completar una lección en 5 a 10 minutos, de modo que una
@@ -479,9 +507,10 @@ distintos y verificando el contador de racha y el porcentaje de avance.
 - **SC-008**: El 100 % de los ejercicios de escucha y de pronunciación se puede completar
   y aprobar con el micrófono denegado y el sonido apagado, usando la alternativa
   accesible.
-- **SC-009**: Nadie llega al nivel A2 sin haber obtenido al menos 80 % en el examen de A1
-  o sin haber sido ubicado ahí por la prueba de nivelación, verificable intentando todas
-  las rutas de acceso.
+- **SC-009**: Nadie estudia contenido de un nivel sin haber aprobado el examen del nivel
+  anterior con al menos 80 %, o sin que la nivelación haya marcado los anteriores como
+  dominados, verificable intentando todas las rutas de acceso. Ningún nivel sin contenido
+  es accesible por ninguna ruta.
 - **SC-010**: Todas las pantallas se usan sin desbordes ni texto cortado a 360 dp de
   ancho y con el tamaño de fuente del sistema al 130 %.
 - **SC-011**: Agregar un idioma nuevo al catálogo no exige modificar ningún archivo de la
@@ -510,9 +539,10 @@ distintos y verificando el contador de racha y el porcentaje de avance.
   el registro o el primer inicio de sesión. Desde entonces la app funciona sin red. Se
   asume que la persona tiene conexión en ese primer momento.
 - **Nivelación por encima del contenido disponible**: en esta entrega solo A1 tiene
-  contenido, así que quien sea ubicado en A2 o más arriba verá el nivel asignado "en
-  preparación" y solo podrá repasar lo marcado como dominado. Se acepta como estado
-  transitorio hasta que existan los niveles siguientes.
+  contenido. El nivel estimado puede ser cualquiera del Marco Común Europeo, pero el nivel
+  asignado se limita a A1, y A2 en adelante existen únicamente como aviso de interfaz
+  ("próximo", en preparación) hasta que se construya su contenido. Es una decisión
+  explícita del responsable del proyecto, no una limitación accidental.
 - **Calificación de la pronunciación**: se juzga si lo dicho se reconoce como la frase
   objetivo, no la calidad fonética fina. Acento y entonación no se puntúan en A1.
 - **Un solo perfil por cuenta**: no se contemplan varios estudiantes compartiendo una
