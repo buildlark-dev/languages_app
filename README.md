@@ -64,3 +64,14 @@ flutter analyze && flutter test
 
 El desarrollo sigue [Spec Kit](https://github.com/github/spec-kit):
 `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`.
+
+`main` solo avanza por pull request fusionado. La regla se refuerza con hooks
+versionados en `.githooks/`, que **cada clon nuevo debe activar una vez**:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Son una guarda local, no protección de servidor: `pre-commit` bloquea commits en
+`main` y `pre-push` bloquea pushes y borrados de `main`. Ambos admiten salida de
+emergencia (`ALLOW_MAIN_COMMIT=1`, `ALLOW_MAIN_PUSH=1`).
