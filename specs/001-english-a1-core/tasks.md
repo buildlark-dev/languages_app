@@ -217,21 +217,21 @@ de nivel se abren y cierran según el umbral del 80 %.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T100 [P] [US3] Crear `test/engine/progression_test.dart` recorriendo la **matriz completa** de transiciones de `LevelState` y rechazando toda transición descendente, además de verificar que ningún nivel de `upcomingLevelIds` puede alcanzar `unlocked` por ninguna vía
+- [X] T100 [P] [US3] Crear `test/engine/progression_test.dart` recorriendo la **matriz completa** de transiciones de `LevelState` y rechazando toda transición descendente, además de verificar que ningún nivel de `upcomingLevelIds` puede alcanzar `unlocked` por ninguna vía
 
 ### Implementation for User Story 3
 
-- [ ] T101 [US3] Crear `lib/engine/progression.dart` con el desbloqueo de módulo y de nivel, y las cinco transiciones válidas de `data-model.md`. Los niveles sin contenido **no tienen estado**: no son `Level` y no aparecen en `levelStates`
-- [ ] T102 [P] [US3] Crear `lib/ui/widgets/level_card.dart`
-- [ ] T103 [P] [US3] Crear `lib/ui/widgets/module_tile.dart`
-- [ ] T104 [P] [US3] Crear `lib/ui/widgets/locked_notice.dart` que explique **qué falta** para desbloquear, no solo que está bloqueado
-- [ ] T105 [P] [US3] Crear `lib/ui/widgets/upcoming_level_notice.dart` que dibuje los niveles de `upcomingLevelIds` como "próximo · en preparación", **sin ruta de entrada** (FR-038)
-- [ ] T106 [US3] Crear `lib/ui/screens/level_map_screen.dart` con los niveles con contenido y los anunciados (depende de T102, T105)
-- [ ] T107 [US3] Crear `lib/ui/screens/module_screen.dart` con el objetivo "puedo hacer X" visible antes de empezar (FR-011)
-- [ ] T108 [US3] Crear `lib/ui/screens/exam_screen.dart` para exámenes de módulo y de nivel, con umbral 0.80
-- [ ] T109 [US3] Al aprobar el examen de nivel, desbloquear el siguiente nivel **con contenido** si existe, en la misma transacción
-- [ ] T110 [P] [US3] Crear `test/ui/screens/level_map_screen_test.dart` verificando que un nivel anunciado no abre nada al tocarlo
-- [ ] T111 [P] [US3] Crear `test/ui/screens/module_screen_test.dart` y `test/ui/screens/exam_screen_test.dart`
+- [X] T101 [US3] Crear `lib/engine/progression.dart` con el desbloqueo de módulo y de nivel, y las cinco transiciones válidas de `data-model.md`. Los niveles sin contenido **no tienen estado**: no son `Level` y no aparecen en `levelStates`
+- [X] T102 [P] [US3] Crear `lib/ui/widgets/level_card.dart`
+- [X] T103 [P] [US3] Crear `lib/ui/widgets/module_tile.dart`
+- [X] T104 [P] [US3] Crear `lib/ui/widgets/locked_notice.dart` que explique **qué falta** para desbloquear, no solo que está bloqueado
+- [X] T105 [P] [US3] Crear `lib/ui/widgets/upcoming_level_notice.dart` que dibuje los niveles de `upcomingLevelIds` como "próximo · en preparación", **sin ruta de entrada** (FR-038)
+- [X] T106 [US3] Crear `lib/ui/screens/level_map_screen.dart` con los niveles con contenido y los anunciados (depende de T102, T105)
+- [X] T107 [US3] Crear `lib/ui/screens/module_screen.dart` con el objetivo "puedo hacer X" visible antes de empezar (FR-011)
+- [X] T108 [US3] Crear `lib/ui/screens/exam_screen.dart` para exámenes de módulo y de nivel, con umbral 0.80
+- [X] T109 [US3] Al aprobar el examen de nivel, desbloquear el siguiente nivel **con contenido** si existe, en la misma transacción
+- [X] T110 [P] [US3] Crear `test/ui/screens/level_map_screen_test.dart` verificando que un nivel anunciado no abre nada al tocarlo
+- [X] T111 [P] [US3] Crear `test/ui/screens/module_screen_test.dart` y `test/ui/screens/exam_screen_test.dart`
 
 **Checkpoint**: la ruta de A1 es recorrible de principio a fin con sus puertas funcionando.
 
