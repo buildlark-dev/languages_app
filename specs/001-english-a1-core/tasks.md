@@ -107,7 +107,7 @@ externa creada.
 
 ### Contenido de inglés A1
 
-- [ ] T044 [P] Crear `lib/content/en/a1_module1_identity.dart`: módulo `A1M1`, `order: 1`, "Identidad y saludos", con `canDo`, 12 ítems de vocabulario, gramática de `to be` y pronombres, 5 ejemplos bilingües, lectura "A new neighbour", y lecciones con opción múltiple, construir frases, huecos, **al menos un ejercicio de escucha y uno de pronunciación**. Fuente: `Study/ruta-de-ingles.html`
+- [X] T044 [P] Crear `lib/content/en/a1_module1_identity.dart`: módulo `A1M1`, `order: 1`, "Identidad y saludos", con `canDo`, 12 ítems de vocabulario, gramática de `to be` y pronombres, 5 ejemplos bilingües, lectura "A new neighbour", y lecciones con opción múltiple, construir frases, huecos, **al menos un ejercicio de escucha y uno de pronunciación**. Fuente: `Study/ruta-de-ingles.html`
 - [ ] T045 [P] Crear `lib/content/en/a1_module2_home_city.dart`: módulo `A1M2`, `order: 2`, "Mi casa y mi ciudad", mismos mínimos
 - [ ] T046 [P] Crear `lib/content/en/a1_module3_routines.dart`: módulo `A1M3`, `order: 3`, "Rutinas y horarios", mismos mínimos
 - [ ] T047 [P] Crear `lib/content/en/a1_module4_likes.dart`: módulo `A1M4`, `order: 4`, "Gustos y capacidades", mismos mínimos
@@ -116,7 +116,7 @@ externa creada.
 - [ ] T050 [P] Crear `lib/content/en/placement_test_en.dart` donde **cada ejercicio declara el nivel MCER que discrimina**, cubriendo A1 a C1. Puede incluir niveles sin contenido: la prueba estima el nivel real de la persona, no el nivel al que la app puede llevarla
 - [ ] T051 Crear `lib/content/en/english_course.dart` que implemente `ContentPack` con `levels: [A1]` y `upcomingLevelIds: ['A2', 'B1', 'B2', 'C1', 'C2']` (depende de T044 a T050)
 - [ ] T052 Crear `lib/content/catalog.dart` con la lista de paquetes disponibles. Es el **único** archivo que importa contenido concreto, y solo `main.dart` lo importa a él
-- [ ] T053 Crear `test/content/en/a1_integrity_test.dart` verificando las **22 invariantes** de `contracts/content-pack.md`: ids únicos, `order` consecutivo, mínimos de vocabulario y ejercicios, `canDo` no vacío, `explanation` no vacía en todo ejercicio, al menos un ejercicio de escucha y uno de pronunciación por módulo, alternativa accesible declarada en todos los orales, `answerIndex` en rango, y `upcomingLevelIds` posteriores a `levels` y sin intersección
+- [X] T053 Crear `test/content/en/a1_integrity_test.dart` verificando las **22 invariantes** de `contracts/content-pack.md`: ids únicos, `order` consecutivo, mínimos de vocabulario y ejercicios, `canDo` no vacío, `explanation` no vacía en todo ejercicio, al menos un ejercicio de escucha y uno de pronunciación por módulo, alternativa accesible declarada en todos los orales, `answerIndex` en rango, y `upcomingLevelIds` posteriores a `levels` y sin intersección
 
 ### Armazón de la app
 
