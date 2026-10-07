@@ -281,15 +281,26 @@ inyectado (D9 de research.md).
 
 ## Verificación de las reglas de seguridad
 
-Obligatoria, con el emulador de Firestore:
+Obligatoria. Arrancar el emulador en una terminal:
 
 ```bash
-firebase emulators:start --only firestore
+firebase emulators:start --only firestore --project languages-buildlark
 ```
 
-Comprobar que una sesión autenticada **no** puede leer el documento de otro `uid`, y que
-una petición sin sesión es rechazada. Una revisión visual de `firestore.rules` no sustituye
-esta prueba.
+Y en otra, ejecutar el script que comprueba las seis condiciones:
+
+```bash
+sh tool/verify_firestore_rules.sh
+```
+
+Verifica que `u1` puede leer y escribir su propio progreso, que `u2` **no** puede ni leerlo
+ni escribirlo, que sin sesión se rechaza, y que ninguna otra ruta queda abierta. Usa JWT sin
+firmar, que es la forma documentada de probar reglas por HTTP sin depender de las
+bibliotecas de JavaScript.
+
+Una revisión visual de `firestore.rules` no sustituye esto: las reglas son el único
+mecanismo que separa el progreso de un estudiante del de otro, y su comportamiento solo se
+conoce ejecutándolas.
 
 ---
 

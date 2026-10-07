@@ -158,18 +158,18 @@ segundo destino y comprobar que el estado coincide sin recargar.
 - [X] T069 [US1] Desactivar la persistencia local de Firestore en la inicialización de `lib/main.dart`, para no tener dos cachés compitiendo con Drift
 - [X] T070 [US1] Implementar `remoteChanges` en `lib/services/sync/firestore_sync_service.dart` como suscripción en vivo al documento; cada emisión se fusiona con la **misma** `progress_merger` y se escribe en Drift. Es lo que hace cumplible SC-004 sin recargar
 - [X] T071 [US1] Crear `lib/services/sync/sync_scheduler.dart` que empuje al iniciar sesión, al terminar lección o examen, al terminar repaso, al recuperar conexión y al pasar a segundo plano, sin bloquear nunca la interfaz
-- [ ] T072 [P] [US1] Crear `lib/ui/providers/auth_providers.dart` exponiendo el estado de sesión
-- [ ] T073 [P] [US1] Crear `lib/ui/providers/progress_providers.dart` exponiendo progreso y estado de sincronización
-- [ ] T074 [P] [US1] Crear `lib/ui/screens/sign_up_screen.dart` con correo y contraseña **únicamente**; sin nombre, fecha de nacimiento, teléfono ni ubicación (FR-006)
-- [ ] T075 [P] [US1] Crear `lib/ui/screens/sign_in_screen.dart` que conserve lo escrito al fallar y ofrezca reintentar
-- [ ] T076 [P] [US1] Crear `lib/ui/screens/password_reset_screen.dart`
-- [ ] T077 [US1] Crear `lib/app/auth_gate.dart` que decida entre flujo de acceso y de estudio según `authStateChanges`
-- [ ] T078 [P] [US1] Crear `lib/ui/widgets/sync_banner.dart` que muestre cambios pendientes y el último error de sincronización
-- [ ] T079 [P] [US1] Crear `lib/ui/widgets/offline_notice.dart` que avise cuando el almacenamiento esté degradado o falte conexión en el primer arranque
-- [ ] T080 [US1] Añadir al cierre de sesión la advertencia de qué progreso quedaría sin respaldar y la confirmación explícita (FR-005)
-- [ ] T081 [P] [US1] Crear `test/ui/screens/sign_in_screen_test.dart` y `test/ui/screens/sign_up_screen_test.dart` cubriendo los 8 errores tipados, incluido `noConnection` del primer arranque
-- [ ] T082 [P] [US1] Crear `test/services/sync/firestore_sync_service_test.dart` verificando que `pushMerged` nunca sobrescribe y que una emisión ya fusionada no tiene efecto
-- [ ] T083 [US1] Verificar `firestore.rules` con el emulador de Firestore: una sesión autenticada **no** puede leer el documento de otro `uid`, y una petición sin sesión es rechazada
+- [X] T072 [P] [US1] Crear `lib/ui/providers/auth_providers.dart` exponiendo el estado de sesión
+- [X] T073 [P] [US1] Crear `lib/ui/providers/progress_providers.dart` exponiendo progreso y estado de sincronización
+- [X] T074 [P] [US1] Crear `lib/ui/screens/sign_up_screen.dart` con correo y contraseña **únicamente**; sin nombre, fecha de nacimiento, teléfono ni ubicación (FR-006)
+- [X] T075 [P] [US1] Crear `lib/ui/screens/sign_in_screen.dart` que conserve lo escrito al fallar y ofrezca reintentar
+- [X] T076 [P] [US1] Crear `lib/ui/screens/password_reset_screen.dart`
+- [X] T077 [US1] Crear `lib/app/auth_gate.dart` que decida entre flujo de acceso y de estudio según `authStateChanges`
+- [X] T078 [P] [US1] Crear `lib/ui/widgets/sync_banner.dart` que muestre cambios pendientes y el último error de sincronización
+- [X] T079 [P] [US1] Crear `lib/ui/widgets/offline_notice.dart` que avise cuando el almacenamiento esté degradado o falte conexión en el primer arranque
+- [X] T080 [US1] Añadir al cierre de sesión la advertencia de qué progreso quedaría sin respaldar y la confirmación explícita (FR-005)
+- [X] T081 [P] [US1] Crear `test/ui/screens/sign_in_screen_test.dart` y `test/ui/screens/sign_up_screen_test.dart` cubriendo los 8 errores tipados, incluido `noConnection` del primer arranque
+- [X] T082 [P] [US1] Crear `test/services/sync/firestore_sync_service_test.dart` verificando que `pushMerged` nunca sobrescribe y que una emisión ya fusionada no tiene efecto
+- [X] T083 [US1] Verificar `firestore.rules` con el emulador de Firestore: una sesión autenticada **no** puede leer el documento de otro `uid`, y una petición sin sesión es rechazada
 
 **Checkpoint**: cuenta funcional y progreso sincronizado entre dos destinos sin recargar.
 

@@ -102,5 +102,83 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+
+  "signInTitle": "Entrar",
+  "@signInTitle": {"description": "Título de la pantalla de inicio de sesión"},
+
+  "signUpTitle": "Crear cuenta",
+  "@signUpTitle": {"description": "Título de la pantalla de registro"},
+
+  "passwordResetTitle": "Recuperar el acceso",
+  "@passwordResetTitle": {"description": "Título de la pantalla de restablecimiento"},
+
+  "emailLabel": "Correo electrónico",
+  "@emailLabel": {"description": "Etiqueta del campo de correo"},
+
+  "passwordLabel": "Contraseña",
+  "@passwordLabel": {"description": "Etiqueta del campo de contraseña"},
+
+  "signUpPrompt": "¿No tienes cuenta? Créala",
+  "@signUpPrompt": {"description": "Enlace desde acceso hacia registro"},
+
+  "signInPrompt": "¿Ya tienes cuenta? Entra",
+  "@signInPrompt": {"description": "Enlace desde registro hacia acceso"},
+
+  "forgotPassword": "Olvidé mi contraseña",
+  "@forgotPassword": {"description": "Enlace hacia el restablecimiento"},
+
+  "sendResetEmail": "Enviar instrucciones",
+  "@sendResetEmail": {"description": "Botón de envío del correo de restablecimiento"},
+
+  "resetEmailSent": "Te enviamos las instrucciones por correo. Revisa también la carpeta de spam.",
+  "@resetEmailSent": {"description": "Confirmación tras enviar el restablecimiento"},
+
+  "onlyEmailAndPassword": "Solo pedimos correo y contraseña. Nada más.",
+  "@onlyEmailAndPassword": {"description": "Aclaración de privacidad en el registro (FR-006)"},
+
+  "signOut": "Cerrar sesión",
+  "@signOut": {"description": "Acción de cerrar sesión"},
+
+  "signOutWarningTitle": "¿Cerrar sesión?",
+  "@signOutWarningTitle": {"description": "Título del diálogo de cierre de sesión"},
+
+  "signOutWarningSynced": "Tu progreso está respaldado en la nube. Podrás recuperarlo al volver a entrar.",
+  "@signOutWarningSynced": {"description": "Mensaje cuando no hay cambios pendientes"},
+
+  "signOutWarningPending": "Tienes avance que todavía no llegó a la nube. Si cierras sesión ahora, lo perderás.",
+  "@signOutWarningPending": {"description": "Advertencia de cierre de sesión con cambios pendientes (FR-005)"},
+
+  "cancel": "Cancelar",
+  "@cancel": {"description": "Botón de cancelación"},
+
+  "syncPending": "Guardando tu avance…",
+  "@syncPending": {"description": "Aviso de sincronización en curso o pendiente"},
+
+  "syncFailed": "No pudimos guardar tu avance en la nube. Lo reintentaremos.",
+  "@syncFailed": {"description": "Aviso de fallo de sincronización (FR-043)"},
+
+  "authErrorInvalidEmail": "Ese correo no parece válido.",
+  "@authErrorInvalidEmail": {"description": "Error: correo mal formado"},
+
+  "authErrorWeakPassword": "La contraseña es demasiado corta. Usa al menos seis caracteres.",
+  "@authErrorWeakPassword": {"description": "Error: contraseña débil"},
+
+  "authErrorEmailInUse": "Ya existe una cuenta con ese correo. Prueba a entrar.",
+  "@authErrorEmailInUse": {"description": "Error: correo ya registrado"},
+
+  "authErrorWrongCredentials": "El correo o la contraseña no coinciden.",
+  "@authErrorWrongCredentials": {"description": "Error: credenciales incorrectas"},
+
+  "authErrorUserNotFound": "No encontramos ninguna cuenta con ese correo.",
+  "@authErrorUserNotFound": {"description": "Error: cuenta inexistente"},
+
+  "authErrorTooManyAttempts": "Demasiados intentos. Espera unos minutos y vuelve a probar.",
+  "@authErrorTooManyAttempts": {"description": "Error: demasiados intentos"},
+
+  "authErrorNoConnection": "Sin conexión. Para crear tu cuenta o entrar la primera vez hace falta internet; después podrás estudiar sin él.",
+  "@authErrorNoConnection": {"description": "Error: sin red, con la explicación de FR-004"},
+
+  "authErrorUnknown": "Algo falló. Vuelve a intentarlo.",
+  "@authErrorUnknown": {"description": "Error: causa desconocida"}
 }

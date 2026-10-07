@@ -195,6 +195,162 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count} XP'**
   String xpTotal(num count);
+
+  /// Título de la pantalla de inicio de sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar'**
+  String get signInTitle;
+
+  /// Título de la pantalla de registro
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get signUpTitle;
+
+  /// Título de la pantalla de restablecimiento
+  ///
+  /// In es, this message translates to:
+  /// **'Recuperar el acceso'**
+  String get passwordResetTitle;
+
+  /// Etiqueta del campo de correo
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get emailLabel;
+
+  /// Etiqueta del campo de contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get passwordLabel;
+
+  /// Enlace desde acceso hacia registro
+  ///
+  /// In es, this message translates to:
+  /// **'¿No tienes cuenta? Créala'**
+  String get signUpPrompt;
+
+  /// Enlace desde registro hacia acceso
+  ///
+  /// In es, this message translates to:
+  /// **'¿Ya tienes cuenta? Entra'**
+  String get signInPrompt;
+
+  /// Enlace hacia el restablecimiento
+  ///
+  /// In es, this message translates to:
+  /// **'Olvidé mi contraseña'**
+  String get forgotPassword;
+
+  /// Botón de envío del correo de restablecimiento
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar instrucciones'**
+  String get sendResetEmail;
+
+  /// Confirmación tras enviar el restablecimiento
+  ///
+  /// In es, this message translates to:
+  /// **'Te enviamos las instrucciones por correo. Revisa también la carpeta de spam.'**
+  String get resetEmailSent;
+
+  /// Aclaración de privacidad en el registro (FR-006)
+  ///
+  /// In es, this message translates to:
+  /// **'Solo pedimos correo y contraseña. Nada más.'**
+  String get onlyEmailAndPassword;
+
+  /// Acción de cerrar sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar sesión'**
+  String get signOut;
+
+  /// Título del diálogo de cierre de sesión
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cerrar sesión?'**
+  String get signOutWarningTitle;
+
+  /// Mensaje cuando no hay cambios pendientes
+  ///
+  /// In es, this message translates to:
+  /// **'Tu progreso está respaldado en la nube. Podrás recuperarlo al volver a entrar.'**
+  String get signOutWarningSynced;
+
+  /// Advertencia de cierre de sesión con cambios pendientes (FR-005)
+  ///
+  /// In es, this message translates to:
+  /// **'Tienes avance que todavía no llegó a la nube. Si cierras sesión ahora, lo perderás.'**
+  String get signOutWarningPending;
+
+  /// Botón de cancelación
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get cancel;
+
+  /// Aviso de sincronización en curso o pendiente
+  ///
+  /// In es, this message translates to:
+  /// **'Guardando tu avance…'**
+  String get syncPending;
+
+  /// Aviso de fallo de sincronización (FR-043)
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos guardar tu avance en la nube. Lo reintentaremos.'**
+  String get syncFailed;
+
+  /// Error: correo mal formado
+  ///
+  /// In es, this message translates to:
+  /// **'Ese correo no parece válido.'**
+  String get authErrorInvalidEmail;
+
+  /// Error: contraseña débil
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña es demasiado corta. Usa al menos seis caracteres.'**
+  String get authErrorWeakPassword;
+
+  /// Error: correo ya registrado
+  ///
+  /// In es, this message translates to:
+  /// **'Ya existe una cuenta con ese correo. Prueba a entrar.'**
+  String get authErrorEmailInUse;
+
+  /// Error: credenciales incorrectas
+  ///
+  /// In es, this message translates to:
+  /// **'El correo o la contraseña no coinciden.'**
+  String get authErrorWrongCredentials;
+
+  /// Error: cuenta inexistente
+  ///
+  /// In es, this message translates to:
+  /// **'No encontramos ninguna cuenta con ese correo.'**
+  String get authErrorUserNotFound;
+
+  /// Error: demasiados intentos
+  ///
+  /// In es, this message translates to:
+  /// **'Demasiados intentos. Espera unos minutos y vuelve a probar.'**
+  String get authErrorTooManyAttempts;
+
+  /// Error: sin red, con la explicación de FR-004
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión. Para crear tu cuenta o entrar la primera vez hace falta internet; después podrás estudiar sin él.'**
+  String get authErrorNoConnection;
+
+  /// Error: causa desconocida
+  ///
+  /// In es, this message translates to:
+  /// **'Algo falló. Vuelve a intentarlo.'**
+  String get authErrorUnknown;
 }
 
 class _AppLocalizationsDelegate

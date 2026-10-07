@@ -10,9 +10,7 @@ import 'package:languages_app/services/auth/auth_service.dart';
 
 class FakeAuthService implements AuthService {
   FakeAuthService({StudentIdentity? initialUser, this.failWith})
-    : _currentUser = initialUser {
-    _controller.add(_currentUser);
-  }
+    : _currentUser = initialUser;
 
   /// Si no es nulo, toda operación falla con este motivo.
   AuthFailure? failWith;
@@ -27,8 +25,17 @@ class FakeAuthService implements AuthService {
   @override
   StudentIdentity? get currentUser => _currentUser;
 
+  /// Emite el estado actual al suscribirse y después los cambios.
+  ///
+  /// Imitar eso importa: `FirebaseAuth.authStateChanges()` se comporta así, y un
+  /// doble que solo emitiera los cambios posteriores dejaría la app esperando
+  /// para siempre en la pantalla de carga, porque un `StreamController.broadcast`
+  /// descarta lo que se añade sin oyentes.
   @override
-  Stream<StudentIdentity?> get authStateChanges => _controller.stream;
+  Stream<StudentIdentity?> get authStateChanges async* {
+    yield _currentUser;
+    yield* _controller.stream;
+  }
 
   @override
   Future<StudentIdentity> signUp({
