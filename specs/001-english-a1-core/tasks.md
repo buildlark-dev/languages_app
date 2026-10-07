@@ -246,27 +246,27 @@ ruta alternativa con el micrófono denegado.
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T112 [P] [US4] Crear `test/fakes/fake_tts_service.dart` capaz de devolver cada valor de `TtsAvailability`: `available`, `languageMissing`, `engineMissing`, `unsupportedPlatform`
-- [ ] T113 [P] [US4] Crear `test/fakes/fake_stt_service.dart` capaz de devolver cada valor de `SttAvailability` y cada variante de `SttOutcome`. La ruta alternativa es un requisito verificable, no un caso excepcional
-- [ ] T114 [P] [US4] Crear `test/engine/pronunciation_matcher_test.dart` con diferencias de mayúsculas, puntuación, espacios y palabras sobrantes
+- [X] T112 [P] [US4] Crear `test/fakes/fake_tts_service.dart` capaz de devolver cada valor de `TtsAvailability`: `available`, `languageMissing`, `engineMissing`, `unsupportedPlatform`
+- [X] T113 [P] [US4] Crear `test/fakes/fake_stt_service.dart` capaz de devolver cada valor de `SttAvailability` y cada variante de `SttOutcome`. La ruta alternativa es un requisito verificable, no un caso excepcional
+- [X] T114 [P] [US4] Crear `test/engine/pronunciation_matcher_test.dart` con diferencias de mayúsculas, puntuación, espacios y palabras sobrantes
 
 ### Implementation for User Story 4
 
-- [ ] T115 [US4] Crear `lib/engine/pronunciation_matcher.dart` que compare el texto reconocido con la frase objetivo normalizando a minúsculas, quitando puntuación y colapsando espacios. **No** puntúa acento ni entonación
-- [ ] T116 [P] [US4] Crear `lib/services/speech/tts_service.dart` con el contrato `initialize`, `speak`, `stop`, `setRate` y el enum `TtsAvailability`
-- [ ] T117 [US4] Crear `lib/services/speech/flutter_tts_service.dart` cuyo `initialize` consulte `getLanguages` y **no asuma** que existe la voz en inglés; `speak` es no-op silencioso si no está disponible
-- [ ] T118 [P] [US4] Crear `lib/services/speech/stt_service.dart` con el contrato `checkAvailability`, `requestPermission`, `listenOnce`, `cancel`, y los tipos `SttAvailability` y `SttOutcome`
-- [ ] T119 [P] [US4] Crear `lib/services/speech/speech_availability.dart` que resuelva qué ruta usar antes de pedir permisos
-- [ ] T120 [US4] Crear `lib/services/speech/speech_to_text_service.dart` con la **degradación en tres pasos**: `SpeechListenOptions(onDevice: true)` primero; si la sesión falla y hay red, el reconocedor del sistema; si no hay ninguno, `failedUseAlternative`. El paso 3 no es un error
-- [ ] T121 [P] [US4] Crear `lib/ui/providers/speech_providers.dart`
-- [ ] T122 [P] [US4] Crear `lib/ui/widgets/accessible_alternative.dart` reutilizable por los dos tipos de ejercicio oral
-- [ ] T123 [US4] Crear `lib/ui/widgets/listening_exercise.dart` con audio repetible y `transcriptFallback` cuando no haya voz disponible
-- [ ] T124 [US4] Crear `lib/ui/widgets/pronunciation_exercise.dart` que muestre **qué se entendió y qué se esperaba** al fallar, y permita reintentar (FR-017)
-- [ ] T125 [US4] Pedir el permiso de micrófono **solo** cuando la persona vaya a usarlo, explicando antes para qué sirve; nunca al arrancar la app (FR-018)
-- [ ] T126 [US4] Garantizar que `failedUseAlternative` y `noSpeechDetected` **no** cuentan como respuesta incorrecta, y que tras varios intentos se puede continuar (FR-020)
-- [ ] T127 [US4] Añadir el botón de escucha a `vocabulary_card.dart` y `bilingual_example_tile.dart`
-- [ ] T128 [P] [US4] Crear `test/ui/widgets/pronunciation_exercise_test.dart` verificando que la lección **se aprueba** con el micrófono denegado usando la alternativa
-- [ ] T129 [P] [US4] Crear `test/ui/widgets/listening_exercise_test.dart` con `languageMissing`, comprobando que se presenta el transcript y no un control de audio mudo
+- [X] T115 [US4] Crear `lib/engine/pronunciation_matcher.dart` que compare el texto reconocido con la frase objetivo normalizando a minúsculas, quitando puntuación y colapsando espacios. **No** puntúa acento ni entonación
+- [X] T116 [P] [US4] Crear `lib/services/speech/tts_service.dart` con el contrato `initialize`, `speak`, `stop`, `setRate` y el enum `TtsAvailability`
+- [X] T117 [US4] Crear `lib/services/speech/flutter_tts_service.dart` cuyo `initialize` consulte `getLanguages` y **no asuma** que existe la voz en inglés; `speak` es no-op silencioso si no está disponible
+- [X] T118 [P] [US4] Crear `lib/services/speech/stt_service.dart` con el contrato `checkAvailability`, `requestPermission`, `listenOnce`, `cancel`, y los tipos `SttAvailability` y `SttOutcome`
+- [X] T119 [P] [US4] Crear `lib/services/speech/speech_availability.dart` que resuelva qué ruta usar antes de pedir permisos
+- [X] T120 [US4] Crear `lib/services/speech/speech_to_text_service.dart` con la **degradación en tres pasos**: `SpeechListenOptions(onDevice: true)` primero; si la sesión falla y hay red, el reconocedor del sistema; si no hay ninguno, `failedUseAlternative`. El paso 3 no es un error
+- [X] T121 [P] [US4] Crear `lib/ui/providers/speech_providers.dart`
+- [X] T122 [P] [US4] Crear `lib/ui/widgets/accessible_alternative.dart` reutilizable por los dos tipos de ejercicio oral
+- [X] T123 [US4] Crear `lib/ui/widgets/listening_exercise.dart` con audio repetible y `transcriptFallback` cuando no haya voz disponible
+- [X] T124 [US4] Crear `lib/ui/widgets/pronunciation_exercise.dart` que muestre **qué se entendió y qué se esperaba** al fallar, y permita reintentar (FR-017)
+- [X] T125 [US4] Pedir el permiso de micrófono **solo** cuando la persona vaya a usarlo, explicando antes para qué sirve; nunca al arrancar la app (FR-018)
+- [X] T126 [US4] Garantizar que `failedUseAlternative` y `noSpeechDetected` **no** cuentan como respuesta incorrecta, y que tras varios intentos se puede continuar (FR-020)
+- [X] T127 [US4] Añadir el botón de escucha a `vocabulary_card.dart` y `bilingual_example_tile.dart`
+- [X] T128 [P] [US4] Crear `test/ui/widgets/pronunciation_exercise_test.dart` verificando que la lección **se aprueba** con el micrófono denegado usando la alternativa
+- [X] T129 [P] [US4] Crear `test/ui/widgets/listening_exercise_test.dart` con `languageMissing`, comprobando que se presenta el transcript y no un control de audio mudo
 
 **Checkpoint**: las cuatro destrezas operativas, aprobables sin micrófono y sin altavoz.
 

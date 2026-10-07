@@ -14,6 +14,7 @@ import '../../core/vocabulary_item.dart';
 import '../widgets/bilingual_example_tile.dart';
 import '../widgets/grammar_panel.dart';
 import '../widgets/reading_passage_view.dart';
+import '../widgets/listen_button.dart';
 import '../widgets/vocabulary_card.dart';
 
 class LessonStudyView extends StatelessWidget {
@@ -49,7 +50,12 @@ class LessonStudyView extends StatelessWidget {
       Text('Vocabulario', style: Theme.of(context).textTheme.titleMedium),
       const SizedBox(height: 8),
       for (final VocabularyItem item in module.vocabulary)
-        VocabularyCard(item: item),
+        VocabularyCard(
+          item: item,
+          // El botón se dibuja solo si hay voz disponible: no aparece un control
+          // de audio que no suena.
+          trailing: ListenButton(text: item.textToSpeak),
+        ),
       const SizedBox(height: 24),
       Text('Gramática', style: Theme.of(context).textTheme.titleMedium),
       const SizedBox(height: 8),
@@ -57,7 +63,10 @@ class LessonStudyView extends StatelessWidget {
       const SizedBox(height: 24),
       Text('Ejemplos', style: Theme.of(context).textTheme.titleMedium),
       for (final BilingualExample example in module.examples)
-        BilingualExampleTile(example: example),
+        BilingualExampleTile(
+          example: example,
+          trailing: ListenButton(text: example.target),
+        ),
       if (lesson.readingRef != null) ...<Widget>[
         const SizedBox(height: 24),
         Text('Lectura', style: Theme.of(context).textTheme.titleMedium),

@@ -22,6 +22,7 @@ import '../../engine/answer_matcher.dart';
 import '../../engine/lesson_session.dart';
 import '../../engine/scoring.dart';
 import '../widgets/feedback_panel.dart';
+import '../widgets/pronunciation_exercise_view.dart';
 import '../widgets/reading_passage_view.dart';
 import 'lesson_exercise_body.dart';
 
@@ -34,6 +35,7 @@ class ExerciseRunner extends StatefulWidget {
     required this.kind,
     required this.onCompleted,
     required this.onFinishedBuilder,
+    this.languageTag = 'en-US',
     this.supportingPassage,
     super.key,
   });
@@ -41,6 +43,9 @@ class ExerciseRunner extends StatefulWidget {
   final List<Exercise> exercises;
   final ActivityKind kind;
   final ExercisesCompleted onCompleted;
+
+  /// Idioma del curso, para la voz.
+  final String languageTag;
 
   /// Qué mostrar al terminar. Lo decide la pantalla que lo usa.
   final Widget Function(ScoreResult result, VoidCallback onRetry)
@@ -146,6 +151,27 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
     await _reportIfNeeded();
   }
 
+  /// Resuelve un intento de pronunciación.
+  ///
+  /// `unavailable` **avanza sin contar** ni como acierto ni como fallo: sale del
+  /// denominador de la nota (FR-020), que es lo que hace alcanzable SC-008.
+  Future<void> _handlePronunciation(PronunciationAttempt attempt) async {
+    switch (attempt) {
+      case PronunciationAttempt.correct:
+        setState(() => _lastCorrect = true);
+      case PronunciationAttempt.incorrect:
+        setState(() => _lastCorrect = false);
+      case PronunciationAttempt.unavailable:
+        _session.skipAsUnavailable();
+        if (!_session.isComplete) {
+          setState(_resetExercise);
+          return;
+        }
+        setState(_resetExercise);
+        await _reportIfNeeded();
+    }
+  }
+
   void _retry() => setState(() {
     _session = _newSession();
     _saved = false;
@@ -196,6 +222,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
                 answered: answered,
                 choice: _choice,
                 chosenTokens: _chosenTokens,
+                languageTag: widget.languageTag,
                 onChoice: (int i) => setState(() => _choice = i),
                 onTyped: (String v) => setState(() => _typed = v),
                 onToggleToken: (int i) => setState(() {
@@ -204,6 +231,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
                       : <int>[..._chosenTokens, i];
                 }),
                 onSubmit: _check,
+                onPronunciationAttempt: _handlePronunciation,
               ),
               const SizedBox(height: 24),
               if (answered)
@@ -213,10 +241,13 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
                   expectedAnswer: expectedAnswerOf(exercise),
                 ),
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: answered ? _advance : (canCheck ? _check : null),
-                child: Text(answered ? 'Continuar' : 'Comprobar'),
-              ),
+              // La pronunciación tiene sus propios botones dentro del ejercicio,
+              // así que aquí solo aparece el de avanzar una vez resuelta.
+              if (exercise is! PronunciationExercise || answered)
+                FilledButton(
+                  onPressed: answered ? _advance : (canCheck ? _check : null),
+                  child: Text(answered ? 'Continuar' : 'Comprobar'),
+                ),
             ],
           ),
         ),

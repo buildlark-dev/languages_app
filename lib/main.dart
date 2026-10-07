@@ -12,6 +12,8 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'app/app.dart';
 import 'content/catalog.dart';
@@ -19,17 +21,18 @@ import 'firebase_options.dart';
 import 'services/auth/firebase_auth_service.dart';
 import 'services/db/app_database.dart';
 import 'services/db/database_opener.dart';
+import 'services/speech/flutter_tts_service.dart';
+import 'services/speech/speech_to_text_service.dart';
 import 'services/sync/firestore_sync_service.dart';
 import 'ui/providers/auth_providers.dart';
 import 'ui/providers/content_providers.dart';
 import 'ui/providers/progress_providers.dart';
+import 'ui/providers/speech_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Se desactiva la caché local de Firestore a propósito.
   //
@@ -67,6 +70,13 @@ Future<void> main() async {
           FirestoreSyncService(FirebaseFirestore.instance),
         ),
         storageDegradedProvider.overrideWithValue(store.degraded),
+        // La voz se inicializa de forma perezosa, al preparar el curso: consultar
+        // las voces del sistema tarda, y hacerlo en el arranque retrasaría la
+        // primera pantalla sin que nadie lo necesite todavía.
+        ttsServiceProvider.overrideWithValue(FlutterTtsService(FlutterTts())),
+        sttServiceProvider.overrideWithValue(
+          SpeechToTextService(stt.SpeechToText()),
+        ),
       ],
       child: const LanguagesApp(),
     ),

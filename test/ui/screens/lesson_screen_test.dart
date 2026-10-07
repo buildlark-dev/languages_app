@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:languages_app/app/l10n/app_localizations.dart';
 import 'package:languages_app/app/theme.dart';
@@ -11,6 +12,10 @@ import 'package:languages_app/core/module.dart';
 import 'package:languages_app/engine/scoring.dart';
 import 'package:languages_app/ui/screens/lesson_screen.dart';
 
+import 'package:languages_app/ui/providers/speech_providers.dart';
+
+import '../../fakes/fake_stt_service.dart';
+import '../../fakes/fake_tts_service.dart';
 import '../../fakes/test_lesson.dart';
 
 void main() {
@@ -18,7 +23,14 @@ void main() {
 
   setUp(() => saved = <ScoreResult>[]);
 
-  Widget wrap(Module module, Lesson lesson) => MaterialApp(
+  // Sin llamar a prepare(), la disponibilidad de voz es «ninguna», que es el caso
+  // de SC-008: los ejercicios orales se resuelven por su alternativa accesible.
+  Widget wrap(Module module, Lesson lesson) => ProviderScope(
+    overrides: [
+      ttsServiceProvider.overrideWithValue(FakeTtsService()),
+      sttServiceProvider.overrideWithValue(FakeSttService()),
+    ],
+    child: MaterialApp(
     theme: lightTheme,
     localizationsDelegates: const <LocalizationsDelegate<Object>>[
       AppLocalizations.delegate,
@@ -27,10 +39,11 @@ void main() {
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
-    home: LessonScreen(
-      module: module,
-      lesson: lesson,
-      onCompleted: (Lesson _, ScoreResult result) async => saved.add(result),
+      home: LessonScreen(
+        module: module,
+        lesson: lesson,
+        onCompleted: (Lesson _, ScoreResult result) async => saved.add(result),
+      ),
     ),
   );
 
@@ -225,10 +238,23 @@ void main() {
   });
 }
 
+/// Toca un botón del final del recorrido, desplazándose si hace falta.
+///
+/// `ListView(children:)` **también** instancia sus hijos de forma diferida, no
+/// solo `ListView.builder`. Cuando el panel de retroalimentación crece, el botón
+/// de avanzar deja de existir en el árbol, y entonces `ensureVisible` no sirve:
+/// no se puede desplazar hasta algo que todavía no se construyó. Hay que buscarlo
+/// desplazando.
 Future<void> tapButton(WidgetTester tester, String label) async {
   final Finder button = find.widgetWithText(FilledButton, label);
-  // ensureVisible porque el feedback empuja el botón fuera de pantalla en los
-  // ejercicios largos: existe en el árbol, pero tocarlo sin desplazar falla.
+
+  if (button.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      button,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
   await tester.ensureVisible(button);
   await tester.pumpAndSettle();
   await tester.tap(button);
@@ -237,6 +263,13 @@ Future<void> tapButton(WidgetTester tester, String label) async {
 
 Future<void> tapOption(WidgetTester tester, String label) async {
   final Finder option = find.widgetWithText(OutlinedButton, label).first;
+  if (option.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      option,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
   await tester.ensureVisible(option);
   await tester.pumpAndSettle();
   await tester.tap(option);

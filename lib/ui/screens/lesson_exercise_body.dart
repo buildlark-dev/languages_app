@@ -1,15 +1,16 @@
 /// El ejercicio en curso, según su tipo.
 ///
-/// Escucha y pronunciación se presentan aquí por su **alternativa accesible**.
-/// Su interfaz con audio y micrófono llega en la Historia 4; la ruta escrita es la
-/// que SC-008 exige que exista siempre, así que es la que funciona primero.
+/// Los cinco tipos se despachan con un `switch` sobre la jerarquía `sealed`, así
+/// que añadir un sexto no compila hasta que se le dé interfaz aquí.
 library;
 
 import 'package:flutter/material.dart';
 
 import '../../core/exercise.dart';
 import '../widgets/gap_fill_field.dart';
+import '../widgets/listening_exercise_view.dart';
 import '../widgets/multiple_choice_question.dart';
+import '../widgets/pronunciation_exercise_view.dart';
 import '../widgets/sentence_builder.dart';
 
 class LessonExerciseBody extends StatelessWidget {
@@ -22,6 +23,8 @@ class LessonExerciseBody extends StatelessWidget {
     required this.onTyped,
     required this.onToggleToken,
     required this.onSubmit,
+    required this.languageTag,
+    required this.onPronunciationAttempt,
     super.key,
   });
 
@@ -33,6 +36,16 @@ class LessonExerciseBody extends StatelessWidget {
   final ValueChanged<String> onTyped;
   final ValueChanged<int> onToggleToken;
   final VoidCallback onSubmit;
+
+  /// Idioma del curso, para el reconocimiento de habla.
+  final String languageTag;
+
+  /// Resultado de un intento de pronunciación.
+  ///
+  /// Es un canal propio porque la pronunciación se resuelve dentro de su widget
+  /// —tiene micrófono, reintentos y alternativa— y puede devolver `unavailable`,
+  /// que no es ni acierto ni fallo (FR-020).
+  final ValueChanged<PronunciationAttempt> onPronunciationAttempt;
 
   @override
   Widget build(BuildContext context) => switch (exercise) {
@@ -66,41 +79,20 @@ class LessonExerciseBody extends StatelessWidget {
       enabled: !answered,
     ),
 
-    // Escucha y pronunciación reciben su interfaz propia en la Historia 4. Aquí
-    // se presentan por su alternativa accesible, que es la ruta que siempre debe
-    // existir (SC-008).
-    ListeningExercise(
-      :final String question,
-      :final List<String> options,
-      :final int answerIndex,
-      :final String transcriptFallback,
-    ) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(transcriptFallback),
-            ),
-          ),
-          const SizedBox(height: 16),
-          MultipleChoiceQuestion(
-            prompt: question,
-            options: options,
-            selectedIndex: choice,
-            onSelect: onChoice,
-            enabled: !answered,
-            correctIndex: answered ? answerIndex : null,
-          ),
-        ],
-      ),
+    // Los dos orales tienen interfaz propia, que decide sola entre audio y
+    // alternativa según lo que el dispositivo ofrezca.
+    final ListeningExercise listening => ListeningExerciseView(
+      exercise: listening,
+      selectedIndex: choice,
+      onSelect: onChoice,
+      answered: answered,
+    ),
 
-    PronunciationExercise(:final String writtenFallback) => GapFillField(
-      sentenceWithGap: writtenFallback,
-      enabled: !answered,
-      onChanged: onTyped,
-      onSubmit: onSubmit,
+    final PronunciationExercise pronunciation => PronunciationExerciseView(
+      exercise: pronunciation,
+      languageTag: languageTag,
+      answered: answered,
+      onAttempt: onPronunciationAttempt,
     ),
   };
 }
