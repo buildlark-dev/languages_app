@@ -362,9 +362,11 @@ nuevo. Siete dependencias entran, y estas son las que requieren justificación e
   quien esté sin red puede no poder practicar pronunciación por voz. Si las pruebas reales
   muestran que ocurre a menudo, la vía es `whisper_edge`, evaluada y aplazada, no
   descartada.
-- **`com.example.languages_app` sigue siendo el identificador de la app**
-  ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1)). No bloquea esta
-  funcionalidad ni el despliegue web, pero sí un release en Google Play.
+- ~~`com.example.languages_app` sigue siendo el identificador de la app~~ — **resuelto el
+  2026-10-06**: el identificador es `com.buildlark.languages` en las cinco plataformas
+  ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1)). Se adelantó porque
+  `flutterfire configure` registra la app de Android en Firebase con el `applicationId`
+  vigente, y hacerlo con el de ejemplo habría obligado a registrar la app dos veces.
 - ~~El `.gitignore` excluye `google-services.json`~~ — **resuelto el 2026-10-06**: se
   eliminaron las líneas `google-services.json` y `GoogleService-Info.plist`. D12 de
   research.md explica por qué esa precaución estaba mal dirigida. Siguen ignorados los

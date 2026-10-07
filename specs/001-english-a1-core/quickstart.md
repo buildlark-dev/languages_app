@@ -158,15 +158,12 @@ Manual: responder mal a propósito en cada tipo de ejercicio y leer la retroalim
 Manual, y es la verificación del Principio VII. Denegar el permiso de micrófono:
 
 ```bash
-adb shell pm revoke com.example.languages_app android.permission.RECORD_AUDIO
+adb shell pm revoke com.buildlark.languages android.permission.RECORD_AUDIO
 ```
 
 Silenciar el dispositivo, recorrer una lección completa y aprobarla usando únicamente las
 alternativas accesibles. Repetir con el micrófono concedido pero sin red.
 
-> El identificador `com.example.languages_app` es provisional
-> ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1)). Ajustar el comando
-> cuando cambie.
 
 ### SC-009 · Nadie estudia un nivel sin haber aprobado el anterior, y ningún nivel sin contenido es accesible
 

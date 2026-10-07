@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "568960664423",
+    "project_id": "languages-buildlark",
+    "storage_bucket": "languages-buildlark.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:568960664423:android:db5e4d39d873c4e17a25c2",
+        "android_client_info": {
+          "package_name": "com.buildlark.languages"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFe2NIbj7H97O_andnrwuFUzqKhvCin58"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

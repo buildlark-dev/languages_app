@@ -484,6 +484,6 @@ sincronización, porque `progress_merger` lo consumen Phase 10 y US7.
 - Commit por tarea o por grupo lógico, y explicación en español de cada entrega (Principio VI)
 - **FR-045 y FR-046 no tienen historia de usuario** en `spec.md`; se implementan en Phase 10
   como transversal. Vale decidir si merecen una historia propia
-- La deuda reconocida en `plan.md` sigue vigente: el reconocimiento de habla sin conexión es
-  mejor esfuerzo, y `com.example.languages_app` sigue pendiente
-  ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1))
+- De la deuda reconocida en `plan.md` sigue vigente una sola cosa: el reconocimiento de habla
+  sin conexión es mejor esfuerzo. El identificador de la app ya es `com.buildlark.languages`
+  ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1), cerrado)
