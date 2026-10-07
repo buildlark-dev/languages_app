@@ -22,6 +22,7 @@ import 'package:languages_app/core/exercise.dart';
 import 'package:languages_app/core/lesson.dart';
 import 'package:languages_app/core/module.dart';
 import 'package:languages_app/core/thresholds.dart';
+import 'package:languages_app/ui/widgets/simple_html_text.dart';
 
 /// Los módulos de A1 que ya existen.
 ///
@@ -253,6 +254,78 @@ void main() {
               'En $owner',
         );
       }
+    });
+  });
+
+  group('HTML del contenido acotado al que sabemos renderizar', () {
+    /// Todas las cadenas con marcado que el contenido declara.
+    Iterable<(String, String)> markupStrings() sync* {
+      for (final Module module in a1Modules) {
+        yield ('${module.id}.grammar.title', module.grammar.title);
+        yield ('${module.id}.grammar.body', module.grammar.bodyHtml);
+        for (final Lesson lesson in module.lessons) {
+          for (final Exercise e in lesson.exercises) {
+            yield ('${lesson.id}.explanation', e.explanation);
+          }
+        }
+        for (final Exercise e in module.moduleExam.exercises) {
+          yield ('${module.moduleExam.id}.explanation', e.explanation);
+        }
+      }
+    }
+
+    test('no aparece ninguna etiqueta sin soporte', () {
+      // El renderizador es pequeño a propósito y soporta nueve etiquetas. Esta
+      // prueba es lo que mantiene esa decisión viable: si alguien escribe <ul>
+      // en una explicación, falla aquí en lugar de desaparecer en pantalla.
+      final RegExp tagPattern = RegExp(r'</?([a-zA-Z][a-zA-Z0-9]*)[^>]*>');
+      final List<String> violations = <String>[];
+
+      for (final (String owner, String text) in markupStrings()) {
+        for (final RegExpMatch match in tagPattern.allMatches(text)) {
+          final String tag = match.group(1)!.toLowerCase();
+          if (!supportedHtmlTags.contains(tag)) {
+            violations.add('$owner usa <$tag>');
+          }
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'Etiquetas sin soporte en simple_html_text.dart:\n  '
+            '${violations.join('\n  ')}',
+      );
+    });
+
+    test('las etiquetas en línea están balanceadas', () {
+      // Una etiqueta sin cerrar deja el resto del texto con el estilo pegado,
+      // que en el caso de <s> convertiría una explicación entera en texto
+      // tachado.
+      final RegExp inline = RegExp(r'</?(b|i|code|s)>');
+      final List<String> violations = <String>[];
+
+      for (final (String owner, String text) in markupStrings()) {
+        final List<String> stack = <String>[];
+        for (final RegExpMatch match in inline.allMatches(text)) {
+          final String tag = match.group(1)!;
+          if (match.group(0)!.startsWith('</')) {
+            if (stack.isEmpty || !stack.contains(tag)) {
+              violations.add('$owner cierra <$tag> sin abrirlo');
+            } else {
+              stack.remove(tag);
+            }
+          } else {
+            stack.add(tag);
+          }
+        }
+        if (stack.isNotEmpty) {
+          violations.add('$owner deja sin cerrar: ${stack.join(", ")}');
+        }
+      }
+
+      expect(violations, isEmpty, reason: violations.join('\n  '));
     });
   });
 

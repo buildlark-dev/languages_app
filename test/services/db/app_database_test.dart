@@ -175,6 +175,50 @@ void main() {
     expect(await db.select(db.placementResults).get(), isEmpty);
   });
 
+  test('un fallo a mitad de la transacción no deja nada escrito', () async {
+    // Aprobar una lección toca tres tablas. Sin transacción, un corte dejaría XP
+    // sumado sin la lección aprobada, o un módulo aprobado sin desbloquear el
+    // siguiente. Aquí se fuerza el corte lanzando dentro de la transacción.
+    final DateTime now = DateTime(2026, 10, 6);
+    final StudentProgress progress = StudentProgress(
+      uid: 'u1',
+      courseId: 'en',
+      currentLevelId: 'A1',
+      xp: 200,
+      levelStates: const <String, LevelState>{'A1': LevelState.unlocked},
+      activityScores: <String, ActivityScore>{
+        'A1M1L1': ActivityScore(
+          kind: ActivityKind.lesson,
+          bestScore: 0.9,
+          lastAttemptAt: now,
+        ),
+      },
+      reviewCards: <String, ReviewCard>{
+        'A1M1|name': ReviewCard(
+          moduleId: 'A1M1',
+          term: 'name',
+          translation: 'el nombre',
+          intervalStep: 0,
+          dueDate: now,
+        ),
+      },
+    );
+
+    await expectLater(
+      () => db.transaction(() async {
+        await dao.save(progress);
+        throw StateError('corte a mitad de la escritura');
+      }),
+      throwsA(isA<StateError>()),
+    );
+
+    // Ninguna de las tres tablas debe tener nada.
+    expect(await dao.load(uid: 'u1', courseId: 'en'), isNull);
+    expect(await db.select(db.activityResults).get(), isEmpty);
+    expect(await db.select(db.reviewCards).get(), isEmpty);
+    expect(await db.select(db.levelProgress).get(), isEmpty);
+  });
+
   test('el progreso de dos cursos no se mezcla', () async {
     await dao.save(
       StudentProgress.initial(uid: 'u1', courseId: 'en', firstLevelId: 'A1'),

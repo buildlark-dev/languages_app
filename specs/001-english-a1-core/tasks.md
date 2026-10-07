@@ -184,25 +184,25 @@ que sigue aprobada con el mismo XP.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T084 [P] [US2] Crear `test/engine/xp_calculator_test.dart`
+- [X] T084 [P] [US2] Crear `test/engine/xp_calculator_test.dart`
 
 ### Implementation for User Story 2
 
-- [ ] T085 [US2] Crear `lib/engine/xp_calculator.dart` con el XP por actividad completada
-- [ ] T086 [P] [US2] Crear `lib/ui/providers/content_providers.dart` que exponga el curso activo **a través del contrato**, sin importar `lib/content/` desde `ui`
-- [ ] T087 [P] [US2] Crear `lib/ui/widgets/vocabulary_card.dart` con término, traducción y ayuda visual
-- [ ] T088 [P] [US2] Crear `lib/ui/widgets/grammar_panel.dart` que renderice la explicación en español, incluidas tablas de conjugación, legible a 360 dp
-- [ ] T089 [P] [US2] Crear `lib/ui/widgets/bilingual_example_tile.dart`
-- [ ] T090 [P] [US2] Crear `lib/ui/widgets/reading_passage.dart` con el texto del pasaje
-- [ ] T091 [P] [US2] Crear `lib/ui/widgets/multiple_choice_question.dart`
-- [ ] T092 [P] [US2] Crear `lib/ui/widgets/sentence_builder.dart` que arme la frase a partir de fichas
-- [ ] T093 [P] [US2] Crear `lib/ui/widgets/gap_fill_field.dart` que califique con `answer_matcher`
-- [ ] T094 [P] [US2] Crear `lib/ui/widgets/feedback_panel.dart` que muestre **por qué** la respuesta correcta lo es, no solo cuál era (FR-025)
-- [ ] T095 [US2] Crear `lib/ui/screens/lesson_screen.dart` que recorra vocabulario, gramática, ejemplos, lectura y ejercicios, y presente el resultado con su XP
-- [ ] T096 [US2] Escribir el resultado de la lección en **una sola transacción** que toque `activity_results`, `student_profile` y `review_cards`: un corte no puede dejar XP sumado sin lección aprobada
-- [ ] T097 [US2] Conservar únicamente el **mejor** puntaje por actividad, de modo que un reintento peor no pueda desaprobar lo ya aprobado (FR-027)
-- [ ] T098 [P] [US2] Crear `test/ui/screens/lesson_screen_test.dart` cubriendo aprobado con 70 %, suspendido con 69 % y abandono a mitad
-- [ ] T099 [P] [US2] Crear pruebas de widget en `test/ui/widgets/` para `sentence_builder`, `gap_fill_field` y `feedback_panel`
+- [X] T085 [US2] Crear `lib/engine/xp_calculator.dart` con el XP por actividad completada
+- [X] T086 [P] [US2] Crear `lib/ui/providers/content_providers.dart` que exponga el curso activo **a través del contrato**, sin importar `lib/content/` desde `ui`
+- [X] T087 [P] [US2] Crear `lib/ui/widgets/vocabulary_card.dart` con término, traducción y ayuda visual
+- [X] T088 [P] [US2] Crear `lib/ui/widgets/grammar_panel.dart` que renderice la explicación en español, incluidas tablas de conjugación, legible a 360 dp
+- [X] T089 [P] [US2] Crear `lib/ui/widgets/bilingual_example_tile.dart`
+- [X] T090 [P] [US2] Crear `lib/ui/widgets/reading_passage.dart` con el texto del pasaje
+- [X] T091 [P] [US2] Crear `lib/ui/widgets/multiple_choice_question.dart`
+- [X] T092 [P] [US2] Crear `lib/ui/widgets/sentence_builder.dart` que arme la frase a partir de fichas
+- [X] T093 [P] [US2] Crear `lib/ui/widgets/gap_fill_field.dart` que califique con `answer_matcher`
+- [X] T094 [P] [US2] Crear `lib/ui/widgets/feedback_panel.dart` que muestre **por qué** la respuesta correcta lo es, no solo cuál era (FR-025)
+- [X] T095 [US2] Crear `lib/ui/screens/lesson_screen.dart` que recorra vocabulario, gramática, ejemplos, lectura y ejercicios, y presente el resultado con su XP
+- [X] T096 [US2] Escribir el resultado de la lección en **una sola transacción** que toque `activity_results`, `student_profile` y `review_cards`: un corte no puede dejar XP sumado sin lección aprobada
+- [X] T097 [US2] Conservar únicamente el **mejor** puntaje por actividad, de modo que un reintento peor no pueda desaprobar lo ya aprobado (FR-027)
+- [X] T098 [P] [US2] Crear `test/ui/screens/lesson_screen_test.dart` cubriendo aprobado con 70 %, suspendido con 69 % y abandono a mitad
+- [X] T099 [P] [US2] Crear pruebas de widget en `test/ui/widgets/` para `sentence_builder`, `gap_fill_field` y `feedback_panel`
 
 **Checkpoint**: una lección completa y calificable, con su progreso persistido.
 
