@@ -30,8 +30,20 @@ const Map<Layer, Set<Layer>> allowedTargets = <Layer, Set<Layer>>{
   Layer.engine: <Layer>{Layer.core, Layer.engine},
   Layer.services: <Layer>{Layer.core, Layer.engine, Layer.services},
   Layer.content: <Layer>{Layer.core, Layer.content},
-  Layer.ui: <Layer>{Layer.core, Layer.engine, Layer.services, Layer.ui, Layer.app},
-  Layer.app: <Layer>{Layer.core, Layer.engine, Layer.services, Layer.ui, Layer.app},
+  Layer.ui: <Layer>{
+    Layer.core,
+    Layer.engine,
+    Layer.services,
+    Layer.ui,
+    Layer.app,
+  },
+  Layer.app: <Layer>{
+    Layer.core,
+    Layer.engine,
+    Layer.services,
+    Layer.ui,
+    Layer.app,
+  },
 };
 
 /// Capas que no pueden depender del framework de interfaz.
@@ -180,7 +192,11 @@ class _SourceFile {
 }
 
 class _Import {
-  _Import({required this.uri, required this.targetLayer, required this.isFlutter});
+  _Import({
+    required this.uri,
+    required this.targetLayer,
+    required this.isFlutter,
+  });
 
   final String uri;
 

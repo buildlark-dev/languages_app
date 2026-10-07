@@ -22,33 +22,32 @@ class SyncBanner extends ConsumerWidget {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final ColorScheme colors = Theme.of(context).colorScheme;
 
-    final (String message, IconData icon, Color background, Color foreground) =
-        switch (notice) {
-          SyncNotice.storageDegraded => (
-            l10n.storageDegradedTitle,
-            Icons.report_problem_outlined,
-            colors.errorContainer,
-            colors.onErrorContainer,
-          ),
-          SyncNotice.failed => (
-            l10n.syncFailed,
-            Icons.cloud_off_outlined,
-            colors.errorContainer,
-            colors.onErrorContainer,
-          ),
-          SyncNotice.pending => (
-            l10n.syncPending,
-            Icons.cloud_sync_outlined,
-            colors.surfaceContainerHighest,
-            colors.onSurface,
-          ),
-          SyncNotice.none => (
-            '',
-            Icons.check,
-            colors.surface,
-            colors.onSurface,
-          ),
-        };
+    final (
+      String message,
+      IconData icon,
+      Color background,
+      Color foreground,
+    ) = switch (notice) {
+      SyncNotice.storageDegraded => (
+        l10n.storageDegradedTitle,
+        Icons.report_problem_outlined,
+        colors.errorContainer,
+        colors.onErrorContainer,
+      ),
+      SyncNotice.failed => (
+        l10n.syncFailed,
+        Icons.cloud_off_outlined,
+        colors.errorContainer,
+        colors.onErrorContainer,
+      ),
+      SyncNotice.pending => (
+        l10n.syncPending,
+        Icons.cloud_sync_outlined,
+        colors.surfaceContainerHighest,
+        colors.onSurface,
+      ),
+      SyncNotice.none => ('', Icons.check, colors.surface, colors.onSurface),
+    };
 
     return Semantics(
       liveRegion: true,

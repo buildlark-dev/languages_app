@@ -25,39 +25,27 @@ class ProgressDao {
     required String courseId,
   }) async {
     final StudentProfileRow? profile =
-        await (_db.select(_db.studentProfile)..where(
-              (t) =>
-                  t.uid.equals(uid) & t.courseId.equals(courseId),
-            ))
+        await (_db.select(_db.studentProfile)
+              ..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId)))
             .getSingleOrNull();
 
     if (profile == null) return null;
 
-    final List<LevelProgressRow> levels =
-        await (_db.select(_db.levelProgress)..where(
-              (t) =>
-                  t.uid.equals(uid) & t.courseId.equals(courseId),
-            ))
-            .get();
+    final List<LevelProgressRow> levels = await (_db.select(
+      _db.levelProgress,
+    )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).get();
 
-    final List<ActivityResultRow> activities =
-        await (_db.select(_db.activityResults)..where(
-              (t) =>
-                  t.uid.equals(uid) & t.courseId.equals(courseId),
-            ))
-            .get();
+    final List<ActivityResultRow> activities = await (_db.select(
+      _db.activityResults,
+    )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).get();
 
-    final List<ReviewCardRow> cards =
-        await (_db.select(_db.reviewCards)..where(
-              (t) => t.uid.equals(uid) & t.courseId.equals(courseId),
-            ))
-            .get();
+    final List<ReviewCardRow> cards = await (_db.select(
+      _db.reviewCards,
+    )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).get();
 
     final PlacementResultRow? placement =
-        await (_db.select(_db.placementResults)..where(
-              (t) =>
-                  t.uid.equals(uid) & t.courseId.equals(courseId),
-            ))
+        await (_db.select(_db.placementResults)
+              ..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId)))
             .getSingleOrNull();
 
     return StudentProgress(
@@ -194,33 +182,28 @@ class ProgressDao {
   /// responsabilidad de la interfaz.
   Future<void> wipe({required String uid, required String courseId}) async {
     await _db.transaction(() async {
-      await (_db.delete(_db.reviewCards)..where(
-            (t) => t.uid.equals(uid) & t.courseId.equals(courseId),
-          ))
-          .go();
-      await (_db.delete(_db.activityResults)..where(
-            (t) =>
-                t.uid.equals(uid) & t.courseId.equals(courseId),
-          ))
-          .go();
-      await (_db.delete(_db.levelProgress)..where(
-            (t) => t.uid.equals(uid) & t.courseId.equals(courseId),
-          ))
-          .go();
-      await (_db.delete(_db.placementResults)..where(
-            (t) =>
-                t.uid.equals(uid) & t.courseId.equals(courseId),
-          ))
-          .go();
-      await (_db.delete(_db.studentProfile)..where(
-            (t) =>
-                t.uid.equals(uid) & t.courseId.equals(courseId),
-          ))
-          .go();
+      await (_db.delete(
+        _db.reviewCards,
+      )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).go();
+      await (_db.delete(
+        _db.activityResults,
+      )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).go();
+      await (_db.delete(
+        _db.levelProgress,
+      )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).go();
+      await (_db.delete(
+        _db.placementResults,
+      )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).go();
+      await (_db.delete(
+        _db.studentProfile,
+      )..where((t) => t.uid.equals(uid) & t.courseId.equals(courseId))).go();
     });
   }
 
   static List<String> _splitLevelIds(String raw) => raw.isEmpty
       ? const <String>[]
-      : raw.split(',').where((String s) => s.isNotEmpty).toList(growable: false);
+      : raw
+            .split(',')
+            .where((String s) => s.isNotEmpty)
+            .toList(growable: false);
 }

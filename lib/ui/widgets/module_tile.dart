@@ -76,6 +76,9 @@ class _Leading extends StatelessWidget {
       Icons.play_circle_outline,
       color: colors.primary,
     ),
-    ModuleAvailability.passed => Icon(Icons.check_circle, color: colors.primary),
+    ModuleAvailability.passed => Icon(
+      Icons.check_circle,
+      color: colors.primary,
+    ),
   };
 }

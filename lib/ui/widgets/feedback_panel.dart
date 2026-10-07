@@ -60,9 +60,9 @@ class FeedbackPanel extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   correct ? 'Correcto' : 'Incorrecto',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: foreground,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(color: foreground),
                 ),
               ],
             ),

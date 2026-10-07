@@ -19,14 +19,14 @@ void main() {
 
     test('puntuación que el reconocedor añade o quita', () {
       // Nadie «pronuncia una coma»: conservarla solo daría fallos espurios.
-      expect(
-        match('nice, to meet you!', 'Nice to meet you.').accepted,
-        isTrue,
-      );
+      expect(match('nice, to meet you!', 'Nice to meet you.').accepted, isTrue);
     });
 
     test('espacios de más', () {
-      expect(match('nice   to  meet you', 'Nice to meet you.').accepted, isTrue);
+      expect(
+        match('nice   to  meet you', 'Nice to meet you.').accepted,
+        isTrue,
+      );
     });
 
     test('apóstrofo tipográfico', () {
@@ -80,13 +80,19 @@ void main() {
 
   group('informa de lo entendido y lo esperado (FR-017)', () {
     test('devuelve ambas frases normalizadas', () {
-      final PronunciationMatch m = match('Nice to MEET you!', 'Nice to meet you.');
+      final PronunciationMatch m = match(
+        'Nice to MEET you!',
+        'Nice to meet you.',
+      );
       expect(m.heard, 'nice to meet you');
       expect(m.expected, 'nice to meet you');
     });
 
     test('al fallar, lo entendido permite ver el motivo', () {
-      final PronunciationMatch m = match('my sister is teacher', 'My sister is a teacher.');
+      final PronunciationMatch m = match(
+        'my sister is teacher',
+        'My sister is a teacher.',
+      );
       expect(m.heard, 'my sister is teacher');
       expect(m.expected, 'my sister is a teacher');
       // 4 de 5 palabras: por encima del umbral, así que se acepta.

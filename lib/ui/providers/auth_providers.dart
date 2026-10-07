@@ -20,7 +20,11 @@ final StreamProvider<StudentIdentity?> authStateProvider =
 
 /// Estado de un formulario de autenticación.
 class AuthFormState {
-  const AuthFormState({this.submitting = false, this.failure, this.done = false});
+  const AuthFormState({
+    this.submitting = false,
+    this.failure,
+    this.done = false,
+  });
 
   final bool submitting;
 

@@ -25,15 +25,19 @@ ActivityScore score(double value, {DateTime? at, int attempts = 1}) =>
       lastAttemptAt: at ?? day(1),
     );
 
-ReviewCard card(String term, {required int step, required DateTime due, int lapses = 0}) =>
-    ReviewCard(
-      moduleId: 'A1M1',
-      term: term,
-      translation: term,
-      intervalStep: step,
-      dueDate: due,
-      lapses: lapses,
-    );
+ReviewCard card(
+  String term, {
+  required int step,
+  required DateTime due,
+  int lapses = 0,
+}) => ReviewCard(
+  moduleId: 'A1M1',
+  term: term,
+  translation: term,
+  intervalStep: step,
+  dueDate: due,
+  lapses: lapses,
+);
 
 StudentProgress progress({
   int xp = 0,
@@ -60,15 +64,21 @@ StudentProgress progress({
 /// Los estados con los que se prueban las propiedades algebraicas.
 List<StudentProgress> sampleStates() => <StudentProgress>[
   progress(),
-  progress(xp: 100, streak: 3, lastActivity: day(3), levels: <String, LevelState>{
-    'A1': LevelState.unlocked,
-  }),
+  progress(
+    xp: 100,
+    streak: 3,
+    lastActivity: day(3),
+    levels: <String, LevelState>{'A1': LevelState.unlocked},
+  ),
   progress(
     xp: 40,
     streak: 7,
     lastActivity: day(1),
     level: 'A2',
-    levels: <String, LevelState>{'A1': LevelState.passed, 'A2': LevelState.unlocked},
+    levels: <String, LevelState>{
+      'A1': LevelState.passed,
+      'A2': LevelState.unlocked,
+    },
     scores: <String, ActivityScore>{'L1': score(0.9), 'L2': score(0.5)},
   ),
   progress(
@@ -108,9 +118,13 @@ void expectNoRegression(StudentProgress merged, StudentProgress input) {
     merged.reviewCards.length,
     greaterThanOrEqualTo(input.reviewCards.length),
   );
-  expect(merged.levelStates.length, greaterThanOrEqualTo(input.levelStates.length));
+  expect(
+    merged.levelStates.length,
+    greaterThanOrEqualTo(input.levelStates.length),
+  );
 
-  for (final MapEntry<String, ActivityScore> e in input.activityScores.entries) {
+  for (final MapEntry<String, ActivityScore> e
+      in input.activityScores.entries) {
     expect(
       merged.activityScores[e.key]!.bestScore,
       greaterThanOrEqualTo(e.value.bestScore),
@@ -226,7 +240,10 @@ void main() {
 
     test('el nivel actual toma el más avanzado del MCER', () {
       expect(
-        mergeProgress(progress(level: 'A1'), progress(level: 'B1')).currentLevelId,
+        mergeProgress(
+          progress(level: 'A1'),
+          progress(level: 'B1'),
+        ).currentLevelId,
         'B1',
       );
     });

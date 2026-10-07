@@ -151,7 +151,10 @@ void main() {
       await tester.pumpWidget(wrap(const SignUpScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Solo pedimos correo y contraseña. Nada más.'), findsOne);
+      expect(
+        find.text('Solo pedimos correo y contraseña. Nada más.'),
+        findsOne,
+      );
       expect(
         find.byType(TextFormField),
         findsExactly(2),
@@ -182,7 +185,9 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'a@b.com');
-      await tester.tap(find.widgetWithText(FilledButton, 'Enviar instrucciones'));
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Enviar instrucciones'),
+      );
       await tester.pumpAndSettle();
 
       expect(auth.calls, contains('reset:a@b.com'));
@@ -197,10 +202,15 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'nadie@b.com');
-      await tester.tap(find.widgetWithText(FilledButton, 'Enviar instrucciones'));
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Enviar instrucciones'),
+      );
       await tester.pumpAndSettle();
 
-      expect(find.text('No encontramos ninguna cuenta con ese correo.'), findsOne);
+      expect(
+        find.text('No encontramos ninguna cuenta con ese correo.'),
+        findsOne,
+      );
     });
   });
 
@@ -261,10 +271,7 @@ void main() {
   ) async {
     // FR-043: un fallo al guardar que no se ve es peor que uno que se ve.
     await tester.pumpWidget(
-      wrap(
-        const Scaffold(body: SignOutButton()),
-        notice: SyncNotice.failed,
-      ),
+      wrap(const Scaffold(body: SignOutButton()), notice: SyncNotice.failed),
     );
     await tester.pumpAndSettle();
 

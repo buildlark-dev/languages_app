@@ -43,9 +43,7 @@ class SignOutButton extends ConsumerWidget {
       builder: (BuildContext dialogContext) => AlertDialog(
         title: Text(l10n.signOutWarningTitle),
         content: Text(
-          hasUnsaved
-              ? l10n.signOutWarningPending
-              : l10n.signOutWarningSynced,
+          hasUnsaved ? l10n.signOutWarningPending : l10n.signOutWarningSynced,
         ),
         actions: <Widget>[
           TextButton(

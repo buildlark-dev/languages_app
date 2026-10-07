@@ -44,7 +44,11 @@ class AccessibleAlternative extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Icon(Icons.subtitles_outlined, size: 20, color: colors.onSurfaceVariant),
+              Icon(
+                Icons.subtitles_outlined,
+                size: 20,
+                color: colors.onSurfaceVariant,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -60,9 +64,9 @@ class AccessibleAlternative extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               reason!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
             ),
           ],
           const SizedBox(height: 12),

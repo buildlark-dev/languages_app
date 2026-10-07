@@ -33,8 +33,7 @@ class SentenceBuilder extends StatelessWidget {
   final bool enabled;
 
   /// La frase montada hasta ahora.
-  String get sentence =>
-      chosenIndices.map((int i) => tokens[i]).join(' ');
+  String get sentence => chosenIndices.map((int i) => tokens[i]).join(' ');
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +121,11 @@ class _Chip extends StatelessWidget {
             style: _style,
             child: Text(label),
           )
-        : OutlinedButton(onPressed: onPressed, style: _style, child: Text(label)),
+        : OutlinedButton(
+            onPressed: onPressed,
+            style: _style,
+            child: Text(label),
+          ),
   );
 
   static final ButtonStyle _style = OutlinedButton.styleFrom(

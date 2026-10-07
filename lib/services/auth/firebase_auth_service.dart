@@ -28,7 +28,10 @@ class FirebaseAuthService implements AuthService {
     required String password,
   }) => _guard(() async {
     final fb.UserCredential credential = await _auth
-        .createUserWithEmailAndPassword(email: email.trim(), password: password);
+        .createUserWithEmailAndPassword(
+          email: email.trim(),
+          password: password,
+        );
     return _requireIdentity(credential.user);
   });
 
@@ -37,8 +40,10 @@ class FirebaseAuthService implements AuthService {
     required String email,
     required String password,
   }) => _guard(() async {
-    final fb.UserCredential credential = await _auth
-        .signInWithEmailAndPassword(email: email.trim(), password: password);
+    final fb.UserCredential credential = await _auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
     return _requireIdentity(credential.user);
   });
 

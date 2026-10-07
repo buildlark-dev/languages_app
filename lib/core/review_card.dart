@@ -63,14 +63,16 @@ class ReviewCard {
   /// aprendizaje.
   ReviewCard mergeWith(ReviewCard other) {
     assert(key == other.key, 'Solo se fusionan tarjetas de la misma clave');
-    final DateTime earlier =
-        dueDate.isBefore(other.dueDate) ? dueDate : other.dueDate;
+    final DateTime earlier = dueDate.isBefore(other.dueDate)
+        ? dueDate
+        : other.dueDate;
     return ReviewCard(
       moduleId: moduleId,
       term: term,
       translation: translation,
-      intervalStep:
-          intervalStep > other.intervalStep ? intervalStep : other.intervalStep,
+      intervalStep: intervalStep > other.intervalStep
+          ? intervalStep
+          : other.intervalStep,
       dueDate: earlier,
       lapses: lapses > other.lapses ? lapses : other.lapses,
     );

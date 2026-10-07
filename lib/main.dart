@@ -21,12 +21,15 @@ import 'firebase_options.dart';
 import 'services/auth/firebase_auth_service.dart';
 import 'services/db/app_database.dart';
 import 'services/db/database_opener.dart';
+import 'services/db/review_dao.dart';
+import 'services/review/drift_review_store.dart';
 import 'services/speech/flutter_tts_service.dart';
 import 'services/speech/speech_to_text_service.dart';
 import 'services/sync/firestore_sync_service.dart';
 import 'ui/providers/auth_providers.dart';
 import 'ui/providers/content_providers.dart';
 import 'ui/providers/progress_providers.dart';
+import 'ui/providers/review_providers.dart';
 import 'ui/providers/speech_providers.dart';
 
 Future<void> main() async {
@@ -70,6 +73,9 @@ Future<void> main() async {
           FirestoreSyncService(FirebaseFirestore.instance),
         ),
         storageDegradedProvider.overrideWithValue(store.degraded),
+        reviewStoreProvider.overrideWithValue(
+          DriftReviewStore(ReviewDao(store.database)),
+        ),
         // La voz se inicializa de forma perezosa, al preparar el curso: consultar
         // las voces del sistema tarda, y hacerlo en el arranque retrasaría la
         // primera pantalla sin que nadie lo necesite todavía.

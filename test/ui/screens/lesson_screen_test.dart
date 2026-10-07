@@ -31,14 +31,14 @@ void main() {
       sttServiceProvider.overrideWithValue(FakeSttService()),
     ],
     child: MaterialApp(
-    theme: lightTheme,
-    localizationsDelegates: const <LocalizationsDelegate<Object>>[
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: AppLocalizations.supportedLocales,
+      theme: lightTheme,
+      localizationsDelegates: const <LocalizationsDelegate<Object>>[
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: LessonScreen(
         module: module,
         lesson: lesson,
@@ -171,7 +171,13 @@ void main() {
     // Los cinco ejercicios, todos bien.
     await answerChoice(tester, 'is');
     await _answerGap(tester, 'is');
-    await _buildSentence(tester, <String>['My', 'sister', 'is', 'a', 'teacher.']);
+    await _buildSentence(tester, <String>[
+      'My',
+      'sister',
+      'is',
+      'a',
+      'teacher.',
+    ]);
     await _answerListening(tester, 'Enfermera');
     await _answerGap(tester, 'Nice to meet you.');
 
@@ -231,7 +237,13 @@ void main() {
 
     await answerChoice(tester, 'is');
     await _answerGap(tester, 'is');
-    await _buildSentence(tester, <String>['My', 'sister', 'is', 'a', 'teacher.']);
+    await _buildSentence(tester, <String>[
+      'My',
+      'sister',
+      'is',
+      'a',
+      'teacher.',
+    ]);
     await _answerListening(tester, 'Enfermera');
     await _answerGap(tester, 'Nice to meet you.');
     expect(tester.takeException(), isNull, reason: 'resultado');

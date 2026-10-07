@@ -37,9 +37,7 @@ class ReviewDao {
                     t.courseId.equals(courseId) &
                     t.dueDate.isSmallerOrEqualValue(cutoff),
               )
-              ..orderBy([
-                (t) => OrderingTerm.asc(t.dueDate),
-              ]))
+              ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
             .get();
 
     return rows.map(_toCard).toList(growable: false);
@@ -56,14 +54,13 @@ class ReviewDao {
   }) async {
     final DateTime cutoff = dateOnly(today);
     final Expression<int> count = _db.reviewCards.term.count();
-    final query =
-        _db.selectOnly(_db.reviewCards)
-          ..addColumns(<Expression<Object>>[count])
-          ..where(
-            _db.reviewCards.uid.equals(uid) &
-                _db.reviewCards.courseId.equals(courseId) &
-                _db.reviewCards.dueDate.isSmallerOrEqualValue(cutoff),
-          );
+    final query = _db.selectOnly(_db.reviewCards)
+      ..addColumns(<Expression<Object>>[count])
+      ..where(
+        _db.reviewCards.uid.equals(uid) &
+            _db.reviewCards.courseId.equals(courseId) &
+            _db.reviewCards.dueDate.isSmallerOrEqualValue(cutoff),
+      );
     final TypedResult row = await query.getSingle();
     return row.read(count) ?? 0;
   }
@@ -83,23 +80,19 @@ class ReviewDao {
   }) async {
     final DateTime due = dateOnly(today);
     await _db.batch((Batch batch) {
-      batch.insertAll(
-        _db.reviewCards,
-        <ReviewCardRow>[
-          for (final VocabularyItem item in vocabulary)
-            ReviewCardRow(
-              uid: uid,
-              courseId: courseId,
-              moduleId: moduleId,
-              term: item.term,
-              translation: item.translation,
-              intervalStep: 0,
-              dueDate: due,
-              lapses: 0,
-            ),
-        ],
-        mode: InsertMode.insertOrIgnore,
-      );
+      batch.insertAll(_db.reviewCards, <ReviewCardRow>[
+        for (final VocabularyItem item in vocabulary)
+          ReviewCardRow(
+            uid: uid,
+            courseId: courseId,
+            moduleId: moduleId,
+            term: item.term,
+            translation: item.translation,
+            intervalStep: 0,
+            dueDate: due,
+            lapses: 0,
+          ),
+      ], mode: InsertMode.insertOrIgnore);
     });
   }
 
@@ -109,18 +102,20 @@ class ReviewDao {
     required String courseId,
     required ReviewCard card,
   }) async {
-    await _db.into(_db.reviewCards).insertOnConflictUpdate(
-      ReviewCardRow(
-        uid: uid,
-        courseId: courseId,
-        moduleId: card.moduleId,
-        term: card.term,
-        translation: card.translation,
-        intervalStep: card.intervalStep,
-        dueDate: card.dueDate,
-        lapses: card.lapses,
-      ),
-    );
+    await _db
+        .into(_db.reviewCards)
+        .insertOnConflictUpdate(
+          ReviewCardRow(
+            uid: uid,
+            courseId: courseId,
+            moduleId: card.moduleId,
+            term: card.term,
+            translation: card.translation,
+            intervalStep: card.intervalStep,
+            dueDate: card.dueDate,
+            lapses: card.lapses,
+          ),
+        );
   }
 
   /// Cuántas tarjetas tiene el estudiante en total, vencidas o no.
@@ -129,13 +124,12 @@ class ReviewDao {
     required String courseId,
   }) async {
     final Expression<int> count = _db.reviewCards.term.count();
-    final query =
-        _db.selectOnly(_db.reviewCards)
-          ..addColumns(<Expression<Object>>[count])
-          ..where(
-            _db.reviewCards.uid.equals(uid) &
-                _db.reviewCards.courseId.equals(courseId),
-          );
+    final query = _db.selectOnly(_db.reviewCards)
+      ..addColumns(<Expression<Object>>[count])
+      ..where(
+        _db.reviewCards.uid.equals(uid) &
+            _db.reviewCards.courseId.equals(courseId),
+      );
     final TypedResult row = await query.getSingle();
     return row.read(count) ?? 0;
   }

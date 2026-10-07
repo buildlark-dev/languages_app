@@ -39,7 +39,10 @@ class LessonStudyView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('Al terminar podrás', style: Theme.of(context).textTheme.labelLarge),
+              Text(
+                'Al terminar podrás',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
               const SizedBox(height: 4),
               Text(module.canDo, style: Theme.of(context).textTheme.bodyLarge),
             ],

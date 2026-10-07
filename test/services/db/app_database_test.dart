@@ -34,9 +34,12 @@ void main() {
     expect(meta.single.version, 1);
   });
 
-  test('un estudiante sin progreso devuelve null, no un objeto vacío', () async {
-    expect(await dao.load(uid: 'u1', courseId: 'en'), isNull);
-  });
+  test(
+    'un estudiante sin progreso devuelve null, no un objeto vacío',
+    () async {
+      expect(await dao.load(uid: 'u1', courseId: 'en'), isNull);
+    },
+  );
 
   test('el progreso completo sobrevive a una ida y vuelta', () async {
     final DateTime now = DateTime(2026, 10, 6, 14, 30);

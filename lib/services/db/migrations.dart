@@ -24,13 +24,15 @@ import 'app_database.dart';
 MigrationStrategy buildMigrationStrategy(AppDatabase db) => MigrationStrategy(
   onCreate: (Migrator m) async {
     await m.createAll();
-    await db.into(db.schemaMeta).insert(
-      SchemaMetaRow(
-        id: 1,
-        version: appSchemaVersion,
-        createdAt: DateTime.now(),
-      ),
-    );
+    await db
+        .into(db.schemaMeta)
+        .insert(
+          SchemaMetaRow(
+            id: 1,
+            version: appSchemaVersion,
+            createdAt: DateTime.now(),
+          ),
+        );
   },
   onUpgrade: (Migrator m, int from, int to) async {
     // No hay pasos todavía: v1 es la primera versión. Cuando exista v2, el

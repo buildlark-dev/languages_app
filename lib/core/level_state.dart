@@ -41,7 +41,8 @@ enum LevelState {
   ///
   /// Esta es la regla de fusión del Principio IV: ante dos dispositivos, nunca
   /// se retrocede.
-  static LevelState merge(LevelState a, LevelState b) => a.rank >= b.rank ? a : b;
+  static LevelState merge(LevelState a, LevelState b) =>
+      a.rank >= b.rank ? a : b;
 
   /// Si el nivel se puede estudiar.
   bool get isOpen => this != LevelState.locked;

@@ -31,7 +31,10 @@ class FlutterTtsService implements TtsService {
       // Se busca por prefijo y no por coincidencia exacta: el contenido pide
       // `en-US`, y un dispositivo con `en-GB` o `en_AU` sirve igual para A1. Ser
       // estricto aquí dejaría sin audio a mucha gente que sí tiene voz en inglés.
-      final String prefix = languageTag.split(RegExp('[-_]')).first.toLowerCase();
+      final String prefix = languageTag
+          .split(RegExp('[-_]'))
+          .first
+          .toLowerCase();
       final bool hasLanguage = languages.any(
         (Object? tag) => '$tag'.toLowerCase().startsWith(prefix),
       );

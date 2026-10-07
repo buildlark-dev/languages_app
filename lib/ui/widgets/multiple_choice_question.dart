@@ -49,10 +49,10 @@ class MultipleChoiceQuestion extends StatelessWidget {
             state: correctIndex == null
                 ? _OptionState.neutral
                 : i == correctIndex
-                    ? _OptionState.correct
-                    : (selectedIndex == i
-                          ? _OptionState.wrong
-                          : _OptionState.neutral),
+                ? _OptionState.correct
+                : (selectedIndex == i
+                      ? _OptionState.wrong
+                      : _OptionState.neutral),
             onPressed: enabled ? () => onSelect(i) : null,
             colors: colors,
           ),

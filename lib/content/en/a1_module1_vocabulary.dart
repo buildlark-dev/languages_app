@@ -16,7 +16,11 @@ const List<VocabularyItem> a1Module1Vocabulary = <VocabularyItem>[
   VocabularyItem(term: 'job', translation: 'el trabajo', hint: '💼'),
   VocabularyItem(term: 'teacher', translation: 'el/la docente', hint: '👩‍🏫'),
   VocabularyItem(term: 'student', translation: 'el/la estudiante', hint: '🎒'),
-  VocabularyItem(term: 'friend', translation: 'el amigo / la amiga', hint: '🤝'),
+  VocabularyItem(
+    term: 'friend',
+    translation: 'el amigo / la amiga',
+    hint: '🤝',
+  ),
   VocabularyItem(
     term: 'neighbour',
     translation: 'el vecino / la vecina',

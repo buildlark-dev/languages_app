@@ -14,7 +14,9 @@ import 'package:languages_app/ui/widgets/sentence_builder.dart';
 
 Widget wrap(Widget child) => MaterialApp(
   theme: lightTheme,
-  home: Scaffold(body: Padding(padding: const EdgeInsets.all(16), child: child)),
+  home: Scaffold(
+    body: Padding(padding: const EdgeInsets.all(16), child: child),
+  ),
 );
 
 void main() {

@@ -281,16 +281,16 @@ próxima fecha cambia según la calificación.
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T130 [P] [US5] Crear `test/engine/srs_scheduler_test.dart` usando el reloj inyectado para recorrer 90 días: avance de intervalo, salto doble al recordar con facilidad, reinicio a 1 día al fallar, y tope en el último intervalo
+- [X] T130 [P] [US5] Crear `test/engine/srs_scheduler_test.dart` usando el reloj inyectado para recorrer 90 días: avance de intervalo, salto doble al recordar con facilidad, reinicio a 1 día al fallar, y tope en el último intervalo
 
 ### Implementation for User Story 5
 
-- [ ] T131 [US5] Crear `lib/engine/srs_scheduler.dart` con `IV = [1,3,7,16,35,90]`: recordada con esfuerzo `step+1`; con facilidad `step+2` con tope en 5; no recordada `step = 0`, `due = hoy + 1`, `lapses++`
-- [ ] T132 [US5] Sembrar la cola de repaso con el vocabulario del módulo al empezarlo (FR-028)
-- [ ] T133 [P] [US5] Crear `lib/ui/providers/review_providers.dart` con el conteo de vencidas hoy
-- [ ] T134 [US5] Crear `lib/ui/screens/review_screen.dart` con la sesión de repaso y sus tres calificaciones
-- [ ] T135 [US5] Mostrar en la pantalla principal cuántas palabras vencen hoy, e indicar **explícitamente** cuando no hay ninguna, en lugar de abrir una sesión vacía (FR-030)
-- [ ] T136 [P] [US5] Crear `test/ui/screens/review_screen_test.dart` incluyendo el estado "al día"
+- [X] T131 [US5] Crear `lib/engine/srs_scheduler.dart` con `IV = [1,3,7,16,35,90]`: recordada con esfuerzo `step+1`; con facilidad `step+2` con tope en 5; no recordada `step = 0`, `due = hoy + 1`, `lapses++`
+- [X] T132 [US5] Sembrar la cola de repaso con el vocabulario del módulo al empezarlo (FR-028)
+- [X] T133 [P] [US5] Crear `lib/ui/providers/review_providers.dart` con el conteo de vencidas hoy
+- [X] T134 [US5] Crear `lib/ui/screens/review_screen.dart` con la sesión de repaso y sus tres calificaciones
+- [X] T135 [US5] Mostrar en la pantalla principal cuántas palabras vencen hoy, e indicar **explícitamente** cuando no hay ninguna, en lugar de abrir una sesión vacía (FR-030)
+- [X] T136 [P] [US5] Crear `test/ui/screens/review_screen_test.dart` incluyendo el estado "al día"
 
 **Checkpoint**: la cola de repaso funciona y se consolida el vocabulario.
 

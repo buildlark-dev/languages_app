@@ -177,12 +177,12 @@ class _PronunciationExerciseViewState
           _HeardFeedback(match: _lastMatch!),
         ],
 
-        if (_failedAttempts >= _attemptsBeforeOffer && !widget.answered) ...<Widget>[
+        if (_failedAttempts >= _attemptsBeforeOffer &&
+            !widget.answered) ...<Widget>[
           const SizedBox(height: 16),
           // FR-020: se puede continuar sin quedar atrapado, y no cuenta como fallo.
           OutlinedButton(
-            onPressed: () =>
-                widget.onAttempt(PronunciationAttempt.unavailable),
+            onPressed: () => widget.onAttempt(PronunciationAttempt.unavailable),
             child: const Text('Continuar sin pronunciar'),
           ),
         ],
@@ -247,9 +247,9 @@ class _HeardFeedback extends StatelessWidget {
             Text(
               'Inténtalo otra vez. No se puntúa el acento, solo que se entienda '
               'la frase.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colors.onErrorContainer,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.onErrorContainer),
             ),
           ],
         ),

@@ -97,9 +97,18 @@ class _StateIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => switch (state) {
-    LevelState.locked => Icon(Icons.lock_outline, color: colors.onSurfaceVariant),
-    LevelState.unlocked => Icon(Icons.play_circle_outline, color: colors.primary),
-    LevelState.mastered => Icon(Icons.verified_outlined, color: colors.tertiary),
+    LevelState.locked => Icon(
+      Icons.lock_outline,
+      color: colors.onSurfaceVariant,
+    ),
+    LevelState.unlocked => Icon(
+      Icons.play_circle_outline,
+      color: colors.primary,
+    ),
+    LevelState.mastered => Icon(
+      Icons.verified_outlined,
+      color: colors.tertiary,
+    ),
     LevelState.passed => Icon(Icons.check_circle, color: colors.primary),
   };
 }

@@ -54,16 +54,18 @@ void main() {
       }
     });
 
-    test('los identificadores de lección y de examen son únicos en el nivel',
-        () {
-      final List<String> all = <String>[
-        for (final Module m in a1Modules) ...<String>[
-          for (final Lesson l in m.lessons) l.id,
-          m.moduleExam.id,
-        ],
-      ];
-      expect(all.toSet(), hasLength(all.length));
-    });
+    test(
+      'los identificadores de lección y de examen son únicos en el nivel',
+      () {
+        final List<String> all = <String>[
+          for (final Module m in a1Modules) ...<String>[
+            for (final Lesson l in m.lessons) l.id,
+            m.moduleExam.id,
+          ],
+        ];
+        expect(all.toSet(), hasLength(all.length));
+      },
+    );
   });
 
   group('completitud pedagógica', () {
@@ -205,14 +207,34 @@ void main() {
     test('las opciones múltiples tienen al menos 3 y un índice válido', () {
       for (final (String owner, Exercise e) in allExercises()) {
         switch (e) {
-          case MultipleChoiceExercise(:final List<String> options, :final int answerIndex):
-            expect(options.length, greaterThanOrEqualTo(3), reason: 'en $owner');
-            expect(answerIndex, inInclusiveRange(0, options.length - 1),
-                reason: 'en $owner');
-          case ListeningExercise(:final List<String> options, :final int answerIndex):
-            expect(options.length, greaterThanOrEqualTo(3), reason: 'en $owner');
-            expect(answerIndex, inInclusiveRange(0, options.length - 1),
-                reason: 'en $owner');
+          case MultipleChoiceExercise(
+            :final List<String> options,
+            :final int answerIndex,
+          ):
+            expect(
+              options.length,
+              greaterThanOrEqualTo(3),
+              reason: 'en $owner',
+            );
+            expect(
+              answerIndex,
+              inInclusiveRange(0, options.length - 1),
+              reason: 'en $owner',
+            );
+          case ListeningExercise(
+            :final List<String> options,
+            :final int answerIndex,
+          ):
+            expect(
+              options.length,
+              greaterThanOrEqualTo(3),
+              reason: 'en $owner',
+            );
+            expect(
+              answerIndex,
+              inInclusiveRange(0, options.length - 1),
+              reason: 'en $owner',
+            );
           case GapFillExercise(:final List<String> acceptedAnswers):
             expect(acceptedAnswers, isNotEmpty, reason: 'en $owner');
           case SentenceBuilderExercise(:final List<String> tokens):
@@ -348,14 +370,13 @@ void main() {
     });
 
     test('los niveles anunciados van después de los que tienen contenido', () {
-      final int lastWithContent = cefrLevelIds.indexOf(
-        course.levels.last.id,
-      );
+      final int lastWithContent = cefrLevelIds.indexOf(course.levels.last.id);
       for (final String id in course.upcomingLevelIds) {
         expect(
           cefrLevelIds.indexOf(id),
           greaterThan(lastWithContent),
-          reason: 'Un nivel anunciado no puede ser anterior al último con '
+          reason:
+              'Un nivel anunciado no puede ser anterior al último con '
               'contenido',
         );
       }
@@ -424,7 +445,8 @@ void main() {
       expect(
         course.levels.single.modules.map((Module m) => m.id),
         a1Modules.map((Module m) => m.id),
-        reason: 'Un módulo nuevo debe añadirse a a1Modules para quedar vigilado',
+        reason:
+            'Un módulo nuevo debe añadirse a a1Modules para quedar vigilado',
       );
     });
   });

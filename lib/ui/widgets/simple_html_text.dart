@@ -92,10 +92,7 @@ List<Widget> _parseBlocks(String html, BuildContext context) {
 }
 
 final RegExp _rowPattern = RegExp(r'<tr>(.*?)</tr>', dotAll: true);
-final RegExp _cellPattern = RegExp(
-  r'<(th|td)>(.*?)</(?:th|td)>',
-  dotAll: true,
-);
+final RegExp _cellPattern = RegExp(r'<(th|td)>(.*?)</(?:th|td)>', dotAll: true);
 
 Widget _buildTable(String tableHtml, BuildContext context) {
   final ColorScheme colors = Theme.of(context).colorScheme;
@@ -140,17 +137,19 @@ Widget _buildTable(String tableHtml, BuildContext context) {
   final int columns = rows
       .map((TableRow r) => r.children.length)
       .reduce((int a, int b) => a > b ? a : b);
-  final List<TableRow> normalized = rows.map((TableRow row) {
-    if (row.children.length == columns) return row;
-    return TableRow(
-      decoration: row.decoration,
-      children: <Widget>[
-        ...row.children,
-        for (int i = row.children.length; i < columns; i++)
-          const SizedBox.shrink(),
-      ],
-    );
-  }).toList(growable: false);
+  final List<TableRow> normalized = rows
+      .map((TableRow row) {
+        if (row.children.length == columns) return row;
+        return TableRow(
+          decoration: row.decoration,
+          children: <Widget>[
+            ...row.children,
+            for (int i = row.children.length; i < columns; i++)
+              const SizedBox.shrink(),
+          ],
+        );
+      })
+      .toList(growable: false);
 
   return Table(
     border: TableBorder.all(color: colors.outlineVariant),
@@ -172,7 +171,9 @@ List<InlineSpan> _parseInline(String html, BuildContext context) {
 
   void addText(String raw) {
     if (raw.isEmpty) return;
-    spans.add(TextSpan(text: _unescape(raw), style: _styleFor(openTags, context)));
+    spans.add(
+      TextSpan(text: _unescape(raw), style: _styleFor(openTags, context)),
+    );
   }
 
   for (final RegExpMatch match in _inlinePattern.allMatches(html)) {

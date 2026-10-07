@@ -74,9 +74,7 @@ class FakeSyncService implements SyncService {
         ? local
         : mergeProgress(local, current);
     _remote = merged;
-    _emitStatus(
-      SyncState(lastSyncedAt: DateTime.now()),
-    );
+    _emitStatus(SyncState(lastSyncedAt: DateTime.now()));
     return merged;
   }
 

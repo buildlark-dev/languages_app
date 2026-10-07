@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:languages_app/app/l10n/app_localizations.dart';
 import 'package:languages_app/app/theme.dart';
@@ -21,7 +22,10 @@ import 'package:languages_app/core/student_progress.dart';
 import 'package:languages_app/engine/scoring.dart';
 import 'package:languages_app/ui/screens/exam_screen.dart';
 import 'package:languages_app/ui/screens/level_map_screen.dart';
+import 'package:languages_app/ui/providers/review_providers.dart';
 import 'package:languages_app/ui/screens/module_screen.dart';
+
+import '../../fakes/fake_review_store.dart';
 
 const Course course = englishCourse;
 Level get a1 => course.levels.single;
@@ -56,16 +60,25 @@ StudentProgress progressWith({
   },
 );
 
-Widget wrap(Widget child) => MaterialApp(
-  theme: lightTheme,
-  localizationsDelegates: const <LocalizationsDelegate<Object>>[
-    AppLocalizations.delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-  ],
-  supportedLocales: AppLocalizations.supportedLocales,
-  home: child,
+/// Monta la pantalla con un ámbito de proveedores.
+///
+/// El ámbito es necesario desde que `ModuleScreen` siembra la cola de repaso al
+/// entrar en un módulo (FR-028). Aquí no se eligió curso ni hay sesión abierta,
+/// así que la siembra se descarta sola: estas pruebas son sobre las puertas de
+/// progresión, y la siembra tiene las suyas en `review_screen_test.dart`.
+Widget wrap(Widget child) => ProviderScope(
+  overrides: [reviewStoreProvider.overrideWithValue(FakeReviewStore())],
+  child: MaterialApp(
+    theme: lightTheme,
+    localizationsDelegates: const <LocalizationsDelegate<Object>>[
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: child,
+  ),
 );
 
 /// Desplaza hasta la tarjeta del examen de nivel.
@@ -395,10 +408,7 @@ void main() {
 
       // Un examen vacío se completa de inmediato y no aprueba.
       expect(find.textContaining('Necesitas 80 %'), findsOne);
-      expect(
-        find.textContaining('Se conserva tu mejor resultado'),
-        findsOne,
-      );
+      expect(find.textContaining('Se conserva tu mejor resultado'), findsOne);
       expect(saved.single.passed, isFalse);
     });
   });

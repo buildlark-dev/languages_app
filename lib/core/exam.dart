@@ -17,11 +17,7 @@ enum ExamScope {
 }
 
 class Exam {
-  const Exam({
-    required this.id,
-    required this.scope,
-    required this.exercises,
-  });
+  const Exam({required this.id, required this.scope, required this.exercises});
 
   /// Único en todo el curso.
   final String id;
@@ -49,10 +45,7 @@ class Exam {
 /// ejercicio se usa en lecciones, donde el nivel lo da el módulo— así que se
 /// adjunta aquí.
 class PlacementItem {
-  const PlacementItem({
-    required this.levelId,
-    required this.exercise,
-  });
+  const PlacementItem({required this.levelId, required this.exercise});
 
   /// Nivel MCER que este ítem discrimina.
   ///
@@ -66,10 +59,7 @@ class PlacementItem {
 
 /// Examen de nivelación: ejercicios etiquetados por nivel.
 class PlacementExam {
-  const PlacementExam({
-    required this.id,
-    required this.items,
-  });
+  const PlacementExam({required this.id, required this.items});
 
   final String id;
   final List<PlacementItem> items;

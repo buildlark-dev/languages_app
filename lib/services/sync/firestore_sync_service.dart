@@ -34,8 +34,14 @@ class FirestoreSyncService implements SyncService {
 
   SyncState _currentStatus = const SyncState();
 
-  DocumentReference<Map<String, dynamic>> _docFor(String uid, String courseId) =>
-      _firestore.collection('users').doc(uid).collection('courses').doc(courseId);
+  DocumentReference<Map<String, dynamic>> _docFor(
+    String uid,
+    String courseId,
+  ) => _firestore
+      .collection('users')
+      .doc(uid)
+      .collection('courses')
+      .doc(courseId);
 
   @override
   SyncState get currentStatus => _currentStatus;
@@ -70,31 +76,28 @@ class FirestoreSyncService implements SyncService {
     );
 
     try {
-      final StudentProgress written = await _firestore.runTransaction<
-        StudentProgress
-      >((Transaction transaction) async {
-        final DocumentSnapshot<Map<String, dynamic>> snapshot = await transaction
-            .get(doc);
-        final Map<String, dynamic>? data = snapshot.data();
+      final StudentProgress written = await _firestore
+          .runTransaction<StudentProgress>((Transaction transaction) async {
+            final DocumentSnapshot<Map<String, dynamic>> snapshot =
+                await transaction.get(doc);
+            final Map<String, dynamic>? data = snapshot.data();
 
-        final StudentProgress merged = data == null
-            ? local
-            : mergeProgress(
-                local,
-                progressFromMap(
-                  data,
-                  uid: local.uid,
-                  courseId: local.courseId,
-                ),
-              );
+            final StudentProgress merged = data == null
+                ? local
+                : mergeProgress(
+                    local,
+                    progressFromMap(
+                      data,
+                      uid: local.uid,
+                      courseId: local.courseId,
+                    ),
+                  );
 
-        transaction.set(doc, progressToMap(merged));
-        return merged;
-      });
+            transaction.set(doc, progressToMap(merged));
+            return merged;
+          });
 
-      _emit(
-        SyncState(lastSyncedAt: DateTime.now()),
-      );
+      _emit(SyncState(lastSyncedAt: DateTime.now()));
       return written;
     } catch (error) {
       // FR-043: el fallo tiene que ser visible. Queda pendiente de reintento.
@@ -112,12 +115,16 @@ class FirestoreSyncService implements SyncService {
   Stream<StudentProgress> remoteChanges({
     required String uid,
     required String courseId,
-  }) => _docFor(uid, courseId).snapshots().where(
-    (DocumentSnapshot<Map<String, dynamic>> snapshot) => snapshot.data() != null,
-  ).map(
-    (DocumentSnapshot<Map<String, dynamic>> snapshot) =>
-        progressFromMap(snapshot.data()!, uid: uid, courseId: courseId),
-  );
+  }) => _docFor(uid, courseId)
+      .snapshots()
+      .where(
+        (DocumentSnapshot<Map<String, dynamic>> snapshot) =>
+            snapshot.data() != null,
+      )
+      .map(
+        (DocumentSnapshot<Map<String, dynamic>> snapshot) =>
+            progressFromMap(snapshot.data()!, uid: uid, courseId: courseId),
+      );
 
   void _emit(SyncState state) {
     _currentStatus = state;

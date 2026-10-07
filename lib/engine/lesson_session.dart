@@ -50,7 +50,9 @@ class LessonSession {
   /// programación de la interfaz, no un caso que haya que tolerar en silencio.
   void answer(ExerciseOutcome outcome) {
     if (isComplete) {
-      throw StateError('La lección ya está completa: no hay nada que responder');
+      throw StateError(
+        'La lección ya está completa: no hay nada que responder',
+      );
     }
     _outcomes.add(outcome);
   }
@@ -71,6 +73,5 @@ class LessonSession {
   bool get canBeRecorded => isComplete;
 
   /// La calificación de la sesión. Solo tiene sentido si está completa.
-  ScoreResult get result =>
-      scoreActivity(outcomes: _outcomes, kind: kind);
+  ScoreResult get result => scoreActivity(outcomes: _outcomes, kind: kind);
 }

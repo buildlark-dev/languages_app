@@ -27,7 +27,10 @@ class SignInScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            Text(l10n.appTagline, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.appTagline,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 24),
             EmailPasswordForm(
               submitLabel: l10n.signInTitle,
@@ -35,7 +38,8 @@ class SignInScreen extends ConsumerWidget {
               errorMessage: failure == null
                   ? null
                   : authFailureMessage(l10n, failure),
-              onChanged: () => ref.read(authControllerProvider.notifier).dismissError(),
+              onChanged: () =>
+                  ref.read(authControllerProvider.notifier).dismissError(),
               onSubmit: (String email, String password) => ref
                   .read(authControllerProvider.notifier)
                   .signIn(email: email, password: password),

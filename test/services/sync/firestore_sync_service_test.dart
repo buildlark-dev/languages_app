@@ -49,30 +49,33 @@ void main() {
     expect(sync.remote!.xp, 50);
   });
 
-  test('pushMerged NUNCA sobrescribe: el resultado conserva lo remoto', () async {
-    sync = FakeSyncService(
-      remote: progress(
-        xp: 500,
-        levels: <String, LevelState>{'A1': LevelState.passed},
-        scores: <String, ActivityScore>{'L1': score(0.95)},
-      ),
-    );
+  test(
+    'pushMerged NUNCA sobrescribe: el resultado conserva lo remoto',
+    () async {
+      sync = FakeSyncService(
+        remote: progress(
+          xp: 500,
+          levels: <String, LevelState>{'A1': LevelState.passed},
+          scores: <String, ActivityScore>{'L1': score(0.95)},
+        ),
+      );
 
-    // Un dispositivo con menos avance empuja.
-    final StudentProgress written = await sync.pushMerged(
-      progress(
-        xp: 20,
-        levels: <String, LevelState>{'A1': LevelState.unlocked},
-        scores: <String, ActivityScore>{'L2': score(0.7)},
-      ),
-    );
+      // Un dispositivo con menos avance empuja.
+      final StudentProgress written = await sync.pushMerged(
+        progress(
+          xp: 20,
+          levels: <String, LevelState>{'A1': LevelState.unlocked},
+          scores: <String, ActivityScore>{'L2': score(0.7)},
+        ),
+      );
 
-    // Nada de lo remoto se perdió, y lo local se añadió.
-    expect(written.xp, 500);
-    expect(written.stateOf('A1'), LevelState.passed);
-    expect(written.activityScores['L1']!.bestScore, closeTo(0.95, 1e-9));
-    expect(written.activityScores['L2']!.bestScore, closeTo(0.7, 1e-9));
-  });
+      // Nada de lo remoto se perdió, y lo local se añadió.
+      expect(written.xp, 500);
+      expect(written.stateOf('A1'), LevelState.passed);
+      expect(written.activityScores['L1']!.bestScore, closeTo(0.95, 1e-9));
+      expect(written.activityScores['L2']!.bestScore, closeTo(0.7, 1e-9));
+    },
+  );
 
   test('empujar dos veces lo mismo no cambia el resultado', () async {
     final StudentProgress local = progress(

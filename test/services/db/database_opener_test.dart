@@ -72,22 +72,25 @@ void main() {
     await result.database.close();
   });
 
-  test('un almacenamiento roto degrada a la reserva y conserva el motivo',
-      () async {
-    final DatabaseOpenResult result = await openAppDatabase(
-      openPrimary: () => AppDatabase.withExecutor(_BrokenExecutor()),
-      openFallback: () => AppDatabase.withExecutor(NativeDatabase.memory()),
-    );
+  test(
+    'un almacenamiento roto degrada a la reserva y conserva el motivo',
+    () async {
+      final DatabaseOpenResult result = await openAppDatabase(
+        openPrimary: () => AppDatabase.withExecutor(_BrokenExecutor()),
+        openFallback: () => AppDatabase.withExecutor(NativeDatabase.memory()),
+      );
 
-    expect(result.degraded, isTrue);
-    expect(
-      result.error,
-      contains('disco lleno'),
-      reason: 'El motivo debe llegar a la interfaz: FR-043 prohíbe el silencio',
-    );
+      expect(result.degraded, isTrue);
+      expect(
+        result.error,
+        contains('disco lleno'),
+        reason:
+            'El motivo debe llegar a la interfaz: FR-043 prohíbe el silencio',
+      );
 
-    await result.database.close();
-  });
+      await result.database.close();
+    },
+  );
 
   test('la app sigue usable sobre la reserva', () async {
     final DatabaseOpenResult result = await openAppDatabase(

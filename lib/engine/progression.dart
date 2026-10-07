@@ -94,11 +94,7 @@ LockReason? lockReasonFor({
   required StudentProgress progress,
   required Module module,
 }) {
-  if (moduleAvailability(
-        course: course,
-        progress: progress,
-        module: module,
-      ) !=
+  if (moduleAvailability(course: course, progress: progress, module: module) !=
       ModuleAvailability.locked) {
     return null;
   }
@@ -130,9 +126,7 @@ LockReason? lockReasonFor({
 bool isLevelExamAvailable({
   required StudentProgress progress,
   required Level level,
-}) => level.modules.every(
-  (Module m) => progress.hasPassed(m.moduleExam.id),
-);
+}) => level.modules.every((Module m) => progress.hasPassed(m.moduleExam.id));
 
 /// Cuántos módulos del nivel están aprobados.
 int passedModuleCount({

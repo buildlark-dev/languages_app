@@ -24,47 +24,48 @@ import '../../core/review_card.dart';
 import '../../core/student_progress.dart';
 
 /// Convierte el progreso en un mapa serializable.
-Map<String, Object?> progressToMap(StudentProgress progress) =>
-    <String, Object?>{
-      'schemaVersion': progress.schemaVersion,
-      'currentLevelId': progress.currentLevelId,
-      'xp': progress.xp,
-      'streakCount': progress.streakCount,
-      'lastActivityDate': _dateToIso(progress.lastActivityDate),
-      'levelStates': <String, Object?>{
-        for (final MapEntry<String, LevelState> e in progress.levelStates.entries)
-          e.key: e.value.rank,
+Map<String, Object?> progressToMap(
+  StudentProgress progress,
+) => <String, Object?>{
+  'schemaVersion': progress.schemaVersion,
+  'currentLevelId': progress.currentLevelId,
+  'xp': progress.xp,
+  'streakCount': progress.streakCount,
+  'lastActivityDate': _dateToIso(progress.lastActivityDate),
+  'levelStates': <String, Object?>{
+    for (final MapEntry<String, LevelState> e in progress.levelStates.entries)
+      e.key: e.value.rank,
+  },
+  'activities': <String, Object?>{
+    for (final MapEntry<String, ActivityScore> e
+        in progress.activityScores.entries)
+      e.key: <String, Object?>{
+        'kind': e.value.kind.code,
+        'bestScore': e.value.bestScore,
+        'attempts': e.value.attempts,
+        'lastAttemptAt': _dateToIso(e.value.lastAttemptAt),
       },
-      'activities': <String, Object?>{
-        for (final MapEntry<String, ActivityScore> e
-            in progress.activityScores.entries)
-          e.key: <String, Object?>{
-            'kind': e.value.kind.code,
-            'bestScore': e.value.bestScore,
-            'attempts': e.value.attempts,
-            'lastAttemptAt': _dateToIso(e.value.lastAttemptAt),
-          },
+  },
+  'reviewCards': <String, Object?>{
+    for (final MapEntry<String, ReviewCard> e in progress.reviewCards.entries)
+      e.key: <String, Object?>{
+        'moduleId': e.value.moduleId,
+        'term': e.value.term,
+        'translation': e.value.translation,
+        'intervalStep': e.value.intervalStep,
+        'dueDate': _dateToIso(e.value.dueDate),
+        'lapses': e.value.lapses,
       },
-      'reviewCards': <String, Object?>{
-        for (final MapEntry<String, ReviewCard> e in progress.reviewCards.entries)
-          e.key: <String, Object?>{
-            'moduleId': e.value.moduleId,
-            'term': e.value.term,
-            'translation': e.value.translation,
-            'intervalStep': e.value.intervalStep,
-            'dueDate': _dateToIso(e.value.dueDate),
-            'lapses': e.value.lapses,
-          },
-      },
-      if (progress.placement != null)
-        'placement': <String, Object?>{
-          'estimatedLevelId': progress.placement!.estimatedLevelId,
-          'masteredLevelIds': progress.placement!.masteredLevelIds,
-          'skipped': progress.placement!.skipped,
-          'takenAt': _dateToIso(progress.placement!.takenAt),
-        },
-      'updatedAt': _dateToIso(DateTime.now()),
-    };
+  },
+  if (progress.placement != null)
+    'placement': <String, Object?>{
+      'estimatedLevelId': progress.placement!.estimatedLevelId,
+      'masteredLevelIds': progress.placement!.masteredLevelIds,
+      'skipped': progress.placement!.skipped,
+      'takenAt': _dateToIso(progress.placement!.takenAt),
+    },
+  'updatedAt': _dateToIso(DateTime.now()),
+};
 
 /// Reconstruye el progreso desde un mapa.
 ///

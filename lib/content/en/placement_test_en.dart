@@ -51,8 +51,7 @@ const PlacementExam englishPlacementTest = PlacementExam(
         prompt: 'Yesterday I ___ to the market.',
         options: <String>['go', 'goed', 'went', 'gone'],
         answerIndex: 2,
-        explanation:
-            'Pasado simple irregular de <i>go</i>: <code>went</code>.',
+        explanation: 'Pasado simple irregular de <i>go</i>: <code>went</code>.',
       ),
     ),
     PlacementItem(

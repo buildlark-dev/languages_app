@@ -51,35 +51,33 @@ void main() {
     await tts.initialize('en-US');
   });
 
-  Widget wrap(
-    Widget child, {
-    SpeechAvailability? availability,
-  }) => ProviderScope(
-    overrides: [
-      ttsServiceProvider.overrideWithValue(tts),
-      sttServiceProvider.overrideWithValue(stt),
-      if (availability != null)
-        speechAvailabilityProvider.overrideWith(
-          () => _FixedAvailability(availability),
+  Widget wrap(Widget child, {SpeechAvailability? availability}) =>
+      ProviderScope(
+        overrides: [
+          ttsServiceProvider.overrideWithValue(tts),
+          sttServiceProvider.overrideWithValue(stt),
+          if (availability != null)
+            speechAvailabilityProvider.overrideWith(
+              () => _FixedAvailability(availability),
+            ),
+        ],
+        child: MaterialApp(
+          theme: lightTheme,
+          localizationsDelegates: const <LocalizationsDelegate<Object>>[
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: child,
+            ),
+          ),
         ),
-    ],
-    child: MaterialApp(
-      theme: lightTheme,
-      localizationsDelegates: const <LocalizationsDelegate<Object>>[
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: child,
-        ),
-      ),
-    ),
-  );
+      );
 
   group('comprensión auditiva', () {
     testWidgets('con voz disponible ofrece el botón de escuchar', (
@@ -236,7 +234,8 @@ void main() {
       expect(
         stt.permissionRequests,
         0,
-        reason: 'Pedirlo al abrir la lección es la forma más rápida de que lo '
+        reason:
+            'Pedirlo al abrir la lección es la forma más rápida de que lo '
             'nieguen',
       );
     });
@@ -260,7 +259,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Escríbelo'), findsOne);
-      expect(find.textContaining('No concediste permiso de micrófono'), findsOne);
+      expect(
+        find.textContaining('No concediste permiso de micrófono'),
+        findsOne,
+      );
       expect(find.widgetWithText(FilledButton, 'Hablar'), findsNothing);
     });
 
@@ -360,7 +362,10 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Hablar'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Entendimos: «good morning everyone»'), findsOne);
+      expect(
+        find.textContaining('Entendimos: «good morning everyone»'),
+        findsOne,
+      );
       expect(find.textContaining('Esperábamos: «nice to meet you»'), findsOne);
       // Y se aclara que no se puntúa el acento.
       expect(find.textContaining('No se puntúa el acento'), findsOne);
@@ -433,10 +438,9 @@ void main() {
       await tester.tap(skip);
       await tester.pumpAndSettle();
 
-      expect(
-        attempts,
-        <PronunciationAttempt>[PronunciationAttempt.unavailable],
-      );
+      expect(attempts, <PronunciationAttempt>[
+        PronunciationAttempt.unavailable,
+      ]);
     });
   });
 }

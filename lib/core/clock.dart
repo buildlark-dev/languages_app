@@ -16,7 +16,8 @@ typedef Clock = DateTime Function();
 DateTime systemClock() => DateTime.now();
 
 /// Crea un reloj fijo, para pruebas.
-Clock fixedClock(DateTime instant) => () => instant;
+Clock fixedClock(DateTime instant) =>
+    () => instant;
 
 /// Trunca un instante a su fecha, descartando la hora.
 ///
@@ -35,3 +36,13 @@ int daysBetween(DateTime from, DateTime to) {
   final end = DateTime.utc(to.year, to.month, to.day);
   return end.difference(start).inDays;
 }
+
+/// Suma días a una fecha, devolviendo la medianoche del día resultante.
+///
+/// No usa `add(Duration(days: n))` a propósito: una duración son horas exactas,
+/// y en una zona con horario de verano un día puede durar 23 o 25, así que
+/// sumar 90 duraciones de 24 horas puede caer en el día anterior a las 23:00.
+/// El constructor de `DateTime` normaliza el desborde del campo día y siempre
+/// aterriza en la medianoche local correcta.
+DateTime addDays(DateTime from, int days) =>
+    DateTime(from.year, from.month, from.day + days);

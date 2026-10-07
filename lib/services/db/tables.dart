@@ -57,8 +57,11 @@ class LevelProgress extends Table {
   IntColumn get state => integer()();
 
   @override
-  Set<Column<Object>> get primaryKey =>
-      <Column<Object>>{uid, courseId, levelId};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{
+    uid,
+    courseId,
+    levelId,
+  };
 }
 
 /// Mejor resultado de cada lección y de cada examen.
@@ -80,8 +83,11 @@ class ActivityResults extends Table {
   DateTimeColumn get lastAttemptAt => dateTime()();
 
   @override
-  Set<Column<Object>> get primaryKey =>
-      <Column<Object>>{uid, courseId, activityId};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{
+    uid,
+    courseId,
+    activityId,
+  };
 }
 
 /// Cola de repetición espaciada.
@@ -108,8 +114,12 @@ class ReviewCards extends Table {
   IntColumn get lapses => integer().withDefault(const Constant<int>(0))();
 
   @override
-  Set<Column<Object>> get primaryKey =>
-      <Column<Object>>{uid, courseId, moduleId, term};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{
+    uid,
+    courseId,
+    moduleId,
+    term,
+  };
 }
 
 /// Resultado de la nivelación.
@@ -130,7 +140,8 @@ class PlacementResults extends Table {
   TextColumn get masteredLevelIds =>
       text().withDefault(const Constant<String>(''))();
 
-  BoolColumn get skipped => boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get skipped =>
+      boolean().withDefault(const Constant<bool>(false))();
   DateTimeColumn get takenAt => dateTime()();
 
   @override

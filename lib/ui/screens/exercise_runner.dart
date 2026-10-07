@@ -89,11 +89,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
   }
 
   LessonSession _newSession() => LessonSession.start(
-    lesson: Lesson(
-      id: 'runner',
-      title: 'runner',
-      exercises: widget.exercises,
-    ),
+    lesson: Lesson(id: 'runner', title: 'runner', exercises: widget.exercises),
     kind: widget.kind,
   );
 

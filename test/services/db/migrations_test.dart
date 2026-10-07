@@ -119,17 +119,21 @@ void main() {
     await second.close();
   });
 
-  test('reabrir no vuelve a ejecutar onCreate ni duplica la fila de versión',
-      () async {
-    final AppDatabase first = open();
-    await ProgressDao(first).save(sampleProgress());
-    await first.close();
+  test(
+    'reabrir no vuelve a ejecutar onCreate ni duplica la fila de versión',
+    () async {
+      final AppDatabase first = open();
+      await ProgressDao(first).save(sampleProgress());
+      await first.close();
 
-    final AppDatabase second = open();
-    final List<SchemaMetaRow> meta = await second.select(second.schemaMeta).get();
-    expect(meta, hasLength(1));
-    await second.close();
-  });
+      final AppDatabase second = open();
+      final List<SchemaMetaRow> meta = await second
+          .select(second.schemaMeta)
+          .get();
+      expect(meta, hasLength(1));
+      await second.close();
+    },
+  );
 
   test('las claves foráneas quedan activas al abrir', () async {
     // beforeOpen las enciende. Activarlas desde v1 evita que una versión futura

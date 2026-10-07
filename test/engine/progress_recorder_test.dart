@@ -99,7 +99,11 @@ void main() {
     });
 
     test('repetir sin mejorar NO suma XP', () {
-      final StudentProgress p = record(base(), 0.8, DateTime(2026, 10, 6)).progress;
+      final StudentProgress p = record(
+        base(),
+        0.8,
+        DateTime(2026, 10, 6),
+      ).progress;
       final int before = p.xp;
 
       final RecordedActivity again = record(p, 0.8, DateTime(2026, 10, 7));
@@ -108,7 +112,11 @@ void main() {
     });
 
     test('mejorar suma solo la diferencia', () {
-      final StudentProgress p = record(base(), 0.6, DateTime(2026, 10, 6)).progress;
+      final StudentProgress p = record(
+        base(),
+        0.6,
+        DateTime(2026, 10, 6),
+      ).progress;
       final int before = p.xp;
 
       final RecordedActivity better = record(p, 1, DateTime(2026, 10, 7));
@@ -177,7 +185,12 @@ void main() {
     test('una racha larga se mantiene día a día', () {
       StudentProgress p = base();
       for (int day = 1; day <= 7; day++) {
-        p = record(p, 0.9, DateTime(2026, 10, day), activityId: 'L$day').progress;
+        p = record(
+          p,
+          0.9,
+          DateTime(2026, 10, day),
+          activityId: 'L$day',
+        ).progress;
       }
       expect(p.streakCount, 7, reason: 'SC-012: siete días seguidos');
     });

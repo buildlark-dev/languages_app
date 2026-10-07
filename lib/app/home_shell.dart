@@ -13,6 +13,8 @@ import '../core/content_pack.dart';
 import '../services/auth/auth_service.dart';
 import '../ui/providers/auth_providers.dart';
 import '../ui/providers/content_providers.dart';
+import '../ui/screens/review_screen.dart';
+import '../ui/widgets/review_summary_card.dart';
 import '../ui/widgets/sign_out_button.dart';
 import '../ui/widgets/sync_banner.dart';
 import 'l10n/app_localizations.dart';
@@ -45,6 +47,19 @@ class HomeShell extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   const SizedBox(height: 16),
+                  // Solo tiene sentido con un idioma elegido: la cola de repaso
+                  // es por curso.
+                  if (ref.watch(selectedCourseIdProvider) != null) ...<Widget>[
+                    ReviewSummaryCard(
+                      onOpenReview: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (BuildContext context) =>
+                              const ReviewScreen(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   Text(
                     l10n.chooseCourse,
                     style: Theme.of(context).textTheme.titleSmall,

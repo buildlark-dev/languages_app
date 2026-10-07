@@ -56,10 +56,7 @@ class LessonResultView extends StatelessWidget {
             ],
             const SizedBox(height: 32),
             if (!result.passed)
-              FilledButton(
-                onPressed: onRetry,
-                child: const Text('Reintentar'),
-              ),
+              FilledButton(onPressed: onRetry, child: const Text('Reintentar')),
             const SizedBox(height: 8),
             OutlinedButton(onPressed: onClose, child: const Text('Volver')),
           ],

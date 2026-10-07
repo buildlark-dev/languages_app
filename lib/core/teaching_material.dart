@@ -11,10 +11,7 @@ library;
 
 /// Explicación gramatical en español.
 class GrammarExplanation {
-  const GrammarExplanation({
-    required this.title,
-    required this.bodyHtml,
-  });
+  const GrammarExplanation({required this.title, required this.bodyHtml});
 
   /// Qué se explica. Ej.: "El verbo *to be* y los pronombres".
   final String title;
@@ -30,10 +27,7 @@ class GrammarExplanation {
 
 /// Un ejemplo con su traducción, para ver la regla en uso.
 class BilingualExample {
-  const BilingualExample({
-    required this.target,
-    required this.spanish,
-  });
+  const BilingualExample({required this.target, required this.spanish});
 
   /// La frase en el idioma estudiado.
   final String target;

@@ -206,8 +206,7 @@ const Exam a1Module4Exam = Exam(
           '<code>-s</code>.',
     ),
     ListeningExercise(
-      spokenText:
-          'She really likes spicy food, but we do not like it much.',
+      spokenText: 'She really likes spicy food, but we do not like it much.',
       question: '¿A quién le gusta mucho lo picante?',
       options: <String>[
         'A ella',

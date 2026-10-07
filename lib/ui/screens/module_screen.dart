@@ -1,7 +1,16 @@
 /// Mapa de módulos de un nivel, con su examen de nivel al final.
+///
+/// Además es el punto donde **empieza** un módulo, y por eso siembra aquí su
+/// vocabulario en la cola de repaso (FR-028). La siembra ocurre al entrar y no
+/// al aprobar: una palabra empieza a olvidarse el día en que se estudia, no el
+/// día en que se examina. Es idempotente, así que entrar y salir diez veces del
+/// mismo módulo no reinicia nada.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/course.dart';
 import '../../core/exam.dart';
@@ -9,9 +18,10 @@ import '../../core/level.dart';
 import '../../core/module.dart';
 import '../../core/student_progress.dart';
 import '../../engine/progression.dart';
+import '../providers/review_providers.dart';
 import '../widgets/module_tile.dart';
 
-class ModuleScreen extends StatelessWidget {
+class ModuleScreen extends ConsumerWidget {
   const ModuleScreen({
     required this.course,
     required this.level,
@@ -28,7 +38,7 @@ class ModuleScreen extends StatelessWidget {
   final ValueChanged<Exam> onOpenLevelExam;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bool examReady = isLevelExamAvailable(
       progress: progress,
       level: level,
@@ -42,7 +52,10 @@ class ModuleScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            Text(level.description, style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              level.description,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             const SizedBox(height: 24),
             for (final Module module in level.modules)
               Padding(
@@ -59,7 +72,9 @@ class ModuleScreen extends StatelessWidget {
                     progress: progress,
                     module: module,
                   ),
-                  onTap: () => onOpenModule(module),
+                  // El módulo bloqueado no llega aquí: `ModuleTile` anula su
+                  // propio `onTap`, así que no se siembra lo que no se abre.
+                  onTap: () => _startModule(ref, module),
                 ),
               ),
             const SizedBox(height: 16),
@@ -74,6 +89,18 @@ class ModuleScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Abre el módulo y siembra su vocabulario en la cola de repaso.
+  ///
+  /// La navegación no espera a la siembra. Son dos razones: entrar en un módulo
+  /// no debe quedarse esperando una escritura en disco, y si la siembra falla el
+  /// estudiante igual puede estudiar —perdería el repaso espaciado de esas
+  /// palabras, no la lección—. El aviso de almacenamiento degradado ya cubre el
+  /// caso en que la base entera no funciona (FR-043).
+  void _startModule(WidgetRef ref, Module module) {
+    unawaited(ref.read(reviewSummaryProvider.notifier).seedModule(module));
+    onOpenModule(module);
   }
 }
 
@@ -110,7 +137,9 @@ class _LevelExamCard extends StatelessWidget {
                 Icon(
                   passed
                       ? Icons.workspace_premium
-                      : (available ? Icons.emoji_events_outlined : Icons.lock_outline),
+                      : (available
+                            ? Icons.emoji_events_outlined
+                            : Icons.lock_outline),
                   color: available || passed
                       ? colors.primary
                       : colors.onSurfaceVariant,
@@ -130,9 +159,9 @@ class _LevelExamCard extends StatelessWidget {
               passed
                   ? 'Aprobado. Ya superaste el nivel.'
                   : available
-                        ? 'Necesitas 80 % para superar el nivel.'
-                        : 'Aprueba los $total módulos para presentarlo. '
-                              'Llevas $passedModules.',
+                  ? 'Necesitas 80 % para superar el nivel.'
+                  : 'Aprueba los $total módulos para presentarlo. '
+                        'Llevas $passedModules.',
             ),
             if (available && !passed) ...<Widget>[
               const SizedBox(height: 16),

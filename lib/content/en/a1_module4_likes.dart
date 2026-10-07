@@ -14,8 +14,7 @@ const Module a1Module4 = Module(
   id: 'A1M4',
   order: 4,
   title: 'Gustos y capacidades',
-  canDo:
-      'Expresar preferencias, hablar de lo que sabes hacer y pedir comida.',
+  canDo: 'Expresar preferencias, hablar de lo que sabes hacer y pedir comida.',
   vocabulary: a1Module4Vocabulary,
   grammar: a1Module4Grammar,
   examples: a1Module4Examples,

@@ -17,7 +17,9 @@ final Provider<SyncService> syncServiceProvider = Provider<SyncService>(
 ///
 /// Se decide al arrancar, en `main.dart`, y no cambia durante la sesión: si la
 /// base no se pudo abrir, no se vuelve a intentar a mitad de una lección.
-final Provider<bool> storageDegradedProvider = Provider<bool>((Ref ref) => false);
+final Provider<bool> storageDegradedProvider = Provider<bool>(
+  (Ref ref) => false,
+);
 
 /// Estado de la sincronización, para el aviso de la pantalla.
 ///

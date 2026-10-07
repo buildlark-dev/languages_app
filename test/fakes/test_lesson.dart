@@ -21,7 +21,8 @@ const Lesson testLesson = Lesson(
       prompt: 'She ___ a nurse.',
       options: <String>['am', 'is', 'are'],
       answerIndex: 1,
-      explanation: 'Con <code>she</code> se usa la tercera persona del singular.',
+      explanation:
+          'Con <code>she</code> se usa la tercera persona del singular.',
     ),
     GapFillExercise(
       sentenceWithGap: 'My brother ___ a doctor.',

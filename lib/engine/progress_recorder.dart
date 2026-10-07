@@ -58,11 +58,7 @@ RecordedActivity recordActivity({
   final double? previousBest = previous?.bestScore;
 
   final ActivityScore updated = previous == null
-      ? ActivityScore(
-          kind: kind,
-          bestScore: result.ratio,
-          lastAttemptAt: now,
-        )
+      ? ActivityScore(kind: kind, bestScore: result.ratio, lastAttemptAt: now)
       : previous.withAttempt(result.ratio, now);
 
   final int xpGained = xpGainForAttempt(
