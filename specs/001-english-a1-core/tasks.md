@@ -84,17 +84,17 @@ externa creada.
 
 ### Almacén local
 
-- [ ] T027 Crear `lib/services/db/tables.dart` con las 7 tablas de `contracts/local-schema.md`: `schema_meta`, `student_profile`, `level_progress`, `activity_results`, `review_cards`, `placement_results` y `sync_meta`, con sus claves primarias compuestas exactas
-- [ ] T028 Añadir a `lib/services/db/tables.dart` el índice `idx_review_due` sobre `review_cards(uid, course_id, due_date)`. Sin él, "qué vence hoy" degrada a recorrido completo de tabla
-- [ ] T029 Crear `lib/services/db/app_database.dart` con `schemaVersion = 1` y la apertura por plataforma mediante `driftDatabase()` de `drift_flutter` (depende de T027)
-- [ ] T030 Crear `lib/services/db/migrations.dart` con el `MigrationStrategy`, que escribe `schema_meta` al crear y actualiza `migrated_at` en cada migración aplicada
-- [ ] T031 Ejecutar `dart run build_runner build --delete-conflicting-outputs` y confirmar que el código generado de Drift compila
-- [ ] T032 [P] Crear `lib/services/db/progress_dao.dart` con lectura y escritura de `student_profile`, `level_progress`, `activity_results` y `placement_results`, **siempre en transacción** según la tabla de `contracts/local-schema.md`
-- [ ] T033 [P] Crear `lib/services/db/review_dao.dart` con `dueToday()` apoyado en `idx_review_due`, `seed()` y `upsert()`
+- [X] T027 Crear `lib/services/db/tables.dart` con las 7 tablas de `contracts/local-schema.md`: `schema_meta`, `student_profile`, `level_progress`, `activity_results`, `review_cards`, `placement_results` y `sync_meta`, con sus claves primarias compuestas exactas
+- [X] T028 Añadir a `lib/services/db/tables.dart` el índice `idx_review_due` sobre `review_cards(uid, course_id, due_date)`. Sin él, "qué vence hoy" degrada a recorrido completo de tabla
+- [X] T029 Crear `lib/services/db/app_database.dart` con `schemaVersion = 1` y la apertura por plataforma mediante `driftDatabase()` de `drift_flutter` (depende de T027)
+- [X] T030 Crear `lib/services/db/migrations.dart` con el `MigrationStrategy`, que escribe `schema_meta` al crear y actualiza `migrated_at` en cada migración aplicada
+- [X] T031 Ejecutar `dart run build_runner build --delete-conflicting-outputs` y confirmar que el código generado de Drift compila
+- [X] T032 [P] Crear `lib/services/db/progress_dao.dart` con lectura y escritura de `student_profile`, `level_progress`, `activity_results` y `placement_results`, **siempre en transacción** según la tabla de `contracts/local-schema.md`
+- [X] T033 [P] Crear `lib/services/db/review_dao.dart` con `dueToday()` apoyado en `idx_review_due`, `seed()` y `upsert()`
 - [ ] T034 Añadir a `lib/services/db/app_database.dart` la degradación a almacén en memoria cuando abrir o escribir falle, marcando `sync_meta.storage_degraded` (FR-043)
-- [ ] T035 [P] Crear `test/services/db/app_database_test.dart` con base en memoria, verificando persistencia de cada tabla y la degradación de T034
-- [ ] T036 [P] Crear `test/services/db/migrations_test.dart` que ejercite el camino v1 → v1 y verifique que **ningún dato de progreso se pierde**. Deja montada y probada la infraestructura de migración antes de que exista una v2 que la necesite
-- [ ] T037 [P] Crear `test/services/db/review_dao_test.dart` verificando que `dueToday()` devuelve solo lo vencido y que rinde por debajo de 50 ms con 2.000 tarjetas
+- [X] T035 [P] Crear `test/services/db/app_database_test.dart` con base en memoria, verificando persistencia de cada tabla y la degradación de T034
+- [X] T036 [P] Crear `test/services/db/migrations_test.dart` que ejercite el camino v1 → v1 y verifique que **ningún dato de progreso se pierde**. Deja montada y probada la infraestructura de migración antes de que exista una v2 que la necesite
+- [X] T037 [P] Crear `test/services/db/review_dao_test.dart` verificando que `dueToday()` devuelve solo lo vencido y que rinde por debajo de 50 ms con 2.000 tarjetas
 
 ### Motor compartido
 

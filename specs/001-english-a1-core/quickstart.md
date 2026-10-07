@@ -40,7 +40,7 @@ flutter pub get
 Generar el código de Drift (necesario tras cualquier cambio en las tablas):
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
 
 Lanzar el emulador:
@@ -324,6 +324,6 @@ que confirma que `sqlite3.wasm` y `drift_worker.js` están bien instalados).
 | No suena el audio en el emulador | Falta la voz en inglés en el motor TTS del sistema. `TtsService.initialize` debe devolver `languageMissing` y la app presentar el transcript |
 | La pronunciación nunca reconoce nada | El emulador enruta el micrófono del equipo; verificar el micrófono del anfitrión, y si persiste, probar en dispositivo físico |
 | `MissingPluginException` tras añadir un paquete | Detener la app por completo y volver a lanzarla: una recarga en caliente no registra plugins nativos |
-| Error de Drift sobre código generado | Falta `dart run build_runner build --delete-conflicting-outputs` |
+| Error de Drift sobre código generado | Falta `dart run build_runner build` |
 | En web el progreso no persiste | Faltan `sqlite3.wasm` o `drift_worker.js` en `web/` |
 | Firestore rechaza la escritura | Reglas de seguridad, o sesión no iniciada; revisar el `uid` del token frente a la ruta |

@@ -9,6 +9,7 @@
 /// datos, no las operaciones.
 library;
 
+import 'activity_score.dart';
 import 'level_state.dart';
 import 'placement_result.dart';
 import 'review_card.dart';
@@ -30,7 +31,7 @@ class StudentProgress {
     this.streakCount = 0,
     this.lastActivityDate,
     this.levelStates = const <String, LevelState>{},
-    this.activityScores = const <String, double>{},
+    this.activityScores = const <String, ActivityScore>{},
     this.reviewCards = const <String, ReviewCard>{},
     this.placement,
     this.syncState = const SyncState(),
@@ -79,15 +80,10 @@ class StudentProgress {
   /// Solo contiene niveles **con contenido**: los anunciados no tienen estado.
   final Map<String, LevelState> levelStates;
 
-  /// Mejor puntaje de cada actividad, de 0.0 a 1.0.
+  /// Mejor resultado de cada actividad, indexado por su identificador.
   ///
-  /// "Actividad" cubre lecciones y exámenes, porque las tres comparten la regla
-  /// de conservar solo el mejor intento. Guardar únicamente el máximo es lo que
-  /// hace imposible que un reintento peor desapruebe algo ya aprobado (FR-027):
-  /// no es una comprobación en el código, es la forma del dato.
-  ///
-  /// Fusión: **máximo** por clave, unión de claves.
-  final Map<String, double> activityScores;
+  /// Fusión: por clave, el [ActivityScore.mergeWith] de ambos; unión de claves.
+  final Map<String, ActivityScore> activityScores;
 
   /// Cola de repetición espaciada, indexada por `moduleId|term`.
   ///
@@ -104,14 +100,15 @@ class StudentProgress {
   LevelState stateOf(String levelId) =>
       levelStates[levelId] ?? LevelState.locked;
 
-  /// Mejor puntaje de una actividad, o nulo si nunca se presentó.
-  double? scoreOf(String activityId) => activityScores[activityId];
+  /// Resultado de una actividad, o nulo si nunca se presentó.
+  ActivityScore? scoreOf(String activityId) => activityScores[activityId];
 
-  /// Si una actividad alcanzó el umbral dado.
-  bool hasPassed(String activityId, double threshold) {
-    final double? score = activityScores[activityId];
-    return score != null && score >= threshold;
-  }
+  /// Si una actividad está aprobada según el umbral de su propia clase.
+  ///
+  /// Quien pregunta no necesita saber si era lección (70 %) o examen (80 %): el
+  /// umbral viaja con [ActivityKind].
+  bool hasPassed(String activityId) =>
+      activityScores[activityId]?.isPassed ?? false;
 
   /// Tarjetas que vencen en la fecha dada o antes.
   List<ReviewCard> dueCards(DateTime today) => reviewCards.values
@@ -125,7 +122,7 @@ class StudentProgress {
     int? streakCount,
     DateTime? lastActivityDate,
     Map<String, LevelState>? levelStates,
-    Map<String, double>? activityScores,
+    Map<String, ActivityScore>? activityScores,
     Map<String, ReviewCard>? reviewCards,
     PlacementResult? placement,
     SyncState? syncState,
