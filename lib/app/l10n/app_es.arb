@@ -1,0 +1,13 @@
+{
+  "@@locale": "es",
+
+  "appTitle": "Idiomas",
+  "@appTitle": {
+    "description": "Nombre de la aplicación, visible en la barra de tareas y el conmutador de apps"
+  },
+
+  "appTagline": "Aprende desde cero hasta hablar con fluidez",
+  "@appTagline": {
+    "description": "Frase de presentación en la pantalla de acceso"
+  }
+}

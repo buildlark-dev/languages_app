@@ -26,5 +26,26 @@
     "ui": {
       "enabled": true
     }
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "languages-buildlark",
+          "appId": "1:568960664423:android:db5e4d39d873c4e17a25c2",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "languages-buildlark",
+          "configurations": {
+            "android": "1:568960664423:android:db5e4d39d873c4e17a25c2",
+            "ios": "1:568960664423:ios:625b6a4f0331c3777a25c2",
+            "web": "1:568960664423:web:038381a2714f494f7a25c2"
+          }
+        }
+      }
+    }
   }
 }

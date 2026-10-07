@@ -1,0 +1,12 @@
+# Generación de las clases de localización de la interfaz.
+#
+# Las cadenas de interfaz (botones, mensajes, errores) viven aquí y son
+# independientes del contenido didáctico, que vive en lib/content/<idioma>/.
+# El idioma de la interfaz y el idioma estudiado son dimensiones separadas
+# (Principio I de la constitución).
+
+arb-dir: lib/app/l10n
+template-arb-file: app_es.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false
