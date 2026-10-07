@@ -142,22 +142,22 @@ segundo destino y comprobar que el estado coincide sin recargar.
 
 > Escribir estas pruebas **antes** de la implementación y comprobar que fallan.
 
-- [ ] T059 [P] [US1] Crear `test/fakes/fake_auth_service.dart` capaz de devolver **cada uno** de los 8 errores tipados de `contracts/services.md`
-- [ ] T060 [P] [US1] Crear `test/fakes/fake_sync_service.dart` capaz de simular fallo de red, documento remoto ausente y emisiones de `remoteChanges`
-- [ ] T061 [P] [US1] Crear `test/engine/progress_merger_test.dart` verificando **conmutatividad**, **asociatividad** e **idempotencia** sobre permutaciones de estados divergentes, y la invariante central: *ningún número del resultado es menor ni ningún conjunto más pequeño que en cualquiera de las entradas*
-- [ ] T062 [P] [US1] Añadir a `test/engine/progress_merger_test.dart` el caso de la **racha caducada**: racha 7 con última actividad el lunes fusionada con racha 1 del jueves debe dar racha 1, no 7
+- [X] T059 [P] [US1] Crear `test/fakes/fake_auth_service.dart` capaz de devolver **cada uno** de los 8 errores tipados de `contracts/services.md`
+- [X] T060 [P] [US1] Crear `test/fakes/fake_sync_service.dart` capaz de simular fallo de red, documento remoto ausente y emisiones de `remoteChanges`
+- [X] T061 [P] [US1] Crear `test/engine/progress_merger_test.dart` verificando **conmutatividad**, **asociatividad** e **idempotencia** sobre permutaciones de estados divergentes, y la invariante central: *ningún número del resultado es menor ni ningún conjunto más pequeño que en cualquiera de las entradas*
+- [X] T062 [P] [US1] Añadir a `test/engine/progress_merger_test.dart` el caso de la **racha caducada**: racha 7 con última actividad el lunes fusionada con racha 1 del jueves debe dar racha 1, no 7
 
 ### Implementation for User Story 1
 
-- [ ] T063 [US1] Crear `lib/engine/progress_merger.dart` con la fusión monotónica de `data-model.md`: máximo para puntajes, XP y estados de nivel; unión para conjuntos; `intervalStep` máximo y `dueDate` **más próxima** por tarjeta; `placement` el de `takenAt` más reciente
-- [ ] T064 [US1] Añadir a `lib/engine/progress_merger.dart` el **recálculo de la racha** tras fusionar: si entre `lastActivityDate` y la fecha del dispositivo con la racha mayor pasó más de un día, la racha se reinicia a 1 (FR-031)
-- [ ] T065 [P] [US1] Crear `lib/services/auth/auth_service.dart` con el contrato: `currentUser`, `authStateChanges`, `signUp`, `signIn`, `sendPasswordReset`, `signOut`, y el enum de errores tipados `invalidEmail`, `weakPassword`, `emailAlreadyInUse`, `wrongCredentials`, `userNotFound`, `tooManyAttempts`, `noConnection`, `unknown`
-- [ ] T066 [US1] Crear `lib/services/auth/firebase_auth_service.dart` que traduzca **toda** excepción de Firebase a un error tipado. Ninguna excepción cruda cruza el contrato
-- [ ] T067 [P] [US1] Crear `lib/services/sync/sync_service.dart` con el contrato: `pull`, `pushMerged`, `remoteChanges` y `syncStatus`. **No** expone ninguna operación de reemplazo directo
-- [ ] T068 [US1] Crear `lib/services/sync/firestore_sync_service.dart` con `pushMerged` dentro de una **transacción** de Firestore que lea el documento remoto, lo fusione con `progress_merger` y escriba el resultado (depende de T063, T067)
-- [ ] T069 [US1] Desactivar la persistencia local de Firestore en la inicialización de `lib/main.dart`, para no tener dos cachés compitiendo con Drift
-- [ ] T070 [US1] Implementar `remoteChanges` en `lib/services/sync/firestore_sync_service.dart` como suscripción en vivo al documento; cada emisión se fusiona con la **misma** `progress_merger` y se escribe en Drift. Es lo que hace cumplible SC-004 sin recargar
-- [ ] T071 [US1] Crear `lib/services/sync/sync_scheduler.dart` que empuje al iniciar sesión, al terminar lección o examen, al terminar repaso, al recuperar conexión y al pasar a segundo plano, sin bloquear nunca la interfaz
+- [X] T063 [US1] Crear `lib/engine/progress_merger.dart` con la fusión monotónica de `data-model.md`: máximo para puntajes, XP y estados de nivel; unión para conjuntos; `intervalStep` máximo y `dueDate` **más próxima** por tarjeta; `placement` el de `takenAt` más reciente
+- [X] T064 [US1] Añadir a `lib/engine/progress_merger.dart` el **recálculo de la racha** tras fusionar: si entre `lastActivityDate` y la fecha del dispositivo con la racha mayor pasó más de un día, la racha se reinicia a 1 (FR-031)
+- [X] T065 [P] [US1] Crear `lib/services/auth/auth_service.dart` con el contrato: `currentUser`, `authStateChanges`, `signUp`, `signIn`, `sendPasswordReset`, `signOut`, y el enum de errores tipados `invalidEmail`, `weakPassword`, `emailAlreadyInUse`, `wrongCredentials`, `userNotFound`, `tooManyAttempts`, `noConnection`, `unknown`
+- [X] T066 [US1] Crear `lib/services/auth/firebase_auth_service.dart` que traduzca **toda** excepción de Firebase a un error tipado. Ninguna excepción cruda cruza el contrato
+- [X] T067 [P] [US1] Crear `lib/services/sync/sync_service.dart` con el contrato: `pull`, `pushMerged`, `remoteChanges` y `syncStatus`. **No** expone ninguna operación de reemplazo directo
+- [X] T068 [US1] Crear `lib/services/sync/firestore_sync_service.dart` con `pushMerged` dentro de una **transacción** de Firestore que lea el documento remoto, lo fusione con `progress_merger` y escriba el resultado (depende de T063, T067)
+- [X] T069 [US1] Desactivar la persistencia local de Firestore en la inicialización de `lib/main.dart`, para no tener dos cachés compitiendo con Drift
+- [X] T070 [US1] Implementar `remoteChanges` en `lib/services/sync/firestore_sync_service.dart` como suscripción en vivo al documento; cada emisión se fusiona con la **misma** `progress_merger` y se escribe en Drift. Es lo que hace cumplible SC-004 sin recargar
+- [X] T071 [US1] Crear `lib/services/sync/sync_scheduler.dart` que empuje al iniciar sesión, al terminar lección o examen, al terminar repaso, al recuperar conexión y al pasar a segundo plano, sin bloquear nunca la interfaz
 - [ ] T072 [P] [US1] Crear `lib/ui/providers/auth_providers.dart` exponiendo el estado de sesión
 - [ ] T073 [P] [US1] Crear `lib/ui/providers/progress_providers.dart` exponiendo progreso y estado de sincronización
 - [ ] T074 [P] [US1] Crear `lib/ui/screens/sign_up_screen.dart` con correo y contraseña **únicamente**; sin nombre, fecha de nacimiento, teléfono ni ubicación (FR-006)

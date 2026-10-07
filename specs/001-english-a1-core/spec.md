@@ -400,9 +400,9 @@ distintos y verificando el contador de racha y el porcentaje de avance.
   acumulado.
 - **FR-032**: El sistema MUST llevar una racha de días consecutivos con actividad, MUST
   incrementarla una sola vez por día y MUST reiniciarla cuando pasa un día completo sin
-  actividad. Tras fusionar el progreso de dos dispositivos, la racha MUST recalcularse a
-  partir de la fecha de última actividad resultante, de modo que una racha caducada no
-  pueda revivir por efecto de la fusión.
+  actividad. Al fusionar el progreso de dos dispositivos, la racha MUST resolverse junto a
+  su fecha de actividad, conservando la del dispositivo que estudió más recientemente, de
+  modo que una racha caducada no pueda revivir por efecto de la fusión.
 - **FR-033**: El sistema MUST ofrecer una pantalla de progreso con el porcentaje del
   nivel aprobado, los módulos superados y el tamaño de la cola de repaso.
 

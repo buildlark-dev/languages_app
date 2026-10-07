@@ -6,11 +6,6 @@
 ///
 /// Se declara como contrato para que las pruebas usen una implementación en
 /// memoria sin tocar el almacenamiento del sistema.
-///
-// ignore_for_file: prefer_initializing_formals
-// El lint sugiere `this._campo` en el constructor, pero Dart no admite
-// parámetros nombrados que empiecen por guion bajo, así que la forma que
-// propone no compila con campos privados.
 library;
 
 import 'package:flutter/material.dart';

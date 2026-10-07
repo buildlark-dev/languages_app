@@ -28,12 +28,13 @@ Ruta: `users/{uid}/courses/{courseId}`
     "A2": number
   },
 
-  "lessonResults": {
-    "<lessonId>": number     // 0.0 a 1.0, el mejor obtenido
-  },
-
-  "examResults": {
-    "<examId>": number
+  "activities": {
+    "<activityId>": {
+      "kind":         number,   // 0 lección · 1 examen de módulo · 2 examen de nivel
+      "bestScore":    number,   // 0.0 a 1.0, el mejor obtenido
+      "attempts":     number,
+      "lastAttemptAt": string   // ISO 8601
+    }
   },
 
   "reviewCards": {
@@ -59,6 +60,16 @@ Ruta: `users/{uid}/courses/{courseId}`
 Todo son mapas con clave, nunca listas de objetos. Es deliberado: un mapa se fusiona por
 clave sin ambigüedad, mientras que dos listas obligarían a emparejar elementos y a decidir
 el orden. Esa elección de forma es lo que hace trivial la fusión.
+
+**Corrección aplicada durante la implementación**: el diseño inicial separaba
+`lessonResults` y `examResults`. Se unificaron en `activities` con la clase dentro de cada
+entrada, porque el modelo necesita distinguir examen de módulo de examen de nivel —cada uno
+tiene su umbral— y dos mapas solo codificaban «lección o examen». Una regla de fusión en
+lugar de dos.
+
+**Las fechas se guardan como texto ISO 8601**, no como `Timestamp` de Firestore. Así el
+mismo mapa sirve como JSON de respaldo sin conversiones, que es lo que el contrato de
+servicios pedía al decir que el respaldo reusa la forma del documento remoto.
 
 `syncState` **no** aparece: es estado del dispositivo, no del estudiante.
 
@@ -123,8 +134,9 @@ hace falta llevar registro de qué emisión se procesó.
 | `streakCount` | máximo, y después recalculado contra `lastActivityDate` |
 | `lastActivityDate` | más reciente |
 | `levelStates[*]` | **máximo** del entero de estado |
-| `lessonResults[*]` | **máximo** por clave, unión de claves |
-| `examResults[*]` | **máximo** por clave, unión de claves |
+| `activities[*].bestScore` | **máximo** por clave, unión de claves |
+| `activities[*].attempts` | máximo |
+| `activities[*].lastAttemptAt` | más reciente |
 | `reviewCards[*].intervalStep` | máximo |
 | `reviewCards[*].dueDate` | **más próxima** |
 | `reviewCards[*].lapses` | máximo |
@@ -134,14 +146,21 @@ hace falta llevar registro de qué emisión se procesó.
 Todas son máximos sobre órdenes totales o uniones de conjuntos, así que la fusión es
 conmutativa, asociativa e idempotente.
 
-**Única excepción, y es deliberada**: `streakCount` se fusiona por máximo y **después** se
-valida contra `lastActivityDate`. Si entre ambas fechas pasó más de un día, la racha se
-reinicia. Sin ese segundo paso, fusionar podría resucitar una racha que FR-031 obliga a
-reiniciar: racha 7 con última actividad el lunes, más racha 1 del jueves, daría "racha de 7
-días" para alguien que no estudió el martes ni el miércoles. El recálculo es determinista y
-depende solo de los valores fusionados, así que preserva las tres propiedades. Las consecuencias, verificadas en
-`test/engine/progress_merger_test.dart`, están explicadas en
-[data-model.md](../data-model.md#4-la-fusión-con-precisión).
+**Caso especial de la racha**: `streakCount` y `lastActivityDate` se fusionan **juntos**,
+como un par, no de forma independiente. Gana el par del dispositivo que estudió más
+recientemente; en empate de fecha, la racha mayor.
+
+Sin eso, fusionar resucitaría una racha que FR-032 obliga a reiniciar: racha 7 con última
+actividad el lunes, más racha 1 del jueves, daría "racha de 7 días" para alguien que no
+estudió el martes ni el miércoles.
+
+Fusionarlos como par sigue siendo un máximo, ahora sobre el orden lexicográfico
+`(lastActivityDate, streakCount)`, así que las tres propiedades se conservan. Un recálculo
+posterior **no** habría servido: necesitaría la fecha a la que pertenecía la racha más alta,
+dato que ya se pierde al fusionar, y eso rompería la asociatividad.
+
+Las consecuencias, verificadas en `test/engine/progress_merger_test.dart`, están explicadas
+en [data-model.md](../data-model.md#4-la-fusión-con-precisión).
 
 La invariante que se comprueba y que resume todo:
 

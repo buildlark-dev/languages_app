@@ -10,6 +10,7 @@
 /// usar cuando el almacenamiento falla es este archivo.
 library;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/native.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,20 @@ Future<void> main() async {
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Se desactiva la caché local de Firestore a propósito.
+  //
+  // El almacén autoritativo es Drift. Dejar activa la persistencia de Firestore
+  // crearía una segunda caché que resuelve conflictos por última escritura gana,
+  // y entonces estudiar sin red en el teléfono y abrir después el PC borraría el
+  // avance del teléfono. FR-042 lo prohíbe, y la fusión monotónica de
+  // `progress_merger` existe precisamente para no depender de esa resolución.
+  //
+  // Desactivarla NO impide escuchar cambios en vivo: lo que se apaga es la caché
+  // en disco, no la suscripción de la que vive SC-004.
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: false,
   );
 
   // El almacén local es la fuente de verdad del progreso. Si falla, la app

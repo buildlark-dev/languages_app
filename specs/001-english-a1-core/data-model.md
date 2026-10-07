@@ -319,18 +319,28 @@ jueves: una racha de siete días que en realidad se rompió el martes. FR-031 ex
 racha caducada se reinicie, así que el máximo a secas **violaría FR-031 de forma
 observable**.
 
-La regla completa, por tanto, es en dos pasos:
+**Corrección aplicada durante la implementación**: el primer diseño decía «fusionar por
+máximo y después recalcular». Al escribir el código resultó que eso **rompe la
+asociatividad**, porque el recálculo necesitaría saber a qué fecha pertenecía la racha más
+alta, y ese dato ya se perdió al fusionar.
 
-1. Fusionar `streakCount` por máximo y `lastActivityDate` por fecha más reciente.
-2. **Recalcular**: si entre la fecha de actividad más reciente y la fecha del dispositivo
-   con la racha más alta pasó más de un día, la racha se reinicia a 1.
+La regla correcta es tratar la racha y su fecha como **una sola unidad**: gana la del
+dispositivo que estudió más recientemente y, en empate de fecha, la racha mayor.
 
-Es decir, `streak_tracker.dart` valida la racha fusionada contra las fechas, en lugar de
-aceptar el máximo ciegamente. Sigue favoreciendo al estudiante ante empates legítimos —dos
-dispositivos usados el mismo día conservan la racha mayor— sin inventar días de estudio que
-no ocurrieron.
+| Entradas | Resultado |
+|---|---|
+| racha 7 del lunes · racha 1 del jueves | **racha 1**, jueves (la del lunes caducó) |
+| racha 7 del lunes · racha 3 del lunes | racha 7 (empate de fecha, gana la mayor) |
+| racha 7 del lunes · racha 8 del martes | racha 8, martes |
+| racha 5 del lunes · sin actividad | racha 5, lunes |
 
-`progress_merger_test.dart` cubre explícitamente el caso de la racha caducada por fusión.
+Eso sigue siendo un máximo, ahora sobre el orden lexicográfico
+`(lastActivityDate, streakCount)`, así que **conserva las tres propiedades** y a la vez
+respeta FR-032: una racha caducada no revive. Sigue favoreciendo al estudiante en el único
+caso donde hay duda legítima, que es cuando ambos dispositivos se usaron el mismo día.
+
+`progress_merger_test.dart` cubre los cuatro casos de la tabla y verifica las tres
+propiedades sobre todas las permutaciones de cinco estados de ejemplo.
 
 **Lo que no se fusiona**: `syncState` es estado local del dispositivo. El contenido no se
 fusiona porque no se guarda.
