@@ -62,25 +62,25 @@ externa creada.
 
 ### Core: contratos y modelos puros (sin un solo import de Flutter)
 
-- [ ] T011 [P] Crear `lib/core/clock.dart` con el tipo `Clock` (función que devuelve `DateTime`) y una implementación `systemClock`. El motor **nunca** llama a `DateTime.now()` (D9 de research.md)
-- [ ] T012 [P] Crear `lib/core/thresholds.dart` con `lessonPassThreshold = 0.70`, `examPassThreshold = 0.80` y `srsIntervals = [1, 3, 7, 16, 35, 90]` (días)
-- [ ] T013 [P] Crear `lib/core/level_state.dart` con el enum `LevelState` y **valor entero explícito**: `locked = 0`, `unlocked = 1`, `mastered = 2`, `passed = 3`. El orden numérico es el orden de avance y habilita la fusión por máximo
-- [ ] T014 [P] Crear `lib/core/vocabulary_item.dart` con `term`, `translation`, `hint` (nullable) y `spokenForm` (nullable)
-- [ ] T015 [P] Crear `lib/core/exercise.dart` con la jerarquía sellada de 5 variantes: `MultipleChoiceExercise`, `SentenceBuilderExercise`, `GapFillExercise`, `ListeningExercise` y `PronunciationExercise`. `explanation` es **obligatorio en las cinco**. `ListeningExercise` declara `transcriptFallback` y `PronunciationExercise` declara `writtenFallback`, ambos como parámetros **`required`**: un ejercicio oral sin alternativa accesible no debe compilar
-- [ ] T016 [P] Crear `lib/core/exam.dart` con `id`, `scope` (enum `ExamScope`: `module`, `level`, `placement`), `exercises` y `passThreshold` leído de `thresholds.dart`
-- [ ] T017 [P] Crear `lib/core/lesson.dart` con `id`, `title`, `readingRef` (nullable) y `exercises`. Las preguntas de comprensión de la lectura van **aquí**, no en el módulo, porque son lo único calificable junto al resto de ejercicios (FR-013)
-- [ ] T018 [P] Crear `lib/core/module.dart` con `id`, `order`, `title`, `canDo`, `vocabulary`, `grammar`, `examples`, `reading` (**solo el texto del pasaje**), `lessons` y `moduleExam`
-- [ ] T019 [P] Crear `lib/core/level.dart` con `id` restringido al conjunto MCER (`A1`, `A2`, `B1`, `B2`, `C1`, `C2`), `name`, `description`, `modules` y `levelExam` obligatorio
-- [ ] T020 [P] Crear `lib/core/course.dart` con `id`, `name`, `studyLanguageTag`, `supportLanguageTag`, `levels` (niveles **con contenido**), `upcomingLevelIds` (niveles anunciados **sin** contenido) y `placementTest` (nullable)
-- [ ] T021 [P] Crear `lib/core/review_card.dart` con clave compuesta `moduleId` + `term`, más `translation`, `intervalStep` (0 a 5), `dueDate` y `lapses`
-- [ ] T022 [P] Crear `lib/core/placement_result.dart` con `estimatedLevelId` (cualquier nivel MCER), `assignedLevelId` (**derivado**, no fuente de verdad), `masteredLevelIds`, `skipped` y `takenAt`
-- [ ] T023 [P] Crear `lib/core/sync_state.dart` con `lastSyncedAt` (nullable), `hasPendingChanges`, `lastError` (nullable) y `storageDegraded`
-- [ ] T024 Crear `lib/core/student_progress.dart` con `uid`, `courseId`, `schemaVersion`, `currentLevelId`, `xp`, `streakCount`, `lastActivityDate`, `levelStates`, `lessonResults`, `examResults`, `placement` y `syncState` (depende de T013, T021, T022, T023)
-- [ ] T025 Crear `lib/core/content_pack.dart` con el contrato que todo idioma implementa: `courseId`, `course` y `placementTest` (depende de T020)
+- [X] T011 [P] Crear `lib/core/clock.dart` con el tipo `Clock` (función que devuelve `DateTime`) y una implementación `systemClock`. El motor **nunca** llama a `DateTime.now()` (D9 de research.md)
+- [X] T012 [P] Crear `lib/core/thresholds.dart` con `lessonPassThreshold = 0.70`, `examPassThreshold = 0.80` y `srsIntervals = [1, 3, 7, 16, 35, 90]` (días)
+- [X] T013 [P] Crear `lib/core/level_state.dart` con el enum `LevelState` y **valor entero explícito**: `locked = 0`, `unlocked = 1`, `mastered = 2`, `passed = 3`. El orden numérico es el orden de avance y habilita la fusión por máximo
+- [X] T014 [P] Crear `lib/core/vocabulary_item.dart` con `term`, `translation`, `hint` (nullable) y `spokenForm` (nullable)
+- [X] T015 [P] Crear `lib/core/exercise.dart` con la jerarquía sellada de 5 variantes: `MultipleChoiceExercise`, `SentenceBuilderExercise`, `GapFillExercise`, `ListeningExercise` y `PronunciationExercise`. `explanation` es **obligatorio en las cinco**. `ListeningExercise` declara `transcriptFallback` y `PronunciationExercise` declara `writtenFallback`, ambos como parámetros **`required`**: un ejercicio oral sin alternativa accesible no debe compilar
+- [X] T016 [P] Crear `lib/core/exam.dart` con `id`, `scope` (enum `ExamScope`: `module`, `level`, `placement`), `exercises` y `passThreshold` leído de `thresholds.dart`
+- [X] T017 [P] Crear `lib/core/lesson.dart` con `id`, `title`, `readingRef` (nullable) y `exercises`. Las preguntas de comprensión de la lectura van **aquí**, no en el módulo, porque son lo único calificable junto al resto de ejercicios (FR-013)
+- [X] T018 [P] Crear `lib/core/module.dart` con `id`, `order`, `title`, `canDo`, `vocabulary`, `grammar`, `examples`, `reading` (**solo el texto del pasaje**), `lessons` y `moduleExam`
+- [X] T019 [P] Crear `lib/core/level.dart` con `id` restringido al conjunto MCER (`A1`, `A2`, `B1`, `B2`, `C1`, `C2`), `name`, `description`, `modules` y `levelExam` obligatorio
+- [X] T020 [P] Crear `lib/core/course.dart` con `id`, `name`, `studyLanguageTag`, `supportLanguageTag`, `levels` (niveles **con contenido**), `upcomingLevelIds` (niveles anunciados **sin** contenido) y `placementTest` (nullable)
+- [X] T021 [P] Crear `lib/core/review_card.dart` con clave compuesta `moduleId` + `term`, más `translation`, `intervalStep` (0 a 5), `dueDate` y `lapses`
+- [X] T022 [P] Crear `lib/core/placement_result.dart` con `estimatedLevelId` (cualquier nivel MCER), `assignedLevelId` (**derivado**, no fuente de verdad), `masteredLevelIds`, `skipped` y `takenAt`
+- [X] T023 [P] Crear `lib/core/sync_state.dart` con `lastSyncedAt` (nullable), `hasPendingChanges`, `lastError` (nullable) y `storageDegraded`
+- [X] T024 Crear `lib/core/student_progress.dart` con `uid`, `courseId`, `schemaVersion`, `currentLevelId`, `xp`, `streakCount`, `lastActivityDate`, `levelStates`, `lessonResults`, `examResults`, `placement` y `syncState` (depende de T013, T021, T022, T023)
+- [X] T025 Crear `lib/core/content_pack.dart` con el contrato que todo idioma implementa: `courseId`, `course` y `placementTest` (depende de T020)
 
 ### La regla de capas, verificada
 
-- [ ] T026 Crear `test/architecture/layer_dependencies_test.dart` que recorra todos los `.dart` de `lib/` e inspeccione sus `import`, exigiendo el grafo del **Principio II v1.1.0**: `core` no importa ninguna otra capa ni Flutter; `engine` no importa `ui`, `services`, `content` ni Flutter; `services` no importa `ui` ni `content`; `content` importa solo `core`; `ui` no importa `content`; y **solo `lib/main.dart`** importa `lib/content/catalog.dart`
+- [X] T026 Crear `test/architecture/layer_dependencies_test.dart` que recorra todos los `.dart` de `lib/` e inspeccione sus `import`, exigiendo el grafo del **Principio II v1.1.0**: `core` no importa ninguna otra capa ni Flutter; `engine` no importa `ui`, `services`, `content` ni Flutter; `services` no importa `ui` ni `content`; `content` importa solo `core`; `ui` no importa `content`; y **solo `lib/main.dart`** importa `lib/content/catalog.dart`
 
 ### Almacén local
 
