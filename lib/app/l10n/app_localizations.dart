@@ -94,7 +94,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('es')];
 
-  /// Nombre de la aplicación, visible en la barra de tareas y el conmutador de apps
+  /// Nombre de la aplicación, visible en el conmutador de apps
   ///
   /// In es, this message translates to:
   /// **'Idiomas'**
@@ -105,6 +105,96 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Aprende desde cero hasta hablar con fluidez'**
   String get appTagline;
+
+  /// Encabezado del catálogo de cursos
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el idioma que quieres aprender'**
+  String get chooseCourse;
+
+  /// Etiqueta de un nivel anunciado sin contenido construido
+  ///
+  /// In es, this message translates to:
+  /// **'Próximo'**
+  String get levelUpcoming;
+
+  /// Explicación al tocar un nivel anunciado
+  ///
+  /// In es, this message translates to:
+  /// **'Estamos preparando el contenido de este nivel.'**
+  String get levelUpcomingDetail;
+
+  /// Etiqueta de un nivel cuyo requisito previo no se cumple
+  ///
+  /// In es, this message translates to:
+  /// **'Bloqueado'**
+  String get levelLocked;
+
+  /// Nivel marcado como dominado por la prueba de nivelación
+  ///
+  /// In es, this message translates to:
+  /// **'Dominado'**
+  String get levelMastered;
+
+  /// Nivel cuyo examen se aprobó
+  ///
+  /// In es, this message translates to:
+  /// **'Superado'**
+  String get levelPassed;
+
+  /// Aviso cuando el almacenamiento local falló (FR-043)
+  ///
+  /// In es, this message translates to:
+  /// **'Tu avance no se está guardando'**
+  String get storageDegradedTitle;
+
+  /// Detalle del aviso de almacenamiento degradado
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes seguir estudiando, pero lo de esta sesión se perderá al cerrar la app.'**
+  String get storageDegradedBody;
+
+  /// Aviso cuando no hay red en el primer arranque (FR-004)
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitas conexión solo esta vez'**
+  String get offlineFirstRunTitle;
+
+  /// Detalle del aviso de primer arranque sin conexión
+  ///
+  /// In es, this message translates to:
+  /// **'Para crear tu cuenta hace falta conexión. Después podrás estudiar sin internet.'**
+  String get offlineFirstRunBody;
+
+  /// Botón para repetir una operación que falló
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get retry;
+
+  /// Botón de avance genérico
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar'**
+  String get continueLabel;
+
+  /// Cuántas palabras vencen hoy, incluido el estado al día (FR-030)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{Estás al día con el repaso} =1{1 palabra para repasar} other{{count} palabras para repasar}}'**
+  String reviewDueCount(num count);
+
+  /// Racha diaria de estudio
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{Sin racha todavía} =1{1 día seguido} other{{count} días seguidos}}'**
+  String streakDays(num count);
+
+  /// Puntos de experiencia acumulados
+  ///
+  /// In es, this message translates to:
+  /// **'{count} XP'**
+  String xpTotal(num count);
 }
 
 class _AppLocalizationsDelegate

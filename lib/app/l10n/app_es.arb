@@ -3,11 +3,104 @@
 
   "appTitle": "Idiomas",
   "@appTitle": {
-    "description": "Nombre de la aplicación, visible en la barra de tareas y el conmutador de apps"
+    "description": "Nombre de la aplicación, visible en el conmutador de apps"
   },
 
   "appTagline": "Aprende desde cero hasta hablar con fluidez",
   "@appTagline": {
     "description": "Frase de presentación en la pantalla de acceso"
+  },
+
+  "chooseCourse": "Elige el idioma que quieres aprender",
+  "@chooseCourse": {
+    "description": "Encabezado del catálogo de cursos"
+  },
+
+  "levelUpcoming": "Próximo",
+  "@levelUpcoming": {
+    "description": "Etiqueta de un nivel anunciado sin contenido construido"
+  },
+
+  "levelUpcomingDetail": "Estamos preparando el contenido de este nivel.",
+  "@levelUpcomingDetail": {
+    "description": "Explicación al tocar un nivel anunciado"
+  },
+
+  "levelLocked": "Bloqueado",
+  "@levelLocked": {
+    "description": "Etiqueta de un nivel cuyo requisito previo no se cumple"
+  },
+
+  "levelMastered": "Dominado",
+  "@levelMastered": {
+    "description": "Nivel marcado como dominado por la prueba de nivelación"
+  },
+
+  "levelPassed": "Superado",
+  "@levelPassed": {
+    "description": "Nivel cuyo examen se aprobó"
+  },
+
+  "storageDegradedTitle": "Tu avance no se está guardando",
+  "@storageDegradedTitle": {
+    "description": "Aviso cuando el almacenamiento local falló (FR-043)"
+  },
+
+  "storageDegradedBody": "Puedes seguir estudiando, pero lo de esta sesión se perderá al cerrar la app.",
+  "@storageDegradedBody": {
+    "description": "Detalle del aviso de almacenamiento degradado"
+  },
+
+  "offlineFirstRunTitle": "Necesitas conexión solo esta vez",
+  "@offlineFirstRunTitle": {
+    "description": "Aviso cuando no hay red en el primer arranque (FR-004)"
+  },
+
+  "offlineFirstRunBody": "Para crear tu cuenta hace falta conexión. Después podrás estudiar sin internet.",
+  "@offlineFirstRunBody": {
+    "description": "Detalle del aviso de primer arranque sin conexión"
+  },
+
+  "retry": "Reintentar",
+  "@retry": {
+    "description": "Botón para repetir una operación que falló"
+  },
+
+  "continueLabel": "Continuar",
+  "@continueLabel": {
+    "description": "Botón de avance genérico"
+  },
+
+  "reviewDueCount": "{count, plural, =0{Estás al día con el repaso} =1{1 palabra para repasar} other{{count} palabras para repasar}}",
+  "@reviewDueCount": {
+    "description": "Cuántas palabras vencen hoy, incluido el estado al día (FR-030)",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+
+  "streakDays": "{count, plural, =0{Sin racha todavía} =1{1 día seguido} other{{count} días seguidos}}",
+  "@streakDays": {
+    "description": "Racha diaria de estudio",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+
+  "xpTotal": "{count} XP",
+  "@xpTotal": {
+    "description": "Puntos de experiencia acumulados",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
   }
 }

@@ -10,7 +10,14 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:languages_app/content/en/a1_module1_identity.dart';
+import 'package:languages_app/content/en/a1_module2_home_city.dart';
+import 'package:languages_app/content/en/a1_module3_routines.dart';
+import 'package:languages_app/content/en/a1_module4_likes.dart';
+import 'package:languages_app/content/catalog.dart';
+import 'package:languages_app/content/en/english_course.dart';
+import 'package:languages_app/core/course.dart';
 import 'package:languages_app/core/exam.dart';
+import 'package:languages_app/core/level.dart';
 import 'package:languages_app/core/exercise.dart';
 import 'package:languages_app/core/lesson.dart';
 import 'package:languages_app/core/module.dart';
@@ -20,7 +27,12 @@ import 'package:languages_app/core/thresholds.dart';
 ///
 /// Al escribir A1M2, A1M3 y A1M4 se añaden aquí y heredan todas las
 /// comprobaciones.
-const List<Module> a1Modules = <Module>[a1Module1];
+const List<Module> a1Modules = <Module>[
+  a1Module1,
+  a1Module2,
+  a1Module3,
+  a1Module4,
+];
 
 void main() {
   test('hay módulos que comprobar', () {
@@ -241,6 +253,106 @@ void main() {
               'En $owner',
         );
       }
+    });
+  });
+
+  group('curso y catálogo', () {
+    const Course course = englishCourse;
+
+    test('solo declara niveles que tienen contenido', () {
+      expect(course.levels, hasLength(1));
+      expect(course.levels.single.id, 'A1');
+      expect(course.levels.single.modules, hasLength(4));
+    });
+
+    test('los identificadores de nivel pertenecen al conjunto MCER', () {
+      for (final Level level in course.levels) {
+        expect(cefrLevelIds, contains(level.id));
+      }
+      for (final String id in course.upcomingLevelIds) {
+        expect(cefrLevelIds, contains(id));
+      }
+    });
+
+    test('los niveles anunciados van después de los que tienen contenido', () {
+      final int lastWithContent = cefrLevelIds.indexOf(
+        course.levels.last.id,
+      );
+      for (final String id in course.upcomingLevelIds) {
+        expect(
+          cefrLevelIds.indexOf(id),
+          greaterThan(lastWithContent),
+          reason: 'Un nivel anunciado no puede ser anterior al último con '
+              'contenido',
+        );
+      }
+    });
+
+    test('ningún nivel anunciado existe también como nivel con contenido', () {
+      final Set<String> withContent = course.levels
+          .map((Level l) => l.id)
+          .toSet();
+      for (final String id in course.upcomingLevelIds) {
+        expect(
+          withContent,
+          isNot(contains(id)),
+          reason: 'Invariante 21: sin intersección entre ambas listas',
+        );
+      }
+    });
+
+    test('el nivel tiene examen de nivel con al menos 10 ejercicios', () {
+      final Exam exam = course.levels.single.levelExam;
+      expect(exam.scope, ExamScope.level);
+      expect(exam.exercises.length, greaterThanOrEqualTo(10));
+      expect(exam.passThreshold, examPassThreshold);
+    });
+
+    test('el examen de nivel es aprobable sin micrófono', () {
+      // La invariante 22 permite ejercicios orales en exámenes, pero el que
+      // decide el paso de nivel no debe poner en desventaja a quien no tiene
+      // micrófono. La escucha sí entra: su alternativa es la transcripción.
+      final Iterable<Exercise> oral = course.levels.single.levelExam.exercises
+          .whereType<PronunciationExercise>();
+      expect(
+        oral,
+        isEmpty,
+        reason: 'Sin ejercicios de pronunciación en el examen de nivel',
+      );
+    });
+
+    test('la nivelación puede estimar niveles sin contenido', () {
+      final PlacementExam? placement = course.placementTest;
+      expect(placement, isNotNull);
+      // Es el punto de FR-035: estimar el nivel real, no el alcanzable.
+      expect(
+        placement!.coveredLevelIds,
+        containsAll(<String>['A1', 'A2', 'B1']),
+      );
+      for (final String id in placement.coveredLevelIds) {
+        expect(cefrLevelIds, contains(id));
+      }
+    });
+
+    test('todo ítem de nivelación explica su respuesta', () {
+      for (final PlacementItem item in course.placementTest!.items) {
+        expect(item.exercise.explanation.trim(), isNotEmpty);
+      }
+    });
+
+    test('el catálogo expone el curso y lo encuentra por su código', () {
+      const AppCourseCatalog catalog = AppCourseCatalog();
+      expect(catalog.packs, hasLength(1));
+      expect(catalog.packFor('en')?.course.id, 'en');
+      expect(catalog.packFor('fr'), isNull);
+    });
+
+    test('los módulos del nivel coinciden con los que se comprueban', () {
+      expect(
+        course.levels.single.modules.map((Module m) => m.id),
+        a1Modules.map((Module m) => m.id),
+        reason: 'Un módulo nuevo debe añadirse a a1Modules para quedar vigilado',
+      );
     });
   });
 }
