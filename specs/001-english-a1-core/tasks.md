@@ -91,19 +91,19 @@ externa creada.
 - [X] T031 Ejecutar `dart run build_runner build --delete-conflicting-outputs` y confirmar que el código generado de Drift compila
 - [X] T032 [P] Crear `lib/services/db/progress_dao.dart` con lectura y escritura de `student_profile`, `level_progress`, `activity_results` y `placement_results`, **siempre en transacción** según la tabla de `contracts/local-schema.md`
 - [X] T033 [P] Crear `lib/services/db/review_dao.dart` con `dueToday()` apoyado en `idx_review_due`, `seed()` y `upsert()`
-- [ ] T034 Añadir a `lib/services/db/app_database.dart` la degradación a almacén en memoria cuando abrir o escribir falle, marcando `sync_meta.storage_degraded` (FR-043)
+- [X] T034 Añadir a `lib/services/db/app_database.dart` la degradación a almacén en memoria cuando abrir o escribir falle, marcando `sync_meta.storage_degraded` (FR-043)
 - [X] T035 [P] Crear `test/services/db/app_database_test.dart` con base en memoria, verificando persistencia de cada tabla y la degradación de T034
 - [X] T036 [P] Crear `test/services/db/migrations_test.dart` que ejercite el camino v1 → v1 y verifique que **ningún dato de progreso se pierde**. Deja montada y probada la infraestructura de migración antes de que exista una v2 que la necesite
 - [X] T037 [P] Crear `test/services/db/review_dao_test.dart` verificando que `dueToday()` devuelve solo lo vencido y que rinde por debajo de 50 ms con 2.000 tarjetas
 
 ### Motor compartido
 
-- [ ] T038 [P] Crear `lib/engine/answer_matcher.dart` que acepte **todas** las variantes declaradas de un hueco, ignorando mayúsculas y espacios sobrantes (FR-026)
-- [ ] T039 [P] Crear `test/engine/answer_matcher_test.dart` cubriendo variantes múltiples (`is` y `'s`), diferencias de mayúsculas, espacios al borde e interiores
-- [ ] T040 Crear `lib/engine/scoring.dart` que califique una lista de respuestas y resuelva aprobado contra `thresholds.dart` (depende de T012, T038)
-- [ ] T041 [P] Crear `test/engine/scoring_test.dart` con los casos frontera exactos: 69 %, 70 %, 79 % y 80 %
-- [ ] T042 Crear `lib/engine/lesson_session.dart` con el estado de una lección en curso: ejercicio actual, respuestas dadas, reintentos. Una sesión interrumpida se trata como **no presentada**, nunca como fallada
-- [ ] T043 [P] Crear `test/engine/lesson_session_test.dart` incluyendo el abandono a mitad de lección
+- [X] T038 [P] Crear `lib/engine/answer_matcher.dart` que acepte **todas** las variantes declaradas de un hueco, ignorando mayúsculas y espacios sobrantes (FR-026)
+- [X] T039 [P] Crear `test/engine/answer_matcher_test.dart` cubriendo variantes múltiples (`is` y `'s`), diferencias de mayúsculas, espacios al borde e interiores
+- [X] T040 Crear `lib/engine/scoring.dart` que califique una lista de respuestas y resuelva aprobado contra `thresholds.dart` (depende de T012, T038)
+- [X] T041 [P] Crear `test/engine/scoring_test.dart` con los casos frontera exactos: 69 %, 70 %, 79 % y 80 %
+- [X] T042 Crear `lib/engine/lesson_session.dart` con el estado de una lección en curso: ejercicio actual, respuestas dadas, reintentos. Una sesión interrumpida se trata como **no presentada**, nunca como fallada
+- [X] T043 [P] Crear `test/engine/lesson_session_test.dart` incluyendo el abandono a mitad de lección
 
 ### Contenido de inglés A1
 
