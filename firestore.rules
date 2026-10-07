@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// Reglas de seguridad de languages_app.
+//
+// Son la pieza que de verdad protege los datos del estudiante: los archivos de
+// configuración de Firebase (firebase_options.dart, google-services.json) son
+// identificadores públicos de cliente y cualquiera puede extraerlos de un APK
+// publicado. Ver specs/001-english-a1-core/contracts/firestore.md
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cada persona accede únicamente a su propio progreso.
+    match /users/{uid}/courses/{courseId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid;
+    }
+
+    // Todo lo demás, denegado. Denegación por defecto para que ninguna ruta
+    // nueva quede abierta por olvido.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
