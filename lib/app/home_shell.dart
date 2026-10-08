@@ -10,10 +10,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/content_pack.dart';
+import '../core/course.dart';
+import '../core/placement_result.dart';
 import '../services/auth/auth_service.dart';
 import '../ui/providers/auth_providers.dart';
 import '../ui/providers/content_providers.dart';
+import '../ui/providers/clock_providers.dart';
+import '../ui/providers/progress_controller.dart';
+import '../ui/screens/placement_screen.dart';
 import '../ui/screens/review_screen.dart';
+import '../ui/widgets/placement_offer_card.dart';
 import '../ui/widgets/review_summary_card.dart';
 import '../ui/widgets/sign_out_button.dart';
 import '../ui/widgets/sync_banner.dart';
@@ -50,6 +56,13 @@ class HomeShell extends ConsumerWidget {
                   // Solo tiene sentido con un idioma elegido: la cola de repaso
                   // es por curso.
                   if (ref.watch(selectedCourseIdProvider) != null) ...<Widget>[
+                    // Primero la nivelación: a quien acaba de entrar le importa
+                    // más saber por dónde empezar que repasar lo que todavía no
+                    // ha estudiado. La tarjeta decide sola si aparecer, y a
+                    // partir de la primera actividad deja de hacerlo (T143).
+                    PlacementOfferCard(
+                      onOpenPlacement: () => _openPlacement(context, ref),
+                    ),
                     ReviewSummaryCard(
                       onOpenReview: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -83,6 +96,28 @@ class HomeShell extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Abre la nivelación y aplica su resultado al progreso.
+  ///
+  /// El resultado se aplica aquí y no dentro de la pantalla porque la pantalla
+  /// no debería conocer el almacén: recibe el curso y devuelve un
+  /// [PlacementResult], igual que la lección devuelve un `ScoreResult`.
+  void _openPlacement(BuildContext context, WidgetRef ref) {
+    final Course? course = ref.read(activeCourseProvider);
+    if (course?.placementTest == null) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => PlacementScreen(
+          course: course!,
+          now: ref.read(clockProvider)(),
+          onFinished: (PlacementResult result) => ref
+              .read(studentProgressProvider.notifier)
+              .applyPlacementResult(result),
         ),
       ),
     );

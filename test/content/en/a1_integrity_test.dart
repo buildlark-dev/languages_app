@@ -22,6 +22,9 @@ import 'package:languages_app/core/exercise.dart';
 import 'package:languages_app/core/lesson.dart';
 import 'package:languages_app/core/module.dart';
 import 'package:languages_app/core/thresholds.dart';
+import 'package:languages_app/core/placement_result.dart';
+import 'package:languages_app/engine/answer_check.dart';
+import 'package:languages_app/engine/placement_evaluator.dart';
 import 'package:languages_app/ui/widgets/simple_html_text.dart';
 
 /// Los módulos de A1 que ya existen.
@@ -431,6 +434,84 @@ void main() {
     test('todo ítem de nivelación explica su respuesta', () {
       for (final PlacementItem item in course.placementTest!.items) {
         expect(item.exercise.explanation.trim(), isNotEmpty);
+      }
+    });
+
+    test('cada nivel de la nivelación tiene al menos dos ítems', () {
+      // Con un solo ítem, el umbral del 80 % se decidiría a cara o cruz, y lo
+      // que se juega es saltarse un nivel entero de contenido.
+      final Map<String, int> perLevel = <String, int>{};
+      for (final PlacementItem item in course.placementTest!.items) {
+        perLevel[item.levelId] = (perLevel[item.levelId] ?? 0) + 1;
+      }
+      for (final MapEntry<String, int> entry in perLevel.entries) {
+        expect(
+          entry.value,
+          greaterThanOrEqualTo(2),
+          reason: 'El nivel ${entry.key} se decide con ${entry.value} ítem(s)',
+        );
+      }
+    });
+
+    test('acertar la nivelación real estima por encima del contenido', () {
+      // La comprobación extremo a extremo sobre el contenido de verdad: es el
+      // caso de FR-036 y el único que el catálogo de hoy puede producir.
+      final PlacementExam exam = course.placementTest!;
+      final PlacementResult result = evaluatePlacement(
+        course: course,
+        exam: exam,
+        answers: List<bool>.filled(exam.items.length, true),
+        takenAt: DateTime(2026, 10, 7),
+      );
+
+      expect(result.estimatedLevelId, 'C1', reason: 'el techo que mide');
+      expect(result.masteredLevelIds, <String>['A1']);
+      expect(
+        assignedLevelFor(
+          course: course,
+          estimatedLevelId: result.estimatedLevelId,
+        ),
+        'A1',
+      );
+    });
+
+    test('fallar la nivelación real deja a la persona en A1', () {
+      final PlacementExam exam = course.placementTest!;
+      final PlacementResult result = evaluatePlacement(
+        course: course,
+        exam: exam,
+        answers: List<bool>.filled(exam.items.length, false),
+        takenAt: DateTime(2026, 10, 7),
+      );
+
+      expect(result.estimatedLevelId, 'A1');
+      expect(result.masteredLevelIds, isEmpty);
+    });
+
+    test('la respuesta correcta de cada ítem es la que el motor acepta', () {
+      // Verifica el cableado real: si un `answerIndex` apuntara a la opción
+      // equivocada, la nivelación mandaría a A1 a quien contesta bien, y
+      // ninguna otra prueba lo notaría.
+      for (final PlacementItem item in course.placementTest!.items) {
+        final Exercise exercise = item.exercise;
+        expect(
+          exercise,
+          isA<MultipleChoiceExercise>(),
+          reason: 'La nivelación usa opción múltiple',
+        );
+        final int answerIndex =
+            (exercise as MultipleChoiceExercise).answerIndex;
+        expect(
+          isAnswerCorrect(exercise, AnswerDraft(choice: answerIndex)),
+          isTrue,
+        );
+        expect(
+          isAnswerCorrect(
+            exercise,
+            AnswerDraft(choice: (answerIndex + 1) % exercise.options.length),
+          ),
+          isFalse,
+        );
       }
     });
 

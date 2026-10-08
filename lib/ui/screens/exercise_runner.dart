@@ -18,7 +18,7 @@ import '../../core/activity_score.dart';
 import '../../core/exercise.dart';
 import '../../core/lesson.dart';
 import '../../core/teaching_material.dart';
-import '../../engine/answer_matcher.dart';
+import '../../engine/answer_check.dart';
 import '../../engine/lesson_session.dart';
 import '../../engine/scoring.dart';
 import '../widgets/feedback_panel.dart';
@@ -60,9 +60,7 @@ class ExerciseRunner extends StatefulWidget {
 
 class _ExerciseRunnerState extends State<ExerciseRunner> {
   late LessonSession _session;
-  int? _choice;
-  String _typed = '';
-  List<int> _chosenTokens = <int>[];
+  AnswerDraft _draft = const AnswerDraft();
   bool? _lastCorrect;
   bool _saved = false;
 
@@ -94,9 +92,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
   );
 
   void _resetExercise() {
-    _choice = null;
-    _typed = '';
-    _chosenTokens = <int>[];
+    _draft = const AnswerDraft();
     _lastCorrect = null;
   }
 
@@ -104,25 +100,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
     final Exercise? exercise = _session.currentExercise;
     if (exercise == null || _lastCorrect != null) return;
 
-    final bool correct = switch (exercise) {
-      MultipleChoiceExercise(:final int answerIndex) => _choice == answerIndex,
-      ListeningExercise(:final int answerIndex) => _choice == answerIndex,
-      GapFillExercise(:final List<String> acceptedAnswers) => matchesAnswer(
-        _typed,
-        acceptedAnswers,
-      ),
-      SentenceBuilderExercise(:final String targetSentence) => matchesSentence(
-        _chosenTokens.map((int i) => exercise.tokens[i]).join(' '),
-        targetSentence,
-      ),
-      // La interfaz con micrófono llega en la Historia 4. Hasta entonces se
-      // resuelve por la alternativa escrita, que es la ruta que SC-008 exige que
-      // exista siempre.
-      PronunciationExercise(:final String targetPhrase) => matchesSentence(
-        _typed,
-        targetPhrase,
-      ),
-    };
+    final bool correct = isAnswerCorrect(exercise, _draft);
 
     setState(() => _lastCorrect = correct);
   }
@@ -182,11 +160,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
 
     final Exercise exercise = _session.currentExercise!;
     final bool answered = _lastCorrect != null;
-    final bool canCheck = switch (exercise) {
-      MultipleChoiceExercise() || ListeningExercise() => _choice != null,
-      GapFillExercise() || PronunciationExercise() => _typed.trim().isNotEmpty,
-      SentenceBuilderExercise() => _chosenTokens.isNotEmpty,
-    };
+    final bool canCheck = isDraftComplete(exercise, _draft);
 
     return Column(
       children: <Widget>[
@@ -216,16 +190,15 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
               LessonExerciseBody(
                 exercise: exercise,
                 answered: answered,
-                choice: _choice,
-                chosenTokens: _chosenTokens,
+                choice: _draft.choice,
+                chosenTokens: _draft.chosenTokens,
                 languageTag: widget.languageTag,
-                onChoice: (int i) => setState(() => _choice = i),
-                onTyped: (String v) => setState(() => _typed = v),
-                onToggleToken: (int i) => setState(() {
-                  _chosenTokens = _chosenTokens.contains(i)
-                      ? (<int>[..._chosenTokens]..remove(i))
-                      : <int>[..._chosenTokens, i];
-                }),
+                onChoice: (int i) =>
+                    setState(() => _draft = _draft.withChoice(i)),
+                onTyped: (String v) =>
+                    setState(() => _draft = _draft.withTyped(v)),
+                onToggleToken: (int i) =>
+                    setState(() => _draft = _draft.toggling(i)),
                 onSubmit: _check,
                 onPronunciationAttempt: _handlePronunciation,
               ),
@@ -251,13 +224,3 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
     );
   }
 }
-
-/// La respuesta esperada de un ejercicio, para mostrarla al fallar.
-String? expectedAnswerOf(Exercise exercise) => switch (exercise) {
-  MultipleChoiceExercise(:final String correctOption) => correctOption,
-  ListeningExercise(:final List<String> options, :final int answerIndex) =>
-    options[answerIndex],
-  GapFillExercise(:final List<String> acceptedAnswers) => acceptedAnswers.first,
-  SentenceBuilderExercise(:final String targetSentence) => targetSentence,
-  PronunciationExercise(:final String targetPhrase) => targetPhrase,
-};

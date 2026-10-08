@@ -305,17 +305,17 @@ nivel asignado, niveles marcados como dominados y su accesibilidad para repaso.
 
 ### Tests for User Story 6 ⚠️
 
-- [ ] T137 [P] [US6] Crear `test/engine/placement_evaluator_test.dart` verificando que el **nivel estimado** puede ser cualquier nivel MCER, que el **asignado** se limita al nivel con contenido más alto que no lo supere, y que los niveles con contenido por debajo del estimado quedan `mastered`
+- [X] T137 [P] [US6] Crear `test/engine/placement_evaluator_test.dart` verificando que el **nivel estimado** puede ser cualquier nivel MCER, que el **asignado** se limita al nivel con contenido más alto que no lo supere, y que los niveles con contenido por debajo del estimado quedan `mastered`
 
 ### Implementation for User Story 6
 
-- [ ] T138 [US6] Crear `lib/engine/placement_evaluator.dart` que calcule el nivel estimado a partir de los niveles que discrimina cada ejercicio, y **derive** el asignado contra el catálogo vigente. El asignado no se almacena como verdad independiente
-- [ ] T139 [US6] Crear `lib/ui/screens/placement_screen.dart` que permita **omitir** la prueba para empezar en A1 (FR-034)
-- [ ] T140 [US6] Informar el nivel estimado real al terminar, sin rebajarlo ni ocultarlo, y explicar la diferencia cuando supere al asignado (FR-035, FR-036)
-- [ ] T141 [US6] Marcar como `mastered` los niveles con contenido por debajo del estimado, dejarlos abiertos para repaso, y garantizar que repasarlos **no** altera la marca ni el nivel estimado (FR-037)
-- [ ] T142 [US6] Ofrecer repasar lo dominado cuando no quede contenido nuevo, en lugar de dejar una pantalla vacía (FR-038)
-- [ ] T143 [US6] No volver a ofrecer la nivelación de forma intrusiva a quien ya tiene progreso
-- [ ] T144 [P] [US6] Crear `test/ui/screens/placement_screen_test.dart` incluyendo omitir la prueba y el caso de estimado por encima del contenido disponible
+- [X] T138 [US6] Crear `lib/engine/placement_evaluator.dart` que calcule el nivel estimado a partir de los niveles que discrimina cada ejercicio, y **derive** el asignado contra el catálogo vigente. El asignado no se almacena como verdad independiente
+- [X] T139 [US6] Crear `lib/ui/screens/placement_screen.dart` que permita **omitir** la prueba para empezar en A1 (FR-034)
+- [X] T140 [US6] Informar el nivel estimado real al terminar, sin rebajarlo ni ocultarlo, y explicar la diferencia cuando supere al asignado (FR-035, FR-036)
+- [X] T141 [US6] Marcar como `mastered` los niveles con contenido por debajo del estimado, dejarlos abiertos para repaso, y garantizar que repasarlos **no** altera la marca ni el nivel estimado (FR-037)
+- [X] T142 [US6] Ofrecer repasar lo dominado cuando no quede contenido nuevo, en lugar de dejar una pantalla vacía (FR-038)
+- [X] T143 [US6] No volver a ofrecer la nivelación de forma intrusiva a quien ya tiene progreso
+- [X] T144 [P] [US6] Crear `test/ui/screens/placement_screen_test.dart` incluyendo omitir la prueba y el caso de estimado por encima del contenido disponible
 
 **Checkpoint**: la nivelación ubica correctamente y nunca deja a nadie sin nada que hacer.
 

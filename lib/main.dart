@@ -21,7 +21,9 @@ import 'firebase_options.dart';
 import 'services/auth/firebase_auth_service.dart';
 import 'services/db/app_database.dart';
 import 'services/db/database_opener.dart';
+import 'services/db/progress_dao.dart';
 import 'services/db/review_dao.dart';
+import 'services/progress/drift_progress_store.dart';
 import 'services/review/drift_review_store.dart';
 import 'services/speech/flutter_tts_service.dart';
 import 'services/speech/speech_to_text_service.dart';
@@ -75,6 +77,9 @@ Future<void> main() async {
         storageDegradedProvider.overrideWithValue(store.degraded),
         reviewStoreProvider.overrideWithValue(
           DriftReviewStore(ReviewDao(store.database)),
+        ),
+        progressStoreProvider.overrideWithValue(
+          DriftProgressStore(ProgressDao(store.database)),
         ),
         // La voz se inicializa de forma perezosa, al preparar el curso: consultar
         // las voces del sistema tarda, y hacerlo en el arranque retrasaría la

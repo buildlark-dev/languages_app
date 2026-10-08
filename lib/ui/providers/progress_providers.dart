@@ -3,8 +3,12 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/student_progress.dart';
 import '../../core/sync_state.dart';
+import '../../services/progress/progress_store.dart';
+import '../../services/sync/sync_scheduler.dart';
 import '../../services/sync/sync_service.dart';
+import 'progress_controller.dart';
 
 /// El servicio concreto. **Se sobrescribe en `main.dart`.**
 final Provider<SyncService> syncServiceProvider = Provider<SyncService>(
@@ -61,4 +65,32 @@ final Provider<SyncNotice> syncNoticeProvider = Provider<SyncNotice>((Ref ref) {
   if (state.lastError != null) return SyncNotice.failed;
   if (state.hasPendingChanges) return SyncNotice.pending;
   return SyncNotice.none;
+});
+
+/// El almacén local de progreso. **Se sobrescribe en `main.dart`.**
+final Provider<ProgressStore> progressStoreProvider = Provider<ProgressStore>(
+  (Ref ref) => throw UnimplementedError(
+    'progressStoreProvider debe sobrescribirse en main.dart',
+  ),
+);
+
+/// La política de cuándo sincronizar.
+///
+/// Lee y escribe el progreso a través del controlador, no directamente, para que
+/// lo fusionado que vuelve de la nube quede en pantalla además de en disco. Las
+/// lecturas van dentro de las devoluciones de llamada y no en el cuerpo del
+/// proveedor: así no hay ciclo entre el planificador y el progreso, que de otro
+/// modo se construirían el uno al otro.
+final Provider<SyncScheduler> syncSchedulerProvider = Provider<SyncScheduler>((
+  Ref ref,
+) {
+  final SyncService service = ref.watch(syncServiceProvider);
+  return SyncScheduler(
+    push: service.pushMerged,
+    readLocal: () => ref.read(studentProgressProvider).value,
+    writeLocal: (StudentProgress merged) async {
+      await ref.read(progressStoreProvider).save(merged);
+      ref.read(studentProgressProvider.notifier).adopt(merged);
+    },
+  );
 });

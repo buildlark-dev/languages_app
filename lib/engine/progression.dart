@@ -219,3 +219,14 @@ ActivityKind examKindFor({required Course course, required String examId}) {
   }
   return ActivityKind.lesson;
 }
+
+/// Si queda contenido **nuevo** por estudiar en el curso.
+///
+/// Un nivel dominado o superado no cuenta como contenido nuevo: sus módulos
+/// están abiertos, pero para repasar. Cuando esto devuelve false y el curso
+/// tiene niveles anunciados, la interfaz debe ofrecer repaso en lugar de dejar
+/// un mapa donde todo está hecho y nada invita a nada (FR-038).
+bool hasNewContent({
+  required Course course,
+  required StudentProgress progress,
+}) => course.levels.any((Level level) => !progress.stateOf(level.id).isCleared);

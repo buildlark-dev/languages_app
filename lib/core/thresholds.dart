@@ -36,3 +36,10 @@ int get maxSrsStep => srsIntervals.length - 1;
 /// Identificadores de nivel del Marco Común Europeo de Referencia, en orden
 /// ascendente de dominio.
 const List<String> cefrLevelIds = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+/// Posición de un nivel MCER en [cefrLevelIds], o -1 si no es uno de ellos.
+///
+/// La comparación entre niveles se hace **siempre** por esta posición y nunca
+/// por orden alfabético, que colocaría B2 antes de C1 por casualidad y A10
+/// antes de A2 si algún día hubiera subniveles.
+int cefrRank(String levelId) => cefrLevelIds.indexOf(levelId);
