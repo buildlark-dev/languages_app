@@ -503,3 +503,13 @@ que deja una suite en verde con la app incumpliendo el requisito.
 - [X] T184 Suscribirse a `SyncService.remoteChanges` mientras la app está en primer plano y encaminar cada emisión por `SyncScheduler.applyRemote`. Ninguno de los dos tiene llamadas, así que el criterio «aparece en el otro dispositivo en menos de 30 s sin recargar» no tiene mecanismo que lo cumpla per SC-004 (missing)
 - [X] T185 Impedir que guardar el progreso revierta la cola de repaso. `ProgressDao.save` reescribe `progress.reviewCards` desde la instantánea cargada al arrancar, así que calificar una tarjeta por `ReviewDao` y terminar después cualquier lección devuelve esa tarjeta a su intervalo anterior. Decidir una sola fuente de verdad para la cola y añadir una prueba con la base real que califique, guarde el progreso y compruebe que el intervalo sobrevive per FR-029, FR-042 (contradicts)
 - [X] T186 Disparar los `SyncTrigger` que faltan: `signIn` al entrar, `connectivityRestored` al recuperar la red y `appBackgrounded` al pasar a segundo plano. Hoy solo se dispara `activityFinished`, así que un empujón que falla sin red no se reintenta hasta la siguiente actividad per FR-041 (partial)
+
+---
+
+## Phase 13: Convergence
+
+Segunda pasada de `/speckit-converge`, 8 de octubre de 2026. Los seis hallazgos
+de la Fase 12 están cerrados. Queda uno, y es **una regresión que introdujo
+T183**: justamente por eso se vuelve a pasar converge después de implementar.
+
+- [ ] T187 Hacer que borrar el progreso permanezca. Hoy se deshace solo: la invalidación reconstruye el progreso, `_syncOnEntry` pide la sincronización de entrada y `pushMerged` lo fusiona con el documento de la nube, que sigue entero. Comprobado con una sonda sobre los proveedores reales: 777 XP, `null` en disco justo tras borrar, y 777 XP de nuevo dos turnos después, con la pantalla ya diciendo «Tu progreso de este idioma se borró». Decidir primero el alcance —si el borrado es solo de este dispositivo o también de la nube—, porque de eso depende el arreglo y también el texto, que hoy promete algo que no pasa. Añadir una prueba que borre, deje correr la sincronización y compruebe que el progreso sigue vacío per FR-046 (contradicts)
