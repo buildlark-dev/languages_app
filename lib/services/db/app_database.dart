@@ -28,7 +28,26 @@ const int appSchemaVersion = 1;
 )
 class AppDatabase extends _$AppDatabase {
   /// Base de producción, abierta según la plataforma.
-  AppDatabase() : super(driftDatabase(name: 'languages_app'));
+  ///
+  /// `web` es **obligatorio** aunque parezca específico de un destino: sin él,
+  /// `driftDatabase` lanza `ArgumentError` al compilar a web, y como el error
+  /// ocurre al construir la base, `openAppDatabase` lo captura y cae a la
+  /// reserva volátil. El resultado era una app web que arrancaba bien, avisaba
+  /// de que el progreso no se guardaba, y efectivamente no lo guardaba. En
+  /// Android y escritorio este parámetro se ignora.
+  ///
+  /// Las dos rutas son relativas al directorio publicado, donde `web/` deja
+  /// `sqlite3.wasm` y `drift_worker.js`.
+  AppDatabase()
+    : super(
+        driftDatabase(
+          name: 'languages_app',
+          web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+            driftWorker: Uri.parse('drift_worker.js'),
+          ),
+        ),
+      );
 
   /// Base con un ejecutor dado. La usan las pruebas con una base en memoria.
   AppDatabase.withExecutor(super.executor);

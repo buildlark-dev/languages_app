@@ -7,7 +7,6 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:drift/native.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +21,7 @@ import 'firebase_options.dart';
 import 'services/auth/firebase_auth_service.dart';
 import 'services/db/app_database.dart';
 import 'services/db/database_opener.dart';
+import 'services/db/memory_database.dart';
 import 'services/db/progress_dao.dart';
 import 'services/db/review_dao.dart';
 import 'services/backup/json_backup_service.dart';
@@ -59,12 +59,13 @@ Future<void> main() async {
   // El almacén local es la fuente de verdad del progreso. Si falla, la app sigue
   // siendo usable sobre una base volátil y lo dice (FR-043).
   //
-  // La reserva se elige aquí y no dentro del opener porque `NativeDatabase` es
-  // específico de plataforma, y el opener debe poder compilarse y probarse en
-  // cualquier destino.
+  // La reserva llega por importación condicional (`memory_database.dart`) y no
+  // se construye aquí: importar `drift/native.dart` desde la raíz arrastra
+  // `dart:ffi`, que no existe en web, y el build web falla con un error que
+  // apunta a sqlite3 en lugar de a la línea culpable.
   final DatabaseOpenResult store = await openAppDatabase(
     openPrimary: AppDatabase.new,
-    openFallback: () => AppDatabase.withExecutor(NativeDatabase.memory()),
+    openFallback: openMemoryDatabase,
   );
 
   // El mismo almacén para el progreso y para el respaldo: el respaldo lee y
