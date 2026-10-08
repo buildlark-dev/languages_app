@@ -513,3 +513,13 @@ de la Fase 12 están cerrados. Queda uno, y es **una regresión que introdujo
 T183**: justamente por eso se vuelve a pasar converge después de implementar.
 
 - [X] T187 Hacer que borrar el progreso permanezca. Hoy se deshace solo: la invalidación reconstruye el progreso, `_syncOnEntry` pide la sincronización de entrada y `pushMerged` lo fusiona con el documento de la nube, que sigue entero. Comprobado con una sonda sobre los proveedores reales: 777 XP, `null` en disco justo tras borrar, y 777 XP de nuevo dos turnos después, con la pantalla ya diciendo «Tu progreso de este idioma se borró». Decidir primero el alcance —si el borrado es solo de este dispositivo o también de la nube—, porque de eso depende el arreglo y también el texto, que hoy promete algo que no pasa. Añadir una prueba que borre, deje correr la sincronización y compruebe que el progreso sigue vacío per FR-046 (contradicts)
+
+---
+
+## Phase 14: Convergence
+
+Tercera pasada, 8 de octubre de 2026. T187 cerró el borrado que se deshacía
+solo en el propio dispositivo. Queda el alcance que su texto declara, que la
+arquitectura no sostiene.
+
+- [ ] T188 Resolver el alcance real del borrado. El diálogo dice «En este dispositivo, en los demás y en la nube», y eso no se cumple: comprobado con una sonda de dos dispositivos sobre una nube compartida —A borra, la nube queda vacía, B sincroniza y la nube vuelve a tener los 777 XP—. La causa es de fondo: la fusión monotónica no puede distinguir «esto se borró» de «esto le falta al otro dispositivo», así que cualquier copia local sobreviviente restaura lo borrado, y basta con que la otra app se abra. Dos salidas, y la elección es de producto: **(a)** ajustar el texto a lo que ocurre —este dispositivo y la nube, advirtiendo que otro dispositivo abierto puede volver a subir lo suyo—, que es un cambio de minutos y deja de mentir; o **(b)** añadir una marca de borrado con fecha al documento remoto que los demás dispositivos respeten vaciándose, lo que cumple la promesa pero introduce la primera operación no monotónica del modelo y obliga a revisar las tres propiedades de la fusión. Recomendada la (a) mientras la app sea de un solo usuario sin soporte: prometer menos y cumplirlo es mejor que un mecanismo de reinicio que puede borrar de más. Añadir en cualquier caso una prueba de dos dispositivos que fije el comportamiento elegido per FR-046 (contradicts)
