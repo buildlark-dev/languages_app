@@ -353,15 +353,15 @@ el porcentaje de avance.
 > usuario** de `spec.md`. Se implementan aquí como funcionalidad transversal. Conviene
 > decidir si merecen su propia historia.
 
-- [ ] T152 [P] Crear `lib/services/backup/backup_document.dart` con `backupVersion`, `appVersion`, `courseId`, `exportedAt` y `progress`, serializado con **la misma forma** que el documento remoto
-- [ ] T153 [P] Crear `lib/services/backup/backup_service.dart` con el contrato `export`, `serialize`, `parse`, `import`, `wipe`, y el tipo `BackupParseResult` con `valid`, `unsupportedVersion`, `malformed` y `wrongCourse`
-- [ ] T154 Crear `lib/services/backup/json_backup_service.dart` cuyo `import` **fusiona** con `progress_merger`, nunca reemplaza: un respaldo viejo no puede hacer retroceder a quien ya avanzó más
-- [ ] T155 Validar el archivo **antes** de aplicar nada: una versión no soportada o un archivo corrupto se rechazan con mensaje claro y **sin tocar** el progreso existente
-- [ ] T156 [P] Crear `lib/ui/providers/backup_providers.dart`
-- [ ] T157 [P] Crear `lib/ui/widgets/destructive_confirm_dialog.dart` que advierta que la operación es irreversible y mencione el respaldo como única vuelta atrás
-- [ ] T158 Crear `lib/ui/screens/settings_screen.dart` con tema, velocidad de voz, y las tres acciones de respaldo —exportar, importar, borrar— con la destructiva visualmente diferenciada
-- [ ] T159 [P] Crear `test/services/backup/json_backup_service_test.dart` con ida y vuelta, versión no soportada, archivo corrupto, y el caso clave: **importar un respaldo viejo no pierde el progreso posterior**
-- [ ] T160 [P] Crear `test/ui/screens/settings_screen_test.dart` verificando que borrar exige confirmación explícita
+- [X] T152 [P] Crear `lib/services/backup/backup_document.dart` con `backupVersion`, `appVersion`, `courseId`, `exportedAt` y `progress`, serializado con **la misma forma** que el documento remoto
+- [X] T153 [P] Crear `lib/services/backup/backup_service.dart` con el contrato `export`, `serialize`, `parse`, `import`, `wipe`, y el tipo `BackupParseResult` con `valid`, `unsupportedVersion`, `malformed` y `wrongCourse`
+- [X] T154 Crear `lib/services/backup/json_backup_service.dart` cuyo `import` **fusiona** con `progress_merger`, nunca reemplaza: un respaldo viejo no puede hacer retroceder a quien ya avanzó más
+- [X] T155 Validar el archivo **antes** de aplicar nada: una versión no soportada o un archivo corrupto se rechazan con mensaje claro y **sin tocar** el progreso existente
+- [X] T156 [P] Crear `lib/ui/providers/backup_providers.dart`
+- [X] T157 [P] Crear `lib/ui/widgets/destructive_confirm_dialog.dart` que advierta que la operación es irreversible y mencione el respaldo como única vuelta atrás
+- [X] T158 Crear `lib/ui/screens/settings_screen.dart` con tema, velocidad de voz, y las tres acciones de respaldo —exportar, importar, borrar— con la destructiva visualmente diferenciada
+- [X] T159 [P] Crear `test/services/backup/json_backup_service_test.dart` con ida y vuelta, versión no soportada, archivo corrupto, y el caso clave: **importar un respaldo viejo no pierde el progreso posterior**
+- [X] T160 [P] Crear `test/ui/screens/settings_screen_test.dart` verificando que borrar exige confirmación explícita
 
 ---
 

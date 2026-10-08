@@ -20,6 +20,7 @@ import '../ui/providers/progress_controller.dart';
 import '../ui/screens/placement_screen.dart';
 import '../ui/screens/progress_screen.dart';
 import '../ui/screens/review_screen.dart';
+import '../ui/screens/settings_screen.dart';
 import '../ui/widgets/placement_offer_card.dart';
 import '../ui/widgets/review_summary_card.dart';
 import '../ui/widgets/sign_out_button.dart';
@@ -49,6 +50,15 @@ class HomeShell extends ConsumerWidget {
                 ),
               ),
             ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Ajustes',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const SettingsScreen(),
+              ),
+            ),
+          ),
           const SignOutButton(),
         ],
       ),

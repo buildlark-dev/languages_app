@@ -17,18 +17,21 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'app/app.dart';
 import 'content/catalog.dart';
+import 'core/clock.dart';
 import 'firebase_options.dart';
 import 'services/auth/firebase_auth_service.dart';
 import 'services/db/app_database.dart';
 import 'services/db/database_opener.dart';
 import 'services/db/progress_dao.dart';
 import 'services/db/review_dao.dart';
+import 'services/backup/json_backup_service.dart';
 import 'services/progress/drift_progress_store.dart';
 import 'services/review/drift_review_store.dart';
 import 'services/speech/flutter_tts_service.dart';
 import 'services/speech/speech_to_text_service.dart';
 import 'services/sync/firestore_sync_service.dart';
 import 'ui/providers/auth_providers.dart';
+import 'ui/providers/backup_providers.dart';
 import 'ui/providers/content_providers.dart';
 import 'ui/providers/progress_providers.dart';
 import 'ui/providers/review_providers.dart';
@@ -64,6 +67,12 @@ Future<void> main() async {
     openFallback: () => AppDatabase.withExecutor(NativeDatabase.memory()),
   );
 
+  // El mismo almacén para el progreso y para el respaldo: el respaldo lee y
+  // escribe exactamente lo que la app usa, no una copia paralela.
+  final DriftProgressStore progressStore = DriftProgressStore(
+    ProgressDao(store.database),
+  );
+
   runApp(
     ProviderScope(
       overrides: [
@@ -78,8 +87,9 @@ Future<void> main() async {
         reviewStoreProvider.overrideWithValue(
           DriftReviewStore(ReviewDao(store.database)),
         ),
-        progressStoreProvider.overrideWithValue(
-          DriftProgressStore(ProgressDao(store.database)),
+        progressStoreProvider.overrideWithValue(progressStore),
+        backupServiceProvider.overrideWithValue(
+          JsonBackupService(progressStore, clock: systemClock),
         ),
         // La voz se inicializa de forma perezosa, al preparar el curso: consultar
         // las voces del sistema tarda, y hacerlo en el arranque retrasaría la
