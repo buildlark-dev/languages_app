@@ -487,3 +487,19 @@ sincronización, porque `progress_merger` lo consumen Phase 10 y US7.
 - De la deuda reconocida en `plan.md` sigue vigente una sola cosa: el reconocimiento de habla
   sin conexión es mejor esfuerzo. El identificador de la app ya es `com.buildlark.languages`
   ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1), cerrado)
+
+---
+
+## Phase 12: Convergence
+
+Hallazgos de `/speckit-converge` del 8 de octubre de 2026. Todos son **piezas
+sin cablear**, no piezas sin construir: los servicios, los contratos y sus
+pruebas existen y funcionan: lo que falta es que alguien los llame. Es el patrón
+que deja una suite en verde con la app incumpliendo el requisito.
+
+- [ ] T181 Llamar a `SpeechAvailabilityController.prepare(course.studyLanguageTag)` al abrir un curso. Hoy `prepare()` no tiene ni una llamada en `lib/`, así que la disponibilidad se queda en `none()`, `ListenButton` no se dibuja en ninguna parte y todo ejercicio de escucha y de pronunciación cae a su alternativa escrita: la app no reproduce audio nunca per FR-014, FR-015, FR-016 (missing) — **CRITICAL**
+- [ ] T182 Ofrecer la nivelación **al elegir el idioma**, no detrás. `PlacementOfferCard` solo se dibuja con un curso ya seleccionado, y `_openCourse` selecciona y navega en el mismo toque, así que quien entra por primera vez no la ve a menos que retroceda per FR-034 (missing)
+- [ ] T183 Traer el progreso remoto al iniciar sesión y adoptarlo, con `SyncService.pull` o un `pushMerged` inicial. Hoy `pull()` no tiene ninguna llamada, así que una instalación nueva que inicia sesión muestra el progreso vacío hasta que una actividad dispara la fusión per FR-040, FR-041, US1 (missing)
+- [ ] T184 Suscribirse a `SyncService.remoteChanges` mientras la app está en primer plano y encaminar cada emisión por `SyncScheduler.applyRemote`. Ninguno de los dos tiene llamadas, así que el criterio «aparece en el otro dispositivo en menos de 30 s sin recargar» no tiene mecanismo que lo cumpla per SC-004 (missing)
+- [ ] T185 Impedir que guardar el progreso revierta la cola de repaso. `ProgressDao.save` reescribe `progress.reviewCards` desde la instantánea cargada al arrancar, así que calificar una tarjeta por `ReviewDao` y terminar después cualquier lección devuelve esa tarjeta a su intervalo anterior. Decidir una sola fuente de verdad para la cola y añadir una prueba con la base real que califique, guarde el progreso y compruebe que el intervalo sobrevive per FR-029, FR-042 (contradicts)
+- [ ] T186 Disparar los `SyncTrigger` que faltan: `signIn` al entrar, `connectivityRestored` al recuperar la red y `appBackgrounded` al pasar a segundo plano. Hoy solo se dispara `activityFinished`, así que un empujón que falla sin red no se reintenta hasta la siguiente actividad per FR-041 (partial)
