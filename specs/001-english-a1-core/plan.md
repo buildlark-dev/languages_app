@@ -371,7 +371,11 @@ nuevo. Siete dependencias entran, y estas son las que requieren justificación e
   eliminaron las líneas `google-services.json` y `GoogleService-Info.plist`. D12 de
   research.md explica por qué esa precaución estaba mal dirigida. Siguen ignorados los
   secretos reales (`*-service-account*.json`, `.env`).
-- **La racha fusionada necesita recálculo, no solo máximo.** Es una excepción deliberada a la
-  pureza de la fusión monotónica, documentada en data-model.md y en
-  contracts/firestore.md. El coste es un paso extra en `streak_tracker`; el beneficio es no
-  incumplir FR-031 de forma visible para el estudiante.
+- ~~La racha fusionada necesita recálculo, no solo máximo.~~ — **corregido el 2026-10-07**: el
+  recálculo posterior **rompe la asociatividad**, porque necesitaría la fecha a la que
+  pertenecía la racha mayor y la fusión ya la descartó. La regla vigente fusiona la racha y su
+  fecha como **un solo par** `(lastActivityDate, streakCount)`, que sigue siendo un máximo
+  —ahora sobre el orden lexicográfico— y por tanto conserva conmutatividad, asociatividad e
+  idempotencia sin incumplir FR-031. El contraejemplo concreto está en
+  `lib/engine/streak_tracker.dart`, y la propiedad se verifica sobre 125 permutaciones en
+  `progress_merger_test.dart`.

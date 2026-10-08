@@ -150,7 +150,7 @@ segundo destino y comprobar que el estado coincide sin recargar.
 ### Implementation for User Story 1
 
 - [X] T063 [US1] Crear `lib/engine/progress_merger.dart` con la fusión monotónica de `data-model.md`: máximo para puntajes, XP y estados de nivel; unión para conjuntos; `intervalStep` máximo y `dueDate` **más próxima** por tarjeta; `placement` el de `takenAt` más reciente
-- [X] T064 [US1] Añadir a `lib/engine/progress_merger.dart` el **recálculo de la racha** tras fusionar: si entre `lastActivityDate` y la fecha del dispositivo con la racha mayor pasó más de un día, la racha se reinicia a 1 (FR-031)
+- [X] T064 [US1] Añadir a `lib/engine/progress_merger.dart` la fusión de la racha **junto a su fecha**, como máximo lexicográfico del par `(lastActivityDate, streakCount)`: gana el dispositivo que estudió más recientemente, así que una racha caducada no revive (FR-032). Sustituye al «recálculo tras fusionar» del plan original, que no conserva la asociatividad
 - [X] T065 [P] [US1] Crear `lib/services/auth/auth_service.dart` con el contrato: `currentUser`, `authStateChanges`, `signUp`, `signIn`, `sendPasswordReset`, `signOut`, y el enum de errores tipados `invalidEmail`, `weakPassword`, `emailAlreadyInUse`, `wrongCredentials`, `userNotFound`, `tooManyAttempts`, `noConnection`, `unknown`
 - [X] T066 [US1] Crear `lib/services/auth/firebase_auth_service.dart` que traduzca **toda** excepción de Firebase a un error tipado. Ninguna excepción cruda cruza el contrato
 - [X] T067 [P] [US1] Crear `lib/services/sync/sync_service.dart` con el contrato: `pull`, `pushMerged`, `remoteChanges` y `syncStatus`. **No** expone ninguna operación de reemplazo directo
@@ -330,16 +330,16 @@ el porcentaje de avance.
 
 ### Tests for User Story 7 ⚠️
 
-- [ ] T145 [P] [US7] Crear `test/engine/streak_tracker_test.dart` con el reloj inyectado: primera actividad da 1, día consecutivo da N+1, dos días sin actividad reinicia a 1, dos lecciones el mismo día **no** incrementan dos veces, y cambio de mes
+- [X] T145 [P] [US7] Crear `test/engine/streak_tracker_test.dart` con el reloj inyectado: primera actividad da 1, día consecutivo da N+1, dos días sin actividad reinicia a 1, dos lecciones el mismo día **no** incrementan dos veces, y cambio de mes
 
 ### Implementation for User Story 7
 
-- [ ] T146 [US7] Crear `lib/engine/streak_tracker.dart` con el incremento diario único, el reinicio por día perdido y el **recálculo tras fusión** que consume `progress_merger` (T064)
-- [ ] T147 [P] [US7] Crear `lib/ui/widgets/streak_badge.dart`
-- [ ] T148 [P] [US7] Crear `lib/ui/widgets/xp_badge.dart`
-- [ ] T149 [P] [US7] Crear `lib/ui/widgets/progress_ring.dart`
-- [ ] T150 [US7] Crear `lib/ui/screens/progress_screen.dart` con el porcentaje del nivel aprobado, los módulos superados y el tamaño de la cola de repaso (FR-033)
-- [ ] T151 [P] [US7] Crear `test/ui/screens/progress_screen_test.dart`
+- [X] T146 [US7] Crear `lib/engine/streak_tracker.dart` con el incremento diario único, el reinicio por día perdido y la **fusión del par `(fecha, racha)`** que consume `progress_merger` (T064). Enmendado respecto al plan original: el «recálculo tras fusión» rompe la asociatividad, y el contraejemplo queda escrito en el archivo y verificado en su prueba
+- [X] T147 [P] [US7] Crear `lib/ui/widgets/streak_badge.dart`
+- [X] T148 [P] [US7] Crear `lib/ui/widgets/xp_badge.dart`
+- [X] T149 [P] [US7] Crear `lib/ui/widgets/progress_ring.dart`
+- [X] T150 [US7] Crear `lib/ui/screens/progress_screen.dart` con el porcentaje del nivel aprobado, los módulos superados y el tamaño de la cola de repaso (FR-033)
+- [X] T151 [P] [US7] Crear `test/ui/screens/progress_screen_test.dart`
 
 **Checkpoint**: todas las historias de usuario operativas.
 
@@ -410,7 +410,7 @@ el porcentaje de avance.
 - **US4** (P2) · independiente; añade los botones de escucha a widgets de US2 (T127)
 - **US5** (P2) · necesita vocabulario visto, que siembra US2
 - **US6** (P2) · independiente; determina el estado inicial de la ruta de US3
-- **US7** (P3) · consume el recálculo de racha de US1 (T064)
+- **US7** (P3) · consume la fusión de racha de US1 (T064)
 
 ### Dentro de cada historia
 

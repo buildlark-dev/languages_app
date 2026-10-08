@@ -155,7 +155,7 @@ que `placement_evaluator` pueda asignar nivel.
 | `schemaVersion` | `int` | el mayor |
 | `currentLevelId` | `String` | el nivel más avanzado |
 | `xp` | `int` | **máximo** |
-| `streakCount` | `int` | máximo, y después **recalculado** (ver abajo) |
+| `streakCount` | `int` | **par** `(lastActivityDate, streakCount)` (ver abajo) |
 | `lastActivityDate` | `DateTime` | la más reciente |
 | `levelStates` | `Map<String, LevelState>` | el estado más avanzado por nivel |
 | `lessonResults` | `Map<String, double>` | **máximo** por lección |

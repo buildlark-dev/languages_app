@@ -131,7 +131,7 @@ hace falta llevar registro de qué emisión se procesó.
 | `schemaVersion` | mayor |
 | `currentLevelId` | el nivel más avanzado |
 | `xp` | **máximo** |
-| `streakCount` | máximo, y después recalculado contra `lastActivityDate` |
+| `streakCount` | **par** `(lastActivityDate, streakCount)`: gana el del día más reciente |
 | `lastActivityDate` | más reciente |
 | `levelStates[*]` | **máximo** del entero de estado |
 | `activities[*].bestScore` | **máximo** por clave, unión de claves |

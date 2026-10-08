@@ -18,6 +18,7 @@ import '../ui/providers/content_providers.dart';
 import '../ui/providers/clock_providers.dart';
 import '../ui/providers/progress_controller.dart';
 import '../ui/screens/placement_screen.dart';
+import '../ui/screens/progress_screen.dart';
 import '../ui/screens/review_screen.dart';
 import '../ui/widgets/placement_offer_card.dart';
 import '../ui/widgets/review_summary_card.dart';
@@ -37,7 +38,19 @@ class HomeShell extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
-        actions: const <Widget>[SignOutButton()],
+        actions: <Widget>[
+          if (ref.watch(selectedCourseIdProvider) != null)
+            IconButton(
+              icon: const Icon(Icons.insights_outlined),
+              tooltip: 'Tu progreso',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const ProgressScreen(),
+                ),
+              ),
+            ),
+          const SignOutButton(),
+        ],
       ),
       body: SafeArea(
         child: Column(

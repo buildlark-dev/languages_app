@@ -18,8 +18,8 @@
 /// daría «siete días seguidos» a quien no estudió el martes ni el miércoles, lo
 /// que incumple FR-032 de forma visible.
 ///
-/// La solución no es un recálculo posterior —eso dependería de datos que ya se
-/// perdieron al fusionar y rompería la asociatividad— sino tratar la racha y su
+/// La solución no es un recálculo posterior —eso rompe la asociatividad, y el
+/// contraejemplo está escrito en `streak_tracker.dart`— sino tratar la racha y su
 /// fecha como **una sola unidad**: gana la del dispositivo que estudió más
 /// recientemente, y en empate de fecha, la racha mayor.
 ///
@@ -29,12 +29,12 @@
 library;
 
 import '../core/activity_score.dart';
-import '../core/clock.dart';
 import '../core/level_state.dart';
 import '../core/placement_result.dart';
 import '../core/review_card.dart';
 import '../core/student_progress.dart';
 import '../core/thresholds.dart';
+import 'streak_tracker.dart';
 
 /// Fusiona dos estados del progreso del mismo estudiante en el mismo curso.
 ///
@@ -46,9 +46,9 @@ StudentProgress mergeProgress(StudentProgress local, StudentProgress remote) {
     'Solo se fusiona el progreso del mismo estudiante en el mismo curso',
   );
 
-  final _StreakPoint streak = _mergeStreak(
-    _StreakPoint(local.lastActivityDate, local.streakCount),
-    _StreakPoint(remote.lastActivityDate, remote.streakCount),
+  final StreakPoint streak = mergeStreak(
+    StreakPoint(date: local.lastActivityDate, count: local.streakCount),
+    StreakPoint(date: remote.lastActivityDate, count: remote.streakCount),
   );
 
   return StudentProgress(
@@ -116,29 +116,3 @@ Map<String, T> _mergeMap<T>(
   }
   return Map<String, T>.unmodifiable(result);
 }
-
-/// La racha junto a la fecha a la que pertenece.
-class _StreakPoint {
-  const _StreakPoint(this.date, this.count);
-
-  final DateTime? date;
-  final int count;
-}
-
-/// Máximo sobre el orden lexicográfico `(fecha, racha)`.
-///
-/// Gana el dispositivo que estudió más recientemente, porque su racha es la que
-/// refleja el estado actual. En empate de fecha gana la racha mayor, que es lo
-/// que favorece al estudiante cuando ambos dispositivos se usaron el mismo día.
-_StreakPoint _mergeStreak(_StreakPoint a, _StreakPoint b) {
-  if (a.date == null) return b.date == null ? _higherCount(a, b) : b;
-  if (b.date == null) return a;
-
-  final int gap = daysBetween(a.date!, b.date!);
-  if (gap > 0) return b; // b es posterior
-  if (gap < 0) return a; // a es posterior
-  return _higherCount(a, b);
-}
-
-_StreakPoint _higherCount(_StreakPoint a, _StreakPoint b) =>
-    a.count >= b.count ? a : b;

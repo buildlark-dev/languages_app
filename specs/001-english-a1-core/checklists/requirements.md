@@ -119,8 +119,10 @@ y SC-004 ahora exige explícitamente que no haga falta recargar.
 
 **F3 · HIGH — la fusión podía resucitar una racha caducada.** Fusionar por máximo daba "racha
 de 7 días" a quien no estudió el martes ni el miércoles, incumpliendo FR-031 de forma
-observable. FR-031 y las reglas de fusión ahora exigen **recalcular** la racha contra la fecha
-de última actividad tras fusionar.
+observable. FR-031 y las reglas de fusión ahora exigen fusionar la racha **junto a su fecha**,
+como el par `(lastActivityDate, streakCount)`. La primera redacción decía «recalcular tras
+fusionar», y al implementarlo resultó que eso rompe la asociatividad: el recálculo necesita la
+fecha a la que pertenecía la racha mayor, y la fusión ya la descartó.
 
 **V1 · MEDIUM** — accesibilidad sin verificación: nuevo paso de quickstart con TalkBack,
 área táctil de 48 dp y contraste WCAG AA en ambos modos.

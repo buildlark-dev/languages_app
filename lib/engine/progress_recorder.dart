@@ -14,6 +14,7 @@ import '../core/activity_score.dart';
 import '../core/clock.dart';
 import '../core/student_progress.dart';
 import 'scoring.dart';
+import 'streak_tracker.dart';
 import 'xp_calculator.dart';
 
 /// Lo que cambió al registrar una actividad.
@@ -67,9 +68,11 @@ RecordedActivity recordActivity({
     previousBest: previousBest,
   );
 
-  final (int streak, bool increased) = _advanceStreak(
-    current: progress.streakCount,
-    lastActivity: progress.lastActivityDate,
+  final StreakAdvance streak = advanceStreak(
+    current: StreakPoint(
+      date: progress.lastActivityDate,
+      count: progress.streakCount,
+    ),
     today: today,
   );
 
@@ -80,31 +83,10 @@ RecordedActivity recordActivity({
         activityId: updated,
       },
       xp: progress.xp + xpGained,
-      streakCount: streak,
-      lastActivityDate: today,
+      streakCount: streak.point.count,
+      lastActivityDate: streak.point.date,
     ),
     xpGained: xpGained,
-    streakIncreased: increased,
+    streakIncreased: streak.increased,
   );
-}
-
-/// Avanza la racha según cuándo fue la última actividad.
-(int, bool) _advanceStreak({
-  required int current,
-  required DateTime? lastActivity,
-  required DateTime today,
-}) {
-  if (lastActivity == null) return (1, true);
-
-  final int gap = daysBetween(lastActivity, today);
-
-  // Mismo día: la racha ya está contada. Completar una segunda lección no la
-  // incrementa dos veces.
-  if (gap == 0) return (current == 0 ? 1 : current, false);
-
-  // Día consecutivo: sube.
-  if (gap == 1) return (current + 1, true);
-
-  // Pasó un día completo sin estudiar: vuelve a empezar.
-  return (1, true);
 }
