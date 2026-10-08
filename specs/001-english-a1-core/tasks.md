@@ -535,3 +535,17 @@ ausencia nunca se hizo notar.
 
 - [X] T189 Dar a `SettingsStore` una implementación que persista y cablearla en `main.dart`. Hoy la única que existe es `InMemorySettingsStore`, documentada como «la que usan las pruebas», y `settingsStoreProvider` no se sobrescribe: el tema y la velocidad de voz se reinician en cada arranque, así que elegir modo oscuro no sirve de nada más allá de la sesión. Hacer además que el proveedor lance si falta, como los otros ocho, que es justo lo que habría destapado esto antes. El almacenamiento puede ser una tabla de drift —coherente con la decisión de plan.md de no usar `shared_preferences`, aunque aquel rechazo era por el progreso y no por las preferencias— o la dependencia nueva, si se prefiere no versionar un esquema por dos ajustes; decidirlo al implementar. Añadir prueba de ida y vuelta per FR-048, plan: preferencias del dispositivo (partial)
 - [X] T190 Resolver `lastCourseId`. El contrato lo declara «para volver a él al abrir la app» y no hay ni una lectura ni una escritura en todo `lib/`. Con un solo idioma no se nota, con tres sí. Decidir entre escribirlo al elegir curso y leerlo al arrancar, o retirarlo del contrato: una capacidad declarada que nadie usa es una promesa que alguien dará por cierta per `settings_store.dart` (missing)
+
+---
+
+## Phase 16: Convergence
+
+Quinta pasada, 8 de octubre de 2026. T189 y T190 cerrados. Los catorce casos
+límite están cubiertos —los dos que faltaban por comprobar se verificaron con
+sondas: cambiar de tema a mitad de lección no reinicia el recorrido, y las
+cuatro tablas de gramática de A1 caben a 360 dp con la fuente al 130 %—.
+
+Queda un incumplimiento de la constitución, y es de los que llevan diez fases
+en pie.
+
+- [ ] T191 **CRITICAL** · Recorrer las doce pantallas en el emulador Pixel 7 y reportar qué se vio en cada una. El Principio V dice «toda pantalla DEBE verificarse **además** en el emulador de Android antes de darse por terminada, y el reporte DEBE decir qué se vio», y ninguna se ha abierto nunca allí: hay prueba de widget de todas y el build web se verificó en un navegador, pero ese «además» no se ha cumplido ni una vez, y aun así se han ido declarando terminadas. Las pantallas son acceso, registro, restablecer contraseña, inicio, mapa de niveles, módulos de un nivel, detalle de módulo, lección, examen, repaso, nivelación, progreso y ajustes. Las tareas de emulador de la Fase 11 (T163 a T175) cubren criterios de éxito concretos y **no** sustituyen a esto: ajustes, progreso y nivelación no aparecen en ninguna de ellas per Constitución, Principio V (missing)
