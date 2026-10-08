@@ -20,7 +20,9 @@ import '../../core/clock.dart';
 import '../../core/course.dart';
 import '../../core/placement_result.dart';
 import '../../core/student_progress.dart';
+import '../../core/level.dart';
 import '../../engine/placement_evaluator.dart';
+import '../../engine/progression.dart';
 import '../../engine/progress_recorder.dart';
 import '../../engine/scoring.dart';
 import '../../services/sync/sync_scheduler.dart';
@@ -76,8 +78,47 @@ class StudentProgressController extends AsyncNotifier<StudentProgress?> {
       clock: clock,
     );
 
-    await _persist(recorded.progress, SyncTrigger.activityFinished);
-    return recorded;
+    // Aprobar el examen de nivel es lo único que abre un nivel nuevo (FR-024),
+    // y eso lo decide `progression`, no el grabador: el grabador sabe de notas
+    // y de rachas, no del mapa del curso.
+    final StudentProgress next = _withLevelUnlock(
+      progress: recorded.progress,
+      activityId: activityId,
+      kind: kind,
+      passed: result.passed,
+    );
+
+    await _persist(next, SyncTrigger.activityFinished);
+    return RecordedActivity(
+      progress: next,
+      xpGained: recorded.xpGained,
+      streakIncreased: recorded.streakIncreased,
+    );
+  }
+
+  /// Abre el nivel siguiente si lo que se acaba de aprobar es un examen de
+  /// nivel. En cualquier otro caso devuelve el progreso tal cual.
+  StudentProgress _withLevelUnlock({
+    required StudentProgress progress,
+    required String activityId,
+    required ActivityKind kind,
+    required bool passed,
+  }) {
+    if (kind != ActivityKind.levelExam || !passed) return progress;
+
+    final Course? course = ref.read(activeCourseProvider);
+    if (course == null) return progress;
+
+    for (final Level level in course.levels) {
+      if (level.levelExam.id == activityId) {
+        return applyLevelExamPassed(
+          course: course,
+          progress: progress,
+          level: level,
+        );
+      }
+    }
+    return progress;
   }
 
   /// Aplica el resultado de la nivelación, o el de haberla omitido.

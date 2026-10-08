@@ -25,6 +25,7 @@ import '../ui/widgets/placement_offer_card.dart';
 import '../ui/widgets/review_summary_card.dart';
 import '../ui/widgets/sign_out_button.dart';
 import '../ui/widgets/sync_banner.dart';
+import 'course_flow.dart';
 import 'l10n/app_localizations.dart';
 
 class HomeShell extends ConsumerWidget {
@@ -110,9 +111,11 @@ class HomeShell extends ConsumerWidget {
                           '${pack.course.upcomingLevelIds.length} '
                           '${l10n.levelUpcoming.toLowerCase()}',
                         ),
-                        onTap: () => ref
-                            .read(selectedCourseIdProvider.notifier)
-                            .select(pack.courseId),
+                        // Elegir el idioma y entrar son la misma acción: un
+                        // catálogo de un solo curso donde hay que tocar dos
+                        // veces solo deja al estudiante preguntándose si el
+                        // primer toque funcionó.
+                        onTap: () => _openCourse(context, ref, pack.courseId),
                       ),
                     ),
                 ],
@@ -120,6 +123,21 @@ class HomeShell extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Selecciona el idioma y abre su mapa de niveles.
+  ///
+  /// La selección se hace antes de navegar porque todo lo que la ruta necesita
+  /// —progreso, cola de repaso, nivelación— se resuelve a partir del curso
+  /// elegido. Navegar primero mostraría un indicador de carga que solo existe
+  /// por el orden de dos líneas.
+  void _openCourse(BuildContext context, WidgetRef ref, String courseId) {
+    ref.read(selectedCourseIdProvider.notifier).select(courseId);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => const CourseMapRoute(),
       ),
     );
   }
