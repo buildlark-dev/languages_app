@@ -120,6 +120,21 @@ apunta a Squarespace (198.185.159.x y 198.49.23.x).
   `sharedIndexedDb` es la ruta persistente que drift considera fiable —la
   arriesgada es `unsafeIndexedDb`—. Activar OPFS exigiría cabeceras COOP/COEP,
   que conviene no tocar sin probar antes que no rompen el SDK de Firebase.
-- **El `applicationId` sigue siendo `com.example`** en Android. Está apuntado
-  como tarea aparte y no bloquea el despliegue web, pero **sí bloquea publicar
-  en Play Store**.
+- **El identificador de la app ya es `com.buildlark.languages`** en las cinco
+  plataformas, y no queda ni un `com.example` en el proyecto. Se resolvió el 6
+  de octubre ([issue #1](https://github.com/buildlark-dev/languages_app/issues/1),
+  cerrada). Comprobado el 8 de octubre con `flutter build apk --debug` y
+  `aapt2 dump packagename`, que lee el identificador **del APK construido** y
+  devuelve `com.buildlark.languages`: es evidencia de que toda la cadena
+  —gradle, `namespace`, paquete Kotlin, `google-services.json` y el registro en
+  Firebase— está alineada, y no solo de que los archivos digan lo correcto.
+
+  En una versión anterior de este documento figuraba como pendiente. Era un
+  error mío: lo di por no hecho sin mirarlo.
+
+- **Lo que sí bloquea Play Store es la firma.** `android/app/build.gradle.kts`
+  sigue con `signingConfig = signingConfigs.getByName("debug")` y su `TODO`.
+  Una compilación de publicación firmada con las claves de depuración no se
+  puede subir. Hace falta generar un `keystore` de publicación, guardarlo fuera
+  del repositorio y referenciarlo desde un `key.properties` ignorado por git.
+  No afecta al despliegue web ni a las pruebas en emulador.
