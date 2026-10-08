@@ -523,3 +523,15 @@ solo en el propio dispositivo. Queda el alcance que su texto declara, que la
 arquitectura no sostiene.
 
 - [X] T188 Resolver el alcance real del borrado. El diálogo dice «En este dispositivo, en los demás y en la nube», y eso no se cumple: comprobado con una sonda de dos dispositivos sobre una nube compartida —A borra, la nube queda vacía, B sincroniza y la nube vuelve a tener los 777 XP—. La causa es de fondo: la fusión monotónica no puede distinguir «esto se borró» de «esto le falta al otro dispositivo», así que cualquier copia local sobreviviente restaura lo borrado, y basta con que la otra app se abra. Dos salidas, y la elección es de producto: **(a)** ajustar el texto a lo que ocurre —este dispositivo y la nube, advirtiendo que otro dispositivo abierto puede volver a subir lo suyo—, que es un cambio de minutos y deja de mentir; o **(b)** añadir una marca de borrado con fecha al documento remoto que los demás dispositivos respeten vaciándose, lo que cumple la promesa pero introduce la primera operación no monotónica del modelo y obliga a revisar las tres propiedades de la fusión. Recomendada la (a) mientras la app sea de un solo usuario sin soporte: prometer menos y cumplirlo es mejor que un mecanismo de reinicio que puede borrar de más. Añadir en cualquier caso una prueba de dos dispositivos que fije el comportamiento elegido per FR-046 (contradicts)
+
+---
+
+## Phase 15: Convergence
+
+Cuarta pasada, 8 de octubre de 2026. T188 cerrado. Los dos hallazgos que quedan
+son del almacén de preferencias, y comparten causa: es el **único** de los ocho
+contratos de servicio cuyo proveedor no lanza al no sobrescribirse, así que su
+ausencia nunca se hizo notar.
+
+- [ ] T189 Dar a `SettingsStore` una implementación que persista y cablearla en `main.dart`. Hoy la única que existe es `InMemorySettingsStore`, documentada como «la que usan las pruebas», y `settingsStoreProvider` no se sobrescribe: el tema y la velocidad de voz se reinician en cada arranque, así que elegir modo oscuro no sirve de nada más allá de la sesión. Hacer además que el proveedor lance si falta, como los otros ocho, que es justo lo que habría destapado esto antes. El almacenamiento puede ser una tabla de drift —coherente con la decisión de plan.md de no usar `shared_preferences`, aunque aquel rechazo era por el progreso y no por las preferencias— o la dependencia nueva, si se prefiere no versionar un esquema por dos ajustes; decidirlo al implementar. Añadir prueba de ida y vuelta per FR-048, plan: preferencias del dispositivo (partial)
+- [ ] T190 Resolver `lastCourseId`. El contrato lo declara «para volver a él al abrir la app» y no hay ni una lectura ni una escritura en todo `lib/`. Con un solo idioma no se nota, con tres sí. Decidir entre escribirlo al elegir curso y leerlo al arrancar, o retirarlo del contrato: una capacidad declarada que nadie usa es una promesa que alguien dará por cierta per `settings_store.dart` (missing)
