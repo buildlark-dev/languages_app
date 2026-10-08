@@ -27,6 +27,8 @@ import 'services/db/review_dao.dart';
 import 'services/backup/json_backup_service.dart';
 import 'services/progress/drift_progress_store.dart';
 import 'services/review/drift_review_store.dart';
+import 'services/settings/prefs_settings_store.dart';
+import 'services/settings/settings_store.dart';
 import 'services/speech/flutter_tts_service.dart';
 import 'services/speech/speech_to_text_service.dart';
 import 'services/sync/firestore_sync_service.dart';
@@ -74,10 +76,26 @@ Future<void> main() async {
     ProgressDao(store.database),
   );
 
+  // Las preferencias se cargan antes de la interfaz porque el tema se lee al
+  // construir el primer widget. Si el almacenamiento falla, se sigue con la
+  // reserva en memoria: perder el modo oscuro es un inconveniente, no una razón
+  // para no arrancar.
+  SettingsStore settings;
+  try {
+    settings = await PrefsSettingsStore.open();
+  } catch (error) {
+    // La reserva deja constancia en lugar de caer en silencio. Una reserva
+    // callada es exactamente lo que hizo que durante cuatro revisiones nadie
+    // viera que las preferencias no se guardaban: funcionaba casi bien.
+    debugPrint('Preferencias no disponibles, se usará la reserva: $error');
+    settings = InMemorySettingsStore();
+  }
+
   runApp(
     ProviderScope(
       overrides: [
         courseCatalogProvider.overrideWithValue(const AppCourseCatalog()),
+        settingsStoreProvider.overrideWithValue(settings),
         authServiceProvider.overrideWithValue(
           FirebaseAuthService(fb.FirebaseAuth.instance),
         ),

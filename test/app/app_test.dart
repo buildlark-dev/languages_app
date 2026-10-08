@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:languages_app/app/app.dart';
 import 'package:languages_app/app/theme.dart';
 import 'package:languages_app/services/auth/auth_service.dart';
+import 'package:languages_app/services/settings/settings_store.dart';
 import 'package:languages_app/ui/providers/auth_providers.dart';
 import 'package:languages_app/ui/providers/content_providers.dart';
 import 'package:languages_app/ui/providers/progress_providers.dart';
@@ -36,6 +37,7 @@ void main() {
   Widget buildApp({bool storageDegraded = false, ThemeMode? themeMode}) =>
       ProviderScope(
         overrides: [
+          settingsStoreProvider.overrideWithValue(InMemorySettingsStore()),
           courseCatalogProvider.overrideWithValue(const FakeCatalog()),
           authServiceProvider.overrideWithValue(auth),
           syncServiceProvider.overrideWithValue(sync),

@@ -16,9 +16,18 @@ import 'sync_lifecycle.dart';
 import 'l10n/app_localizations.dart';
 import 'theme.dart';
 
-/// Preferencias del dispositivo. Se sobrescribe en `main.dart`.
+/// Preferencias del dispositivo. **Se sobrescribe en `main.dart`.**
+///
+/// Lanza como los otros ocho proveedores de servicio, y eso es una corrección:
+/// antes caía a `InMemorySettingsStore()` en silencio. Como el valor por
+/// defecto era razonable, nadie notó durante cuatro revisiones que `main.dart`
+/// no lo sobrescribía, y el tema y la velocidad de voz se reiniciaban en cada
+/// arranque. Un olvido de cableado debe fallar de inmediato, no funcionar casi
+/// bien.
 final Provider<SettingsStore> settingsStoreProvider = Provider<SettingsStore>(
-  (Ref ref) => InMemorySettingsStore(),
+  (Ref ref) => throw UnimplementedError(
+    'settingsStoreProvider debe sobrescribirse en main.dart',
+  ),
 );
 
 /// Modo de tema vigente.

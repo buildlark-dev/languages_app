@@ -123,10 +123,10 @@ class _SpeechRateSlider extends ConsumerWidget {
               // Los extremos son los del almacén: por debajo de 0,3 la voz se
               // vuelve ininteligible, y permitirlo solo daría una forma de
               // romper los ejercicios de escucha.
-              min: 0.3,
-              max: 1,
+              min: minSpeechRate,
+              max: maxSpeechRate,
               divisions: 7,
-              value: value.clamp(0.3, 1),
+              value: value.clamp(minSpeechRate, maxSpeechRate),
               label: value.toStringAsFixed(1),
               onChanged: onChanged,
             ),
