@@ -78,6 +78,20 @@ class FakeSyncService implements SyncService {
     return merged;
   }
 
+  /// True si el documento remoto se borró.
+  bool remoteDeleted = false;
+
+  @override
+  Future<void> deleteRemote({
+    required String uid,
+    required String courseId,
+  }) async {
+    if (offline) throw StateError('sin conexión');
+    remoteDeleted = true;
+    _remote = null;
+    _emitStatus(SyncState(lastSyncedAt: DateTime.now()));
+  }
+
   /// Simula que otro dispositivo escribió en la nube.
   void emitRemoteChange(StudentProgress progress) {
     _remote = progress;

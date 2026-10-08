@@ -12,7 +12,9 @@ import 'package:languages_app/core/clock.dart';
 import 'package:languages_app/core/level_state.dart';
 import 'package:languages_app/core/student_progress.dart';
 import 'package:languages_app/services/auth/auth_service.dart';
+import 'package:languages_app/services/backup/json_backup_service.dart';
 import 'package:languages_app/ui/providers/auth_providers.dart';
+import 'package:languages_app/ui/providers/backup_providers.dart';
 import 'package:languages_app/ui/providers/clock_providers.dart';
 import 'package:languages_app/ui/providers/content_providers.dart';
 import 'package:languages_app/ui/providers/progress_controller.dart';
@@ -60,6 +62,9 @@ void main() {
     final ProviderContainer container = ProviderContainer(
       overrides: [
         progressStoreProvider.overrideWithValue(store),
+        backupServiceProvider.overrideWithValue(
+          JsonBackupService(store, clock: fixedClock(today)),
+        ),
         reviewStoreProvider.overrideWithValue(FakeReviewStore()),
         syncServiceProvider.overrideWithValue(sync),
         ttsServiceProvider.overrideWithValue(tts),
@@ -259,6 +264,92 @@ void main() {
 
       expect(container.read(studentProgressProvider).value!.xp, 50);
       expect(store.current('u1', 'xx')!.xp, 50);
+    });
+  });
+  group('T187 · borrar el progreso permanece (FR-046)', () {
+    /// Deja correr la sincronización de entrada que sigue al borrado.
+    Future<void> settleSync() async {
+      await settle();
+      await settle();
+      await settle();
+    }
+
+    test('tras borrar, la sincronización NO lo devuelve', () async {
+      // La regresión que introdujo T183: el documento remoto sobrevivía al
+      // borrado, el progreso se reconstruía, pedía la sincronización de
+      // entrada y volvía entero. La pantalla ya había dicho que se borró.
+      final ProviderContainer container = makeContainer(
+        progress: stored(xp: 777),
+      );
+      sync.emitRemoteChange(stored(xp: 777));
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await container.read(studentProgressProvider.future);
+      await settleSync();
+      expect(container.read(studentProgressProvider).value!.xp, 777);
+
+      await container.read(backupControllerProvider.notifier).wipe();
+      await container.read(studentProgressProvider.future);
+      await settleSync();
+
+      expect(sync.remoteDeleted, isTrue, reason: 'también en la nube');
+      expect(
+        container.read(studentProgressProvider).value!.xp,
+        0,
+        reason: 'y no vuelve',
+      );
+      expect(store.current('u1', 'xx')!.xp, 0);
+    });
+
+    test('sin red no se borra nada y se dice por qué', () async {
+      // Quedarse a medias —local vacío, nube llena— es el estado que produce
+      // justo el engaño que esto corrige.
+      final ProviderContainer container = makeContainer(
+        progress: stored(xp: 777),
+      );
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      await container.read(studentProgressProvider.future);
+      await settleSync();
+
+      sync.offline = true;
+      await container.read(backupControllerProvider.notifier).wipe();
+
+      expect(
+        container.read(backupControllerProvider).lastAction,
+        BackupAction.wipeFailed,
+      );
+      expect(sync.remoteDeleted, isFalse);
+      expect(store.current('u1', 'xx')!.xp, 777, reason: 'lo local intacto');
+    });
+
+    test('el borrado deja el curso listo para empezar de nuevo', () async {
+      final ProviderContainer container = makeContainer(
+        progress: stored(xp: 777),
+      );
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      await container.read(studentProgressProvider.future);
+      await settleSync();
+
+      await container.read(backupControllerProvider.notifier).wipe();
+      final StudentProgress? after = await container.read(
+        studentProgressProvider.future,
+      );
+
+      expect(after!.currentLevelId, 'A1');
+      expect(after.levelStates['A1'], LevelState.unlocked);
+      expect(after.activityScores, isEmpty);
     });
   });
 }

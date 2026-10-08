@@ -69,6 +69,24 @@ class FirestoreSyncService implements SyncService {
   }
 
   @override
+  Future<void> deleteRemote({
+    required String uid,
+    required String courseId,
+  }) async {
+    try {
+      await _docFor(uid, courseId).delete();
+      // Se limpia el estado: lo que hubiera pendiente de subir ya no existe.
+      _emit(SyncState(lastSyncedAt: DateTime.now()));
+    } catch (error) {
+      _emit(_currentStatus.copyWith(lastError: error.toString()));
+      // Se relanza a propósito. Quien llama necesita saberlo para **no** borrar
+      // lo local: si lo borrara con la nube intacta, la primera sincronización
+      // devolvería todo y el borrado habría sido una mentira.
+      rethrow;
+    }
+  }
+
+  @override
   Future<StudentProgress> pushMerged(StudentProgress local) async {
     final DocumentReference<Map<String, dynamic>> doc = _docFor(
       local.uid,

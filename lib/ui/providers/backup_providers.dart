@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/backup/backup_document.dart';
 import '../../services/backup/backup_service.dart';
 import 'progress_controller.dart';
+import 'progress_providers.dart';
 import 'review_providers.dart';
 import 'scope_providers.dart';
 
@@ -36,8 +37,14 @@ enum BackupAction {
   /// Un respaldo se fusionó con el progreso.
   imported,
 
-  /// El progreso local se borró.
+  /// El progreso se borró, aquí y en la nube.
   wiped,
+
+  /// No se pudo borrar en la nube, así que no se borró nada.
+  ///
+  /// Es un estado propio y no un error genérico porque lo accionable es muy
+  /// concreto: hace falta conexión, y hasta tenerla el progreso sigue intacto.
+  wipeFailed,
 
   /// No había progreso que respaldar.
   nothingToExport,
@@ -121,16 +128,35 @@ class BackupController extends Notifier<BackupState> {
     }
   }
 
-  /// Borra el progreso local del curso abierto.
+  /// Borra el progreso del curso abierto, **en la nube y en el dispositivo**.
   ///
   /// Quien llama debe haber confirmado antes (FR-046). Aquí no se vuelve a
   /// preguntar: una segunda confirmación dentro del servicio solo enseñaría a
   /// pulsar «sí» dos veces sin leer.
+  ///
+  /// El orden no es arbitrario: **primero la nube**. Al revés, borrar lo local
+  /// con el documento remoto intacto dura un suspiro, porque al reconstruirse
+  /// el progreso se pide la sincronización de entrada y vuelve todo. Así se
+  /// comportaba antes de esta corrección: la pantalla decía que el progreso se
+  /// había borrado y dos turnos después estaba de vuelta.
+  ///
+  /// Si la nube falla no se toca nada y se dice por qué. Quedarse a medias
+  /// —local vacío, nube llena— es el estado que produce justo ese engaño.
   Future<void> wipe() async {
     final StudentScope? scope = await resolveStudentScope(ref);
     if (scope == null) return;
 
     state = const BackupState(busy: true);
+
+    try {
+      await ref
+          .read(syncServiceProvider)
+          .deleteRemote(uid: scope.uid, courseId: scope.courseId);
+    } catch (_) {
+      state = const BackupState(lastAction: BackupAction.wipeFailed);
+      return;
+    }
+
     await ref
         .read(backupServiceProvider)
         .wipe(uid: scope.uid, courseId: scope.courseId);

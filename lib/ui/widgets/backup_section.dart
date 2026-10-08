@@ -60,7 +60,8 @@ class BackupSection extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Borra lo guardado en este dispositivo y vuelve a empezar desde A1.',
+          'Borra tu avance de este idioma en todos tus dispositivos y en la '
+          'nube, y vuelve a empezar desde A1.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 12),
@@ -89,8 +90,12 @@ class BackupSection extends ConsumerWidget {
       context,
       title: '¿Borrar tu progreso?',
       consequence:
-          'Se borrará todo lo guardado de este idioma en este dispositivo: '
-          'lecciones aprobadas, racha, XP y la cola de repaso.',
+          'Se borrará todo tu avance de este idioma: lecciones aprobadas, '
+          'racha, XP y la cola de repaso.',
+      // Decirlo aquí y no solo en la letra pequeña: quien estudia en el móvil
+      // y en el PC necesita saber, antes de confirmar, que esto no afecta solo
+      // a la pantalla que tiene delante.
+      inventory: 'En este dispositivo, en los demás y en la nube.',
       confirmLabel: 'Borrar',
     );
     if (!confirmed) return;
@@ -195,7 +200,12 @@ class _Notice extends StatelessWidget {
       'Respaldo copiado. Pégalo en una nota o un archivo para guardarlo.',
     BackupAction.imported =>
       'Respaldo importado y combinado con tu avance actual.',
-    BackupAction.wiped => 'Tu progreso de este idioma se borró.',
+    BackupAction.wiped =>
+      'Tu progreso de este idioma se borró, aquí y en la nube.',
+    BackupAction.wipeFailed =>
+      'No se pudo borrar en la nube, así que no se ha borrado nada. '
+          'Conéctate a internet e inténtalo otra vez: tu progreso sigue '
+          'intacto.',
     BackupAction.nothingToExport =>
       'Todavía no hay nada que respaldar. Termina una lección primero.',
     null => '',

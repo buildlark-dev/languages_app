@@ -41,6 +41,23 @@ abstract interface class SyncService {
   /// FR-043 prohíbe fallar en silencio: todo fallo llega aquí con su motivo.
   Stream<SyncState> get syncStatus;
 
+  /// Borra el documento remoto del estudiante en este curso (FR-046).
+  ///
+  /// Es la **única** operación destructiva del contrato, y rompe a propósito la
+  /// regla que encabeza este archivo. La diferencia con un `set` está en quién
+  /// decide: un reemplazo silencioso pierde progreso por descuido del programa,
+  /// mientras que esto solo ocurre cuando la persona pulsa «borrar» y después
+  /// confirma un diálogo que le dice que no tiene vuelta atrás.
+  ///
+  /// Sin ella, borrar no borra: el documento sobrevive en la nube y la primera
+  /// sincronización lo trae de vuelta, con la app habiendo dicho ya que el
+  /// progreso se eliminó.
+  ///
+  /// Lanza si no se pudo borrar, y eso importa: quien llama **no debe** borrar
+  /// lo local si esto falló, porque entonces la nube restauraría todo y el
+  /// borrado volvería a ser mentira.
+  Future<void> deleteRemote({required String uid, required String courseId});
+
   /// Estado actual, sin esperar al flujo.
   SyncState get currentStatus;
 }

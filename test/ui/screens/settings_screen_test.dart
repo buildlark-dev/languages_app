@@ -38,6 +38,7 @@ void main() {
   late FakeProgressStore progressStore;
   late InMemorySettingsStore settings;
   late FakeTtsService tts;
+  late FakeSyncService sync;
 
   /// Lo que el portapapeles recibió, en orden.
   late List<String> copied;
@@ -86,6 +87,7 @@ void main() {
 
   Widget wrap({StudentProgress? progress}) {
     progressStore = FakeProgressStore(initial: progress);
+    sync = FakeSyncService();
 
     return ProviderScope(
       overrides: [
@@ -94,7 +96,7 @@ void main() {
           JsonBackupService(progressStore, clock: fixedClock(today)),
         ),
         reviewStoreProvider.overrideWithValue(FakeReviewStore()),
-        syncServiceProvider.overrideWithValue(FakeSyncService()),
+        syncServiceProvider.overrideWithValue(sync),
         settingsStoreProvider.overrideWithValue(settings),
         ttsServiceProvider.overrideWithValue(tts),
         clockProvider.overrideWithValue(fixedClock(today)),
@@ -368,6 +370,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(progressStore.current('u1', 'xx'), isNull);
+      expect(sync.remoteDeleted, isTrue, reason: 'también en la nube');
       expect(find.textContaining('se borró'), findsOne);
     });
 

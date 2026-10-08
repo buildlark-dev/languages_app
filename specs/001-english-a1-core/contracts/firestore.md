@@ -84,7 +84,8 @@ El contenido didáctico **no** aparece: va compilado en la app.
 
 ## Protocolo de escritura
 
-Una sola operación permitida, siempre dentro de una transacción de Firestore:
+Una sola operación de escritura permitida, siempre dentro de una transacción de Firestore
+(el borrado de FR-046 es la única excepción, y está más abajo):
 
 ```
 transacción:
@@ -108,6 +109,22 @@ veces la misma actividad. La especificación pidió el máximo (FR-042), y el m�
 antes de escribir. De ahí la transacción.
 
 ---
+
+## Borrado del progreso (FR-046)
+
+`SyncService.deleteRemote` borra el documento entero. Es la **única** operación destructiva
+del contrato y rompe a propósito la regla de arriba. La diferencia con un reemplazo está en
+quién decide: un `set` directo pierde progreso por descuido del programa, mientras que esto
+solo ocurre cuando la persona pulsa «borrar» y confirma un diálogo que le dice que no tiene
+vuelta atrás.
+
+El orden es **primero la nube, después lo local**, y no es intercambiable. Al revés, borrar
+lo local con el documento remoto intacto dura un suspiro: al reconstruirse el progreso se
+pide la sincronización de entrada y vuelve todo. Así se comportaba antes de corregirlo, con
+la pantalla diciendo ya que el progreso se había borrado.
+
+Si el borrado remoto falla, **no se toca lo local** y se explica por qué. Quedarse a medias
+—local vacío, nube llena— es el estado que produce justo ese engaño.
 
 ## Protocolo de lectura en vivo
 
