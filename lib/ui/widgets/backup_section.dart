@@ -60,8 +60,8 @@ class BackupSection extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Borra tu avance de este idioma en todos tus dispositivos y en la '
-          'nube, y vuelve a empezar desde A1.',
+          'Borra tu avance de este idioma en este dispositivo y en la nube, y '
+          'vuelve a empezar desde A1.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 12),
@@ -92,10 +92,19 @@ class BackupSection extends ConsumerWidget {
       consequence:
           'Se borrará todo tu avance de este idioma: lecciones aprobadas, '
           'racha, XP y la cola de repaso.',
-      // Decirlo aquí y no solo en la letra pequeña: quien estudia en el móvil
-      // y en el PC necesita saber, antes de confirmar, que esto no afecta solo
-      // a la pantalla que tiene delante.
-      inventory: 'En este dispositivo, en los demás y en la nube.',
+      // Dice el alcance **real**, no el que uno querría.
+      //
+      // Un borrado no se propaga a otro dispositivo que conserve su copia: la
+      // fusión no distingue «esto se borró» de «a ese dispositivo le falta
+      // esto», así que en cuanto la otra app se abre vuelve a subir lo suyo.
+      // Antes aquí ponía «en todos tus dispositivos», que era falso.
+      //
+      // Y se dice qué hacer al respecto, no solo que pasa: una advertencia sin
+      // salida solo sirve para preocupar.
+      inventory:
+          'En este dispositivo y en la nube. Si usas la app en otro '
+          'dispositivo, bórralo también allí: mientras conserve su copia, '
+          'puede volver a subirla.',
       confirmLabel: 'Borrar',
     );
     if (!confirmed) return;
@@ -201,7 +210,8 @@ class _Notice extends StatelessWidget {
     BackupAction.imported =>
       'Respaldo importado y combinado con tu avance actual.',
     BackupAction.wiped =>
-      'Tu progreso de este idioma se borró, aquí y en la nube.',
+      'Tu progreso de este idioma se borró, aquí y en la nube. Si lo usas en '
+          'otro dispositivo, bórralo también allí.',
     BackupAction.wipeFailed =>
       'No se pudo borrar en la nube, así que no se ha borrado nada. '
           'Conéctate a internet e inténtalo otra vez: tu progreso sigue '

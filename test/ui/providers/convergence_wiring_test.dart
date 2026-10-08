@@ -352,6 +352,66 @@ void main() {
       expect(after.activityScores, isEmpty);
     });
   });
+
+  group('T188 · el alcance real del borrado', () {
+    test('otro dispositivo con copia local vuelve a subir lo suyo', () async {
+      // Fija la limitación elegida, en lugar de dejarla sin escribir. La
+      // fusión monotónica no distingue «esto se borró» de «a ese dispositivo
+      // le falta esto», así que el borrado no se propaga. El diálogo lo dice y
+      // explica qué hacer; esta prueba es la que avisará si alguien cambia el
+      // comportamiento sin cambiar el texto.
+      final FakeProgressStore otherStore = FakeProgressStore(
+        initial: stored(xp: 777),
+      );
+      final FakeSyncService cloud = FakeSyncService(remote: stored(xp: 777));
+
+      final ProviderContainer otherDevice = ProviderContainer(
+        overrides: [
+          progressStoreProvider.overrideWithValue(otherStore),
+          reviewStoreProvider.overrideWithValue(FakeReviewStore()),
+          syncServiceProvider.overrideWithValue(cloud),
+          ttsServiceProvider.overrideWithValue(FakeTtsService()),
+          sttServiceProvider.overrideWithValue(FakeSttService()),
+          clockProvider.overrideWithValue(fixedClock(today)),
+          courseCatalogProvider.overrideWithValue(const FakeCatalog()),
+          selectedCourseIdProvider.overrideWith(PreselectedCourse.new),
+          authServiceProvider.overrideWithValue(
+            FakeAuthService(
+              initialUser: const StudentIdentity(
+                uid: 'u1',
+                email: 'ana@example.com',
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(otherDevice.dispose);
+      final ProviderSubscription<Object?> sub = otherDevice.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await otherDevice.read(studentProgressProvider.future);
+      await settle();
+
+      // Este dispositivo borra: la nube queda vacía.
+      await cloud.deleteRemote(uid: 'u1', courseId: 'xx');
+      expect(cloud.remote, isNull);
+
+      // El otro vuelve del segundo plano y sube su copia.
+      await otherDevice.read(studentProgressProvider.notifier).syncOnResume();
+      await settle();
+
+      expect(
+        cloud.remote?.xp,
+        777,
+        reason:
+            'comportamiento conocido y declarado en el diálogo: hay que '
+            'borrar también en el otro dispositivo',
+      );
+    });
+  });
 }
 
 /// Idioma preseleccionado.

@@ -126,6 +126,23 @@ la pantalla diciendo ya que el progreso se había borrado.
 Si el borrado remoto falla, **no se toca lo local** y se explica por qué. Quedarse a medias
 —local vacío, nube llena— es el estado que produce justo ese engaño.
 
+### Alcance: este dispositivo y la nube, no los demás
+
+El borrado **no se propaga a otros dispositivos**, y es una limitación del modelo, no un
+descuido. La fusión monotónica no puede distinguir «esto se borró» de «a ese dispositivo le
+falta esto»: son la misma ausencia vista desde fuera. Así que un segundo dispositivo que
+conserve su copia local vuelve a subirla en cuanto su app se abre, y la nube queda
+repoblada. Verificado con una prueba de dos dispositivos sobre una nube compartida.
+
+Propagarlo exigiría una marca de borrado con fecha que los demás dispositivos respetaran
+vaciándose: la primera operación **no monotónica** del modelo, con las tres propiedades de
+la fusión que volver a demostrar, y con la pregunta abierta de qué hacer con un dispositivo
+que vuelve tras meses con datos anteriores a la marca.
+
+Se decidió no hacerlo y **decir el alcance real** en el diálogo de confirmación, que además
+indica qué hacer: borrar también en el otro dispositivo. Prometer menos y cumplirlo es mejor
+que un mecanismo de reinicio que, mal implementado, borra de más.
+
 ## Protocolo de lectura en vivo
 
 Mientras la app está en primer plano se mantiene una suscripción al documento

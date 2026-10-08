@@ -56,6 +56,15 @@ abstract interface class SyncService {
   /// Lanza si no se pudo borrar, y eso importa: quien llama **no debe** borrar
   /// lo local si esto falló, porque entonces la nube restauraría todo y el
   /// borrado volvería a ser mentira.
+  ///
+  /// **Límite conocido**: esto no borra en otros dispositivos. La fusión
+  /// monotónica no puede distinguir «esto se borró» de «a ese dispositivo le
+  /// falta esto» —son la misma ausencia vista desde fuera—, así que cualquier
+  /// copia local sobreviviente vuelve a subir lo suyo en cuanto su app se abre.
+  /// Propagarlo exigiría una marca de borrado con fecha, es decir la primera
+  /// operación **no monotónica** del modelo, con las tres propiedades de la
+  /// fusión que revisar. Se decidió no hacerlo y decir el alcance real en el
+  /// diálogo (T188).
   Future<void> deleteRemote({required String uid, required String courseId});
 
   /// Estado actual, sin esperar al flujo.
