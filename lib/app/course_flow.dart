@@ -28,12 +28,16 @@ import '../engine/progression.dart';
 import '../engine/scoring.dart';
 import '../ui/providers/content_providers.dart';
 import '../ui/providers/progress_controller.dart';
+import '../core/placement_result.dart';
+import '../ui/providers/clock_providers.dart';
 import '../ui/screens/exam_screen.dart';
 import '../ui/screens/lesson_screen.dart';
 import '../ui/screens/level_map_screen.dart';
 import '../ui/screens/module_detail_screen.dart';
 import '../ui/screens/module_screen.dart';
+import '../ui/screens/placement_screen.dart';
 import '../ui/screens/review_screen.dart';
+import '../ui/widgets/placement_offer_card.dart';
 
 /// Base de las rutas del curso: resuelve curso y progreso, o espera.
 ///
@@ -78,6 +82,14 @@ class CourseMapRoute extends _CourseRoute {
     onOpenLevel: (Level level) => _push(context, LevelRoute(level: level)),
     // Cuando no queda contenido nuevo, lo útil es repasar (FR-038).
     onReviewMastered: () => _push(context, const ReviewScreen()),
+    // La nivelación se ofrece aquí, que es lo primero que se ve al elegir el
+    // idioma (FR-034). Estaba en la pantalla de inicio, detrás del catálogo, y
+    // como elegir idioma entra directo al curso, quien llegaba por primera vez
+    // no la veía nunca a menos que retrocediera. La tarjeta decide sola si
+    // aparecer, y deja de hacerlo en cuanto hay actividad registrada.
+    header: PlacementOfferCard(
+      onOpenPlacement: () => _push(context, PlacementRoute(course: course)),
+    ),
   );
 }
 
@@ -199,3 +211,22 @@ ActivityKind examKindOf({required Course course, required String examId}) =>
 void _push(BuildContext context, Widget screen) => Navigator.of(
   context,
 ).push(MaterialPageRoute<void>(builder: (BuildContext context) => screen));
+
+/// La prueba de nivelación, y el registro de su resultado.
+///
+/// El resultado se aplica aquí y no dentro de la pantalla porque la pantalla no
+/// debería conocer el almacén: recibe el curso y devuelve un
+/// [PlacementResult], igual que la lección devuelve un `ScoreResult`.
+class PlacementRoute extends ConsumerWidget {
+  const PlacementRoute({required this.course, super.key});
+
+  final Course course;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => PlacementScreen(
+    course: course,
+    now: ref.read(clockProvider)(),
+    onFinished: (PlacementResult result) =>
+        ref.read(studentProgressProvider.notifier).applyPlacementResult(result),
+  );
+}

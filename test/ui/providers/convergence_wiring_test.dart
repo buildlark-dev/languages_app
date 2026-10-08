@@ -1,0 +1,270 @@
+/// Comprueba que las piezas **se llaman**, no solo que existan.
+///
+/// Es la prueba que faltaba cuando `/speckit-converge` encontró seis servicios
+/// construidos, probados y nunca invocados. Cada caso de aquí monta la app por
+/// sus proveedores reales y afirma que la llamada ocurre sola, sin que ninguna
+/// pantalla concreta tenga que acordarse de hacerla.
+library;
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:languages_app/core/clock.dart';
+import 'package:languages_app/core/level_state.dart';
+import 'package:languages_app/core/student_progress.dart';
+import 'package:languages_app/services/auth/auth_service.dart';
+import 'package:languages_app/ui/providers/auth_providers.dart';
+import 'package:languages_app/ui/providers/clock_providers.dart';
+import 'package:languages_app/ui/providers/content_providers.dart';
+import 'package:languages_app/ui/providers/progress_controller.dart';
+import 'package:languages_app/ui/providers/progress_providers.dart';
+import 'package:languages_app/ui/providers/review_providers.dart';
+import 'package:languages_app/ui/providers/speech_providers.dart';
+
+import '../../fakes/fake_auth_service.dart';
+import '../../fakes/fake_catalog.dart';
+import '../../fakes/fake_progress_store.dart';
+import '../../fakes/fake_review_store.dart';
+import '../../fakes/fake_stt_service.dart';
+import '../../fakes/fake_sync_service.dart';
+import '../../fakes/fake_tts_service.dart';
+
+void main() {
+  final DateTime today = DateTime(2026, 10, 8);
+
+  late FakeProgressStore store;
+  late FakeSyncService sync;
+  late FakeTtsService tts;
+  late FakeSttService stt;
+
+  StudentProgress stored({int xp = 50}) => StudentProgress(
+    uid: 'u1',
+    courseId: 'xx',
+    currentLevelId: 'A1',
+    xp: xp,
+    levelStates: const <String, LevelState>{'A1': LevelState.unlocked},
+  );
+
+  /// Contenedor con curso elegido y sesión abierta.
+  ///
+  /// `withCourse: false` deja el catálogo sin elegir, que es el estado de la
+  /// pantalla de acceso.
+  ProviderContainer makeContainer({
+    StudentProgress? progress,
+    bool withCourse = true,
+  }) {
+    store = FakeProgressStore(initial: progress);
+    sync = FakeSyncService();
+    tts = FakeTtsService();
+    stt = FakeSttService();
+
+    final ProviderContainer container = ProviderContainer(
+      overrides: [
+        progressStoreProvider.overrideWithValue(store),
+        reviewStoreProvider.overrideWithValue(FakeReviewStore()),
+        syncServiceProvider.overrideWithValue(sync),
+        ttsServiceProvider.overrideWithValue(tts),
+        sttServiceProvider.overrideWithValue(stt),
+        clockProvider.overrideWithValue(fixedClock(today)),
+        courseCatalogProvider.overrideWithValue(const FakeCatalog()),
+        if (withCourse)
+          selectedCourseIdProvider.overrideWith(PreselectedCourse.new),
+        authServiceProvider.overrideWithValue(
+          FakeAuthService(
+            initialUser: const StudentIdentity(
+              uid: 'u1',
+              email: 'ana@example.com',
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    return container;
+  }
+
+  /// Deja correr las tareas diferidas que disparan el cableado.
+  Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+  group('T181 · la voz se prepara sola', () {
+    test('con un curso abierto, el audio queda disponible', () async {
+      // Antes, `prepare()` no se llamaba desde ningún sitio y la app no
+      // reproducía audio nunca, con el motor de voz entero detrás.
+      final ProviderContainer container = makeContainer();
+      final ProviderSubscription<Object?> sub = container.listen(
+        speechAvailabilityProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await settle();
+
+      expect(tts.initializedWith, 'xx-XX', reason: 'el idioma del curso');
+      expect(container.read(speechAvailabilityProvider).canPlayAudio, isTrue);
+    });
+
+    test('sin curso elegido no se prepara nada', () async {
+      // En la pantalla de acceso no hay idioma que preparar, y consultar las
+      // voces del sistema allí solo retrasaría el primer fotograma.
+      final ProviderContainer container = makeContainer(withCourse: false);
+      final ProviderSubscription<Object?> sub = container.listen(
+        speechAvailabilityProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await settle();
+
+      expect(tts.initializedWith, isNull);
+      expect(container.read(speechAvailabilityProvider).canPlayAudio, isFalse);
+    });
+  });
+
+  group('T183 · se sincroniza al entrar', () {
+    test(
+      'cargar el progreso pide una sincronización sin esperar actividad',
+      () async {
+        // Antes había que completar una actividad para que la primera fusión
+        // ocurriera: una instalación nueva mostraba el progreso vacío hasta
+        // entonces.
+        final ProviderContainer container = makeContainer(progress: stored());
+        final ProviderSubscription<Object?> sub = container.listen(
+          studentProgressProvider,
+          (_, _) {},
+        );
+        addTearDown(sub.close);
+
+        await container.read(studentProgressProvider.future);
+        await settle();
+
+        expect(sync.pushCount, greaterThanOrEqualTo(1));
+      },
+    );
+
+    test('trae lo que ya había en la nube', () async {
+      final ProviderContainer container = makeContainer(progress: stored());
+      sync.emitRemoteChange(stored(xp: 900));
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await container.read(studentProgressProvider.future);
+      await settle();
+      await settle();
+
+      expect(container.read(studentProgressProvider).value!.xp, 900);
+      expect(store.current('u1', 'xx')!.xp, 900);
+    });
+  });
+
+  group('T184 · se escucha el documento remoto (SC-004)', () {
+    test('un cambio del otro dispositivo llega sin recargar', () async {
+      final ProviderContainer container = makeContainer(progress: stored());
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await container.read(studentProgressProvider.future);
+      await settle();
+      expect(container.read(studentProgressProvider).value!.xp, 50);
+
+      // El otro dispositivo escribe en la nube mientras este está ocioso.
+      sync.emitRemoteChange(stored(xp: 400));
+      await settle();
+      await settle();
+
+      expect(
+        container.read(studentProgressProvider).value!.xp,
+        400,
+        reason: 'sin recargar ni reiniciar',
+      );
+      expect(store.current('u1', 'xx')!.xp, 400, reason: 'y queda en disco');
+    });
+
+    test('lo que llega se fusiona, no reemplaza', () async {
+      // Un remoto con menos XP no puede hacer retroceder al local.
+      final ProviderContainer container = makeContainer(
+        progress: stored(xp: 500),
+      );
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await container.read(studentProgressProvider.future);
+      await settle();
+
+      sync.emitRemoteChange(stored(xp: 10));
+      await settle();
+      await settle();
+
+      expect(
+        container.read(studentProgressProvider).value!.xp,
+        greaterThanOrEqualTo(500),
+      );
+    });
+  });
+
+  group('T186 · los disparadores que faltaban', () {
+    test('volver del segundo plano reintenta', () async {
+      final ProviderContainer container = makeContainer(progress: stored());
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      await container.read(studentProgressProvider.future);
+      await settle();
+
+      // El empujón de entrada falló porque no había red; al volver sí la hay.
+      final int before = sync.pushCount;
+      await container.read(studentProgressProvider.notifier).syncOnResume();
+
+      expect(sync.pushCount, greaterThan(before));
+    });
+
+    test('pasar a segundo plano empuja lo pendiente', () async {
+      final ProviderContainer container = makeContainer(progress: stored());
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      await container.read(studentProgressProvider.future);
+      await settle();
+
+      final int before = sync.pushCount;
+      await container.read(studentProgressProvider.notifier).syncOnPause();
+
+      expect(sync.pushCount, greaterThan(before));
+    });
+
+    test('un fallo sin red no rompe nada y el avance local sigue', () async {
+      sync = FakeSyncService();
+      final ProviderContainer container = makeContainer(progress: stored());
+      sync.offline = true;
+      final ProviderSubscription<Object?> sub = container.listen(
+        studentProgressProvider,
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      await container.read(studentProgressProvider.future);
+      await settle();
+      await container.read(studentProgressProvider.notifier).syncOnResume();
+
+      expect(container.read(studentProgressProvider).value!.xp, 50);
+      expect(store.current('u1', 'xx')!.xp, 50);
+    });
+  });
+}
+
+/// Idioma preseleccionado.
+class PreselectedCourse extends SelectedCourse {
+  @override
+  String? build() => 'xx';
+}

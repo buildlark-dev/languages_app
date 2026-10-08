@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/settings/settings_store.dart';
 import 'auth_gate.dart';
+import 'sync_lifecycle.dart';
 import 'l10n/app_localizations.dart';
 import 'theme.dart';
 
@@ -42,6 +43,6 @@ class LanguagesApp extends ConsumerWidget {
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
-    home: const AuthGate(),
+    home: const SyncLifecycle(child: AuthGate()),
   );
 }

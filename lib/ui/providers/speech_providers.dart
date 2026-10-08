@@ -3,9 +3,11 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/course.dart';
 import '../../services/speech/speech_availability.dart';
 import '../../services/speech/stt_service.dart';
 import '../../services/speech/tts_service.dart';
+import 'content_providers.dart';
 
 /// Los servicios concretos. **Se sobrescriben en `main.dart`.**
 final Provider<TtsService> ttsServiceProvider = Provider<TtsService>(
@@ -26,7 +28,31 @@ final Provider<SttService> sttServiceProvider = Provider<SttService>(
 /// después de que la persona concediera el permiso.
 class SpeechAvailabilityController extends Notifier<SpeechAvailability> {
   @override
-  SpeechAvailability build() => const SpeechAvailability.none();
+  SpeechAvailability build() {
+    // Se prepara sola al haber curso abierto, en lugar de esperar a que alguna
+    // pantalla llame a [prepare].
+    //
+    // Es la corrección de un fallo que tuvo la app desplegada: `prepare()` no
+    // se llamaba desde ningún sitio, así que la disponibilidad se quedaba en
+    // «ninguna» para siempre. El efecto era que `ListenButton` no se dibujaba
+    // en ninguna parte y todo ejercicio oral caía a su alternativa escrita: la
+    // app no reproducía audio nunca, con el motor de voz entero construido y
+    // probado detrás.
+    //
+    // Depender del curso y no de una llamada desde una pantalla concreta
+    // significa que ninguna ruta nueva puede saltárselo, que es justo lo que
+    // pasó.
+    final Course? course = ref.watch(activeCourseProvider);
+    if (course != null) {
+      // Después de construir, no durante: `prepare` escribe `state`, y hacerlo
+      // dentro de `build` sería modificar el proveedor mientras se construye.
+      // La comprobación de `mounted` cubre el hueco entre ambos momentos.
+      Future<void>(() {
+        if (ref.mounted) return prepare(course.studyLanguageTag);
+      });
+    }
+    return const SpeechAvailability.none();
+  }
 
   /// Prepara la voz para el idioma del curso.
   ///

@@ -39,16 +39,16 @@ Paquete Flutter único con capas internas, según `plan.md`: `lib/core/`, `lib/e
 **Purpose**: dejar el proyecto compilando con todas las dependencias y la infraestructura
 externa creada.
 
-- [ ] T001 Añadir dependencias a `pubspec.yaml`: `flutter_riverpod: ^3.4.3`, `drift: ^2.35.1`, `drift_flutter: ^0.3.1`, `firebase_core: ^4.15.0`, `firebase_auth: ^6.7.0`, `cloud_firestore: ^6.10.0`, `flutter_tts: ^4.2.5`, `speech_to_text: ^7.5.0`, `intl`, `flutter_localizations`; y en `dev_dependencies`: `drift_dev`, `build_runner`
-- [ ] T002 Crear `l10n.yaml` en la raíz con `arb-dir: lib/app/l10n`, `template-arb-file: app_es.arb`, `output-localization-file: app_localizations.dart`
-- [ ] T003 [P] Crear el árbol de carpetas vacío de `lib/core/`, `lib/engine/`, `lib/services/{db,auth,sync,speech,backup,settings}/`, `lib/content/en/`, `lib/ui/{providers,screens,widgets}/` y su espejo en `test/`
-- [ ] T004 [P] Revisar `analysis_options.yaml` y activar `prefer_const_constructors`, `require_trailing_commas` y `avoid_print`
-- [ ] T005 Crear el proyecto de Firebase y habilitar **Authentication** con proveedor de correo y contraseña, y **Cloud Firestore**
-- [ ] T006 Ejecutar `flutterfire configure`, que genera `lib/firebase_options.dart` y `android/app/google-services.json`; **versionar ambos** (son configuración pública de cliente, ver D12 de research.md)
-- [ ] T007 [P] Crear `firestore.rules` con las reglas exactas de `contracts/firestore.md`: acceso solo a `users/{uid}/courses/{courseId}` cuando `request.auth.uid == uid`, y denegación por defecto en `/{document=**}`
-- [ ] T008 [P] Crear `firebase.json` con Hosting apuntando a `build/web` y reescritura SPA de `**` hacia `/index.html`
-- [ ] T009 [P] Descargar `sqlite3.wasm` y `drift_worker.js` de la versión de Drift correspondiente a `^2.35.1` y colocarlos en `web/`
-- [ ] T010 Verificar que `flutter pub get`, `flutter analyze` y `flutter test` terminan sin errores sobre el proyecto vacío
+- [X] T001 Añadir dependencias a `pubspec.yaml`: `flutter_riverpod: ^3.4.3`, `drift: ^2.35.1`, `drift_flutter: ^0.3.1`, `firebase_core: ^4.15.0`, `firebase_auth: ^6.7.0`, `cloud_firestore: ^6.10.0`, `flutter_tts: ^4.2.5`, `speech_to_text: ^7.5.0`, `intl`, `flutter_localizations`; y en `dev_dependencies`: `drift_dev`, `build_runner`
+- [X] T002 Crear `l10n.yaml` en la raíz con `arb-dir: lib/app/l10n`, `template-arb-file: app_es.arb`, `output-localization-file: app_localizations.dart`
+- [X] T003 [P] Crear el árbol de carpetas vacío de `lib/core/`, `lib/engine/`, `lib/services/{db,auth,sync,speech,backup,settings}/`, `lib/content/en/`, `lib/ui/{providers,screens,widgets}/` y su espejo en `test/`
+- [X] T004 [P] Revisar `analysis_options.yaml` y activar `prefer_const_constructors`, `require_trailing_commas` y `avoid_print`
+- [X] T005 Crear el proyecto de Firebase y habilitar **Authentication** con proveedor de correo y contraseña, y **Cloud Firestore**
+- [X] T006 Ejecutar `flutterfire configure`, que genera `lib/firebase_options.dart` y `android/app/google-services.json`; **versionar ambos** (son configuración pública de cliente, ver D12 de research.md)
+- [X] T007 [P] Crear `firestore.rules` con las reglas exactas de `contracts/firestore.md`: acceso solo a `users/{uid}/courses/{courseId}` cuando `request.auth.uid == uid`, y denegación por defecto en `/{document=**}`
+- [X] T008 [P] Crear `firebase.json` con Hosting apuntando a `build/web` y reescritura SPA de `**` hacia `/index.html`
+- [X] T009 [P] Descargar `sqlite3.wasm` y `drift_worker.js` de la versión de Drift correspondiente a `^2.35.1` y colocarlos en `web/`
+- [X] T010 Verificar que `flutter pub get`, `flutter analyze` y `flutter test` terminan sin errores sobre el proyecto vacío
 
 **Checkpoint**: proyecto compilando con todas las dependencias e infraestructura creada.
 
@@ -497,9 +497,9 @@ sin cablear**, no piezas sin construir: los servicios, los contratos y sus
 pruebas existen y funcionan: lo que falta es que alguien los llame. Es el patrón
 que deja una suite en verde con la app incumpliendo el requisito.
 
-- [ ] T181 Llamar a `SpeechAvailabilityController.prepare(course.studyLanguageTag)` al abrir un curso. Hoy `prepare()` no tiene ni una llamada en `lib/`, así que la disponibilidad se queda en `none()`, `ListenButton` no se dibuja en ninguna parte y todo ejercicio de escucha y de pronunciación cae a su alternativa escrita: la app no reproduce audio nunca per FR-014, FR-015, FR-016 (missing) — **CRITICAL**
-- [ ] T182 Ofrecer la nivelación **al elegir el idioma**, no detrás. `PlacementOfferCard` solo se dibuja con un curso ya seleccionado, y `_openCourse` selecciona y navega en el mismo toque, así que quien entra por primera vez no la ve a menos que retroceda per FR-034 (missing)
-- [ ] T183 Traer el progreso remoto al iniciar sesión y adoptarlo, con `SyncService.pull` o un `pushMerged` inicial. Hoy `pull()` no tiene ninguna llamada, así que una instalación nueva que inicia sesión muestra el progreso vacío hasta que una actividad dispara la fusión per FR-040, FR-041, US1 (missing)
-- [ ] T184 Suscribirse a `SyncService.remoteChanges` mientras la app está en primer plano y encaminar cada emisión por `SyncScheduler.applyRemote`. Ninguno de los dos tiene llamadas, así que el criterio «aparece en el otro dispositivo en menos de 30 s sin recargar» no tiene mecanismo que lo cumpla per SC-004 (missing)
-- [ ] T185 Impedir que guardar el progreso revierta la cola de repaso. `ProgressDao.save` reescribe `progress.reviewCards` desde la instantánea cargada al arrancar, así que calificar una tarjeta por `ReviewDao` y terminar después cualquier lección devuelve esa tarjeta a su intervalo anterior. Decidir una sola fuente de verdad para la cola y añadir una prueba con la base real que califique, guarde el progreso y compruebe que el intervalo sobrevive per FR-029, FR-042 (contradicts)
-- [ ] T186 Disparar los `SyncTrigger` que faltan: `signIn` al entrar, `connectivityRestored` al recuperar la red y `appBackgrounded` al pasar a segundo plano. Hoy solo se dispara `activityFinished`, así que un empujón que falla sin red no se reintenta hasta la siguiente actividad per FR-041 (partial)
+- [X] T181 Llamar a `SpeechAvailabilityController.prepare(course.studyLanguageTag)` al abrir un curso. Hoy `prepare()` no tiene ni una llamada en `lib/`, así que la disponibilidad se queda en `none()`, `ListenButton` no se dibuja en ninguna parte y todo ejercicio de escucha y de pronunciación cae a su alternativa escrita: la app no reproduce audio nunca per FR-014, FR-015, FR-016 (missing) — **CRITICAL**
+- [X] T182 Ofrecer la nivelación **al elegir el idioma**, no detrás. `PlacementOfferCard` solo se dibuja con un curso ya seleccionado, y `_openCourse` selecciona y navega en el mismo toque, así que quien entra por primera vez no la ve a menos que retroceda per FR-034 (missing)
+- [X] T183 Traer el progreso remoto al iniciar sesión y adoptarlo, con `SyncService.pull` o un `pushMerged` inicial. Hoy `pull()` no tiene ninguna llamada, así que una instalación nueva que inicia sesión muestra el progreso vacío hasta que una actividad dispara la fusión per FR-040, FR-041, US1 (missing)
+- [X] T184 Suscribirse a `SyncService.remoteChanges` mientras la app está en primer plano y encaminar cada emisión por `SyncScheduler.applyRemote`. Ninguno de los dos tiene llamadas, así que el criterio «aparece en el otro dispositivo en menos de 30 s sin recargar» no tiene mecanismo que lo cumpla per SC-004 (missing)
+- [X] T185 Impedir que guardar el progreso revierta la cola de repaso. `ProgressDao.save` reescribe `progress.reviewCards` desde la instantánea cargada al arrancar, así que calificar una tarjeta por `ReviewDao` y terminar después cualquier lección devuelve esa tarjeta a su intervalo anterior. Decidir una sola fuente de verdad para la cola y añadir una prueba con la base real que califique, guarde el progreso y compruebe que el intervalo sobrevive per FR-029, FR-042 (contradicts)
+- [X] T186 Disparar los `SyncTrigger` que faltan: `signIn` al entrar, `connectivityRestored` al recuperar la red y `appBackgrounded` al pasar a segundo plano. Hoy solo se dispara `activityFinished`, así que un empujón que falla sin red no se reintenta hasta la siguiente actividad per FR-041 (partial)

@@ -29,6 +29,7 @@ import 'package:languages_app/ui/widgets/review_summary_card.dart';
 import '../../fakes/fake_auth_service.dart';
 import '../../fakes/fake_catalog.dart';
 import '../../fakes/fake_review_store.dart';
+import '../../fakes/fake_stt_service.dart';
 import '../../fakes/fake_tts_service.dart';
 
 void main() {
@@ -67,6 +68,9 @@ void main() {
       courseCatalogProvider.overrideWithValue(const FakeCatalog()),
       selectedCourseIdProvider.overrideWith(PreselectedCourse.new),
       ttsServiceProvider.overrideWithValue(FakeTtsService()),
+      // La voz se prepara sola al haber curso abierto, así que ahora la
+      // pantalla de repaso también consulta el reconocedor.
+      sttServiceProvider.overrideWithValue(FakeSttService()),
     ],
     child: MaterialApp(
       theme: lightTheme,

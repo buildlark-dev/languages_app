@@ -75,6 +75,23 @@ const Course fakeCourse = Course(
     ),
   ],
   upcomingLevelIds: <String>['A2', 'B1'],
+  // Con nivelación, para que el recorrido completo pueda ejercerla. Dos ítems
+  // por nivel, como la real: con uno solo el umbral se decidiría a cara o cruz.
+  placementTest: PlacementExam(
+    id: 'XXPLACE',
+    items: <PlacementItem>[
+      PlacementItem(levelId: 'A1', exercise: _placementItem),
+      PlacementItem(levelId: 'A1', exercise: _placementItem),
+    ],
+  ),
+);
+
+const Exercise _placementItem = MultipleChoiceExercise(
+  prompt: 'Pregunta de nivelación',
+  options: <String>['a', 'b'],
+  answerIndex: 0,
+  explanation:
+      'Explicación de prueba suficientemente larga para la invariante.',
 );
 
 class FakePack implements ContentPack {

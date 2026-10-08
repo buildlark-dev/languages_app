@@ -141,19 +141,63 @@ class ProgressDao {
             );
       }
 
+      // Las tarjetas de repaso se **fusionan**, no se sobrescriben.
+      //
+      // El resto del progreso vive en memoria y se guarda entero, pero la cola
+      // de repaso no: `ReviewDao` la escribe por su cuenta cada vez que se
+      // califica una tarjeta, y el progreso en memoria conserva la instantánea
+      // que se cargó al arrancar. Con `insertOnConflictUpdate` a secas,
+      // calificar una tarjeta y terminar después cualquier lección devolvía esa
+      // tarjeta a su intervalo anterior: el repaso se deshacía solo.
+      //
+      // La regla de esta frontera **no** es la de `ReviewCard.mergeWith`, y la
+      // diferencia importa. Esa fusiona dos dispositivos, donde ambas fechas
+      // son legítimas y conviene quedarse con la más próxima. Aquí uno de los
+      // dos lados es una instantánea caducada del **mismo** dispositivo, y
+      // quedarse con su fecha es un retroceso disfrazado de fusión: el
+      // intervalo sobreviviría y la palabra volvería a vencer hoy igualmente.
+      //
+      // Por eso: si los pasos difieren, gana entera la tarjeta más avanzada,
+      // con su fecha. Si coinciden —que es el caso real cuando la nube trae
+      // algo tras pasar por `mergeProgress`— se aplica `mergeWith`, y entonces
+      // sí gana la fecha más próxima.
       for (final ReviewCard card in progress.reviewCards.values) {
+        final ReviewCardRow? existing =
+            await (_db.select(_db.reviewCards)..where(
+                  (t) =>
+                      t.uid.equals(progress.uid) &
+                      t.courseId.equals(progress.courseId) &
+                      t.moduleId.equals(card.moduleId) &
+                      t.term.equals(card.term),
+                ))
+                .getSingleOrNull();
+
+        final ReviewCard merged = existing == null
+            ? card
+            : _reconcile(
+                incoming: card,
+                stored: ReviewCard(
+                  moduleId: existing.moduleId,
+                  term: existing.term,
+                  translation: existing.translation,
+                  intervalStep: existing.intervalStep,
+                  dueDate: existing.dueDate,
+                  lapses: existing.lapses,
+                ),
+              );
+
         await _db
             .into(_db.reviewCards)
             .insertOnConflictUpdate(
               ReviewCardRow(
                 uid: progress.uid,
                 courseId: progress.courseId,
-                moduleId: card.moduleId,
-                term: card.term,
-                translation: card.translation,
-                intervalStep: card.intervalStep,
-                dueDate: card.dueDate,
-                lapses: card.lapses,
+                moduleId: merged.moduleId,
+                term: merged.term,
+                translation: merged.translation,
+                intervalStep: merged.intervalStep,
+                dueDate: merged.dueDate,
+                lapses: merged.lapses,
               ),
             );
       }
@@ -206,4 +250,19 @@ class ProgressDao {
             .split(',')
             .where((String s) => s.isNotEmpty)
             .toList(growable: false);
+}
+
+/// Reconcilia la tarjeta que trae el progreso con la que ya está guardada.
+///
+/// Ver el comentario de `ProgressDao.save`: con pasos distintos gana entera la
+/// más avanzada, porque el lado menos avanzado suele ser una instantánea
+/// caducada del mismo dispositivo; con pasos iguales se aplica la fusión normal
+/// entre dispositivos, que adelanta la fecha.
+ReviewCard _reconcile({
+  required ReviewCard incoming,
+  required ReviewCard stored,
+}) {
+  if (incoming.intervalStep > stored.intervalStep) return incoming;
+  if (stored.intervalStep > incoming.intervalStep) return stored;
+  return incoming.mergeWith(stored);
 }

@@ -9,6 +9,7 @@ import '../../services/progress/progress_store.dart';
 import '../../services/sync/sync_scheduler.dart';
 import '../../services/sync/sync_service.dart';
 import 'progress_controller.dart';
+import 'scope_providers.dart';
 
 /// El servicio concreto. **Se sobrescribe en `main.dart`.**
 final Provider<SyncService> syncServiceProvider = Provider<SyncService>(
@@ -94,3 +95,22 @@ final Provider<SyncScheduler> syncSchedulerProvider = Provider<SyncScheduler>((
     },
   );
 });
+
+/// El documento remoto, escuchado en vivo mientras la app está abierta.
+///
+/// Es lo que hace alcanzable SC-004: un segundo dispositivo ocioso recibe el
+/// avance en segundos **sin recargar ni reiniciar**. Sin esta suscripción,
+/// todos los disparadores de sincronización son acciones locales y un
+/// dispositivo inactivo nunca se enteraría de nada.
+///
+/// El servicio existía desde la Historia 1 y nadie lo escuchaba: el criterio
+/// estaba construido y desconectado.
+final StreamProvider<StudentProgress> remoteProgressProvider =
+    StreamProvider<StudentProgress>((Ref ref) {
+      final StudentScope? scope = ref.watch(studentScopeProvider);
+      if (scope == null) return const Stream<StudentProgress>.empty();
+
+      return ref
+          .watch(syncServiceProvider)
+          .remoteChanges(uid: scope.uid, courseId: scope.courseId);
+    });

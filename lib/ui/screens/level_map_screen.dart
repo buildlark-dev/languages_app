@@ -22,6 +22,7 @@ class LevelMapScreen extends StatelessWidget {
     required this.progress,
     required this.onOpenLevel,
     this.onReviewMastered,
+    this.header,
     this.showSyncBanner = true,
     super.key,
   });
@@ -35,6 +36,14 @@ class LevelMapScreen extends StatelessWidget {
   /// Si es nulo no se ofrece el repaso, que es lo correcto en pruebas de widget
   /// centradas en las puertas de progresión.
   final VoidCallback? onReviewMastered;
+
+  /// Lo que va encima del mapa, si hay algo.
+  ///
+  /// Aquí es donde la capa de navegación coloca la oferta de nivelación, que
+  /// debe aparecer **al elegir el idioma** (FR-034). La pantalla no decide si
+  /// mostrarla ni la construye: solo le reserva el sitio, así que sigue
+  /// montándose sin proveedores.
+  final Widget? header;
 
   /// False en pruebas de widget que no montan los proveedores de sincronización.
   final bool showSyncBanner;
@@ -50,6 +59,11 @@ class LevelMapScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: <Widget>[
+                if (header != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: header!,
+                  ),
                 // Va arriba a propósito: es la única acción disponible, y
                 // ponerla tras cuatro insignias y tres avisos de «en
                 // preparación» es esconderla.

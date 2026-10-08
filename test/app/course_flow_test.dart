@@ -15,6 +15,7 @@ import 'package:languages_app/app/app.dart';
 import 'package:languages_app/app/home_shell.dart';
 import 'package:languages_app/app/l10n/app_localizations.dart';
 import 'package:languages_app/app/theme.dart';
+import 'package:languages_app/core/activity_score.dart';
 import 'package:languages_app/core/clock.dart';
 import 'package:languages_app/core/level_state.dart';
 import 'package:languages_app/core/student_progress.dart';
@@ -263,5 +264,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ajustes'), findsWidgets);
     expect(find.text('Respaldo'), findsOne);
+  });
+
+  testWidgets('elegir el idioma ofrece la nivelación acto seguido (FR-034)', (
+    WidgetTester tester,
+  ) async {
+    // Estaba en la pantalla de inicio, detrás del catálogo. Como elegir idioma
+    // entra directo al curso, quien llegaba por primera vez no la veía nunca.
+    await tester.pumpWidget(wrap());
+    await tester.pumpAndSettle();
+
+    await tapScrolled(tester, find.text('Idioma de prueba'));
+
+    expect(find.text('¿Empiezas de cero?'), findsOne);
+    await tapScrolled(tester, find.text('Ver mi nivel'));
+    expect(find.text('¿Ya sabes algo del idioma?'), findsOne);
+  });
+
+  testWidgets('con actividad registrada ya no se ofrece la nivelación', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        progress: StudentProgress(
+          uid: 'u1',
+          courseId: 'xx',
+          currentLevelId: 'A1',
+          levelStates: const <String, LevelState>{'A1': LevelState.unlocked},
+          activityScores: <String, ActivityScore>{
+            'XXM1L1': ActivityScore(
+              kind: ActivityKind.lesson,
+              bestScore: 0.9,
+              lastAttemptAt: today,
+            ),
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tapScrolled(tester, find.text('Idioma de prueba'));
+
+    expect(find.text('¿Empiezas de cero?'), findsNothing);
+  });
+
+  testWidgets('con el curso abierto, el audio está disponible (T181)', (
+    WidgetTester tester,
+  ) async {
+    // La comprobación de extremo a extremo de que la voz se prepara sola: el
+    // botón de escuchar solo se dibuja si hay audio.
+    await tester.pumpWidget(wrap());
+    await tester.pumpAndSettle();
+
+    await tapScrolled(tester, find.text('Idioma de prueba'));
+    await tapScrolled(tester, find.text('A1 · Prueba'));
+    await tapScrolled(tester, find.textContaining('1. Módulo de prueba'));
+    await tapScrolled(tester, find.text('Lección de prueba'));
+
+    expect(find.byIcon(Icons.volume_up_outlined), findsWidgets);
   });
 }

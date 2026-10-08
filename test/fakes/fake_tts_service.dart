@@ -25,9 +25,17 @@ class FakeTtsService implements TtsService {
   @override
   TtsAvailability get availability => _availability;
 
+  /// Con qué idioma se preparó, o nulo si nadie la preparó.
+  ///
+  /// Lo guarda para que una prueba pueda afirmar que **se llamó**, que es lo
+  /// que faltaba cuando la app se desplegó sin audio.
+  String? initializedWith;
+
   @override
-  Future<TtsAvailability> initialize(String languageTag) async =>
-      _availability = initialAvailability;
+  Future<TtsAvailability> initialize(String languageTag) async {
+    initializedWith = languageTag;
+    return _availability = initialAvailability;
+  }
 
   @override
   Future<void> speak(String text) async {
