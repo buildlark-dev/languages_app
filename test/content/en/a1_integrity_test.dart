@@ -22,6 +22,7 @@ import 'package:languages_app/core/exercise.dart';
 import 'package:languages_app/core/lesson.dart';
 import 'package:languages_app/core/module.dart';
 import 'package:languages_app/core/thresholds.dart';
+import 'package:languages_app/core/vocabulary_item.dart';
 import 'package:languages_app/core/placement_result.dart';
 import 'package:languages_app/engine/answer_check.dart';
 import 'package:languages_app/engine/placement_evaluator.dart';
@@ -428,6 +429,30 @@ void main() {
       );
       for (final String id in placement.coveredLevelIds) {
         expect(cefrLevelIds, contains(id));
+      }
+    });
+
+    test('ninguna traducción arrastra el artículo', () {
+      // El lado español es apoyo para traducir, no una lección de género: el
+      // artículo no aporta nada a quien ya habla español, y venía puesto en 26
+      // de 48 entradas y ausente en el resto. En el repaso esa inconsistencia
+      // se nota, porque la tarjeta pregunta «¿cómo se dice "nombre"?» y antes
+      // preguntaba «¿cómo se dice "el nombre"?» según la palabra.
+      final RegExp leadingArticle = RegExp(
+        r'^(el|la|los|las|un|una|el/la|la/el|un/una|una/un)[ /]',
+        caseSensitive: false,
+      );
+
+      for (final Module module in a1Modules) {
+        for (final VocabularyItem item in module.vocabulary) {
+          expect(
+            leadingArticle.hasMatch(item.translation),
+            isFalse,
+            reason:
+                '«${item.term}» se traduce como «${item.translation}», con '
+                'artículo delante',
+          );
+        }
       }
     });
 

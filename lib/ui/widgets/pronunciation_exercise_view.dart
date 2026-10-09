@@ -133,7 +133,12 @@ class _PronunciationExerciseViewState
 
   @override
   Widget build(BuildContext context) {
-    final bool canRecord = ref.watch(speechAvailabilityProvider).canRecord;
+    // Se usa `canOfferMicrophone` y no `canRecord`: antes del primer permiso
+    // el segundo es falso, y esconder el botón dejaba el permiso imposible
+    // de conceder. Se pide al tocarlo, no antes (FR-018).
+    final bool canRecord = ref
+        .watch(speechAvailabilityProvider)
+        .canOfferMicrophone;
     final String? micReason = ref
         .watch(speechAvailabilityProvider)
         .micUnavailableReason;

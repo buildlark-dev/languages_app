@@ -9,6 +9,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../core/teaching_material.dart';
+import 'listen_button.dart';
 import 'simple_html_text.dart';
 
 class GrammarPanel extends StatelessWidget {
@@ -23,16 +24,30 @@ class GrammarPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text.rich(
-            TextSpan(
-              children: <InlineSpan>[
-                WidgetSpan(
-                  child: SimpleHtmlText(grammar.title),
-                  alignment: PlaceholderAlignment.middle,
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: <InlineSpan>[
+                      WidgetSpan(
+                        child: SimpleHtmlText(grammar.title),
+                        alignment: PlaceholderAlignment.middle,
+                      ),
+                    ],
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ],
-            ),
-            style: Theme.of(context).textTheme.titleMedium,
+              ),
+              // Lee los **ejemplos en inglés** de la explicación, no la
+              // explicación entera: la prosa está en español y la voz
+              // configurada es inglesa, así que leerla sonaría a disparate.
+              // Los ejemplos son además lo que hace falta oír.
+              ListenButton(
+                text: englishFragmentsOf(grammar.bodyHtml).join('. '),
+                semanticLabel: 'Escuchar los ejemplos en inglés',
+              ),
+            ],
           ),
           const Divider(height: 24),
           _HorizontallyScrollableTables(html: grammar.bodyHtml),

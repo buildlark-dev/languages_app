@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/review_card.dart';
 import 'listen_button.dart';
+import 'pronunciation_check.dart';
 
 /// Qué calificación eligió la persona.
 typedef RecallGraded = void Function(RecallGrade grade);
@@ -18,6 +19,7 @@ typedef RecallGraded = void Function(RecallGrade grade);
 class ReviewCardView extends StatelessWidget {
   const ReviewCardView({
     required this.card,
+    required this.languageTag,
     required this.revealed,
     required this.onReveal,
     required this.onGrade,
@@ -25,6 +27,9 @@ class ReviewCardView extends StatelessWidget {
   });
 
   final ReviewCard card;
+
+  /// Idioma del curso, para la voz y el reconocimiento.
+  final String languageTag;
 
   /// Si ya se destapó la respuesta.
   ///
@@ -73,6 +78,18 @@ class ReviewCardView extends StatelessWidget {
                       ),
                       ListenButton(text: card.term),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Decirla en voz alta, no solo reconocerla. Una palabra que
+                  // solo se lee se queda en vocabulario pasivo, y el repaso es
+                  // donde más barato sale practicar la producción.
+                  //
+                  // No califica: la nota la sigue poniendo la persona abajo. Un
+                  // reconocedor que decidiera la nota convertiría el ruido de
+                  // la calle en olvido.
+                  PronunciationCheck(
+                    target: card.term,
+                    languageTag: languageTag,
                   ),
                 ],
               ],

@@ -17,6 +17,7 @@ class FeedbackPanel extends StatelessWidget {
     required this.correct,
     required this.explanation,
     this.expectedAnswer,
+    this.spellingNote,
     super.key,
   });
 
@@ -27,6 +28,13 @@ class FeedbackPanel extends StatelessWidget {
 
   /// La respuesta esperada, cuando ayuda mostrarla junto al motivo.
   final String? expectedAnswer;
+
+  /// Aviso de ortografía sobre una respuesta **aceptada**.
+  ///
+  /// Va aparte de la explicación porque no es el motivo de la respuesta: es
+  /// algo que corregir en lo que se escribió. Aparece en un acierto, que es
+  /// donde nadie espera una corrección y por eso se lee.
+  final String? spellingNote;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +79,25 @@ class FeedbackPanel extends StatelessWidget {
               Text(
                 'Se esperaba: $expectedAnswer',
                 style: TextStyle(color: foreground),
+              ),
+            ],
+            if (spellingNote != null) ...<Widget>[
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(Icons.edit_outlined, color: foreground, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      spellingNote!,
+                      style: TextStyle(
+                        color: foreground,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             const SizedBox(height: 12),

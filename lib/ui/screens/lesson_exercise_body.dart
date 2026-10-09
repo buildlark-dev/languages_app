@@ -13,6 +13,20 @@ import '../widgets/multiple_choice_question.dart';
 import '../widgets/pronunciation_exercise_view.dart';
 import '../widgets/sentence_builder.dart';
 
+/// Clave del ejercicio en curso.
+///
+/// Es lo que impide que el texto escrito se quede pegado de un ejercicio al
+/// siguiente. Flutter reutiliza el `State` de un widget cuando el nuevo ocupa
+/// la misma posición y es del mismo tipo, y el campo de texto guarda lo
+/// tecleado en su propio `TextEditingController`, dentro de ese `State`. Al
+/// avanzar, el recorredor limpiaba su borrador pero el controlador seguía
+/// intacto: la respuesta anterior aparecía escrita en la pregunta siguiente.
+///
+/// Con una clave distinta por índice, Flutter descarta el `State` viejo y crea
+/// uno limpio. Es por índice y no por identidad del ejercicio porque un examen
+/// puede repetir el mismo ejercicio, y dos iguales seguidos compartirían clave.
+Key exerciseBodyKey(int index) => ValueKey<String>('exercise-$index');
+
 class LessonExerciseBody extends StatelessWidget {
   const LessonExerciseBody({
     required this.exercise,
@@ -63,9 +77,17 @@ class LessonExerciseBody extends StatelessWidget {
         correctIndex: answered ? answerIndex : null,
       ),
 
-    GapFillExercise(:final String sentenceWithGap, :final String? hint) =>
+    GapFillExercise(
+      :final String sentenceWithGap,
+      :final String? hint,
+      :final List<String> acceptedAnswers,
+    ) =>
       GapFillField(
         sentenceWithGap: sentenceWithGap,
+        // Un recuadro por palabra de la variante canónica. No revela la
+        // respuesta: dice cuántas palabras faltan, que es lo que un campo
+        // libre dejaba adivinar.
+        wordCount: acceptedAnswers.first.trim().split(RegExp(r'\s+')).length,
         hint: hint,
         enabled: !answered,
         onChanged: onTyped,

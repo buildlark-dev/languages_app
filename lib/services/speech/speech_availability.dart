@@ -34,6 +34,20 @@ class SpeechAvailability {
   /// Si vale la pena ofrecer el micrófono.
   bool get canRecord => stt.canListen;
 
+  /// Si tiene sentido **ofrecer** el micrófono, aunque todavía no haya permiso.
+  ///
+  /// Es distinto de [canRecord], y esa diferencia era un fallo: antes del
+  /// primer permiso el estado es `permissionDenied`, así que `canRecord` es
+  /// falso y la vista escondía el botón del micrófono. Sin botón no hay forma
+  /// de pedir el permiso, de modo que en una instalación nueva **el micrófono
+  /// no aparecía nunca** y todo ejercicio oral caía a la alternativa escrita.
+  ///
+  /// Aquí se excluye solo lo que no tiene arreglo: sin micrófono o sin soporte
+  /// de plataforma no hay nada que pedir.
+  bool get canOfferMicrophone =>
+      stt != SttAvailability.noMicrophone &&
+      stt != SttAvailability.unsupportedPlatform;
+
   /// Si el reconocimiento funcionará sin conexión.
   ///
   /// Informativo: la interfaz no cambia por esto, pero permite explicar a la
@@ -55,7 +69,8 @@ class SpeechAvailability {
   String? get micUnavailableReason => switch (stt) {
     SttAvailability.onDeviceReady || SttAvailability.networkOnly => null,
     SttAvailability.permissionDenied =>
-      'No concediste permiso de micrófono. Puedes responder por escrito.',
+      'Hace falta permiso de micrófono. Puedes concederlo al tocar el botón, '
+          'o responder por escrito.',
     SttAvailability.noMicrophone =>
       'No detectamos micrófono. Puedes responder por escrito.',
     SttAvailability.unsupportedPlatform =>

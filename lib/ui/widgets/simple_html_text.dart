@@ -214,3 +214,41 @@ String _unescape(String raw) => raw
     .replaceAll('&#39;', "'")
     // El ampersand va al final para no deshacer las sustituciones anteriores.
     .replaceAll('&amp;', '&');
+
+/// Los fragmentos en **inglés** que contiene una explicación gramatical.
+///
+/// La prosa de la gramática está en español y los ejemplos van marcados con
+/// `<code>` o dentro de las celdas de la tabla. Leer el conjunto con la voz
+/// inglesa destrozaría el español, así que lo que se lee en voz alta son los
+/// fragmentos en inglés, que además son los que hace falta oír.
+///
+/// Leer también la prosa exigiría alternar de idioma dentro de una misma
+/// lectura, con una voz española instalada que puede no estar. Queda apuntado
+/// como mejora, no como lo que esta función hace.
+List<String> englishFragmentsOf(String html) {
+  final List<String> fragments = <String>[];
+
+  for (final RegExpMatch match in RegExp(
+    r'<code>(.*?)</code>',
+    dotAll: true,
+  ).allMatches(html)) {
+    fragments.add(_plain(match.group(1)!));
+  }
+
+  for (final RegExpMatch cell in _cellPattern.allMatches(html)) {
+    final String text = _plain(cell.group(2)!);
+    // Las celdas de encabezado suelen ser rótulos en español («Persona»), y no
+    // aportan nada dicho en voz alta.
+    if (cell.group(1) == 'td' && text.isNotEmpty) fragments.add(text);
+  }
+
+  return <String>[
+    for (final String f in fragments)
+      if (f.trim().isNotEmpty) f.trim(),
+  ];
+}
+
+/// Texto plano de un HTML del contenido, sin etiquetas ni entidades.
+String _plain(String html) => _unescape(
+  html.replaceAll(RegExp(r'<[^>]+>'), ' '),
+).replaceAll(RegExp(r'\s+'), ' ').trim();

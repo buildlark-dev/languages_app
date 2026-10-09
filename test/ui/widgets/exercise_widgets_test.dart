@@ -122,6 +122,7 @@ void main() {
       await tester.pumpWidget(
         wrap(
           GapFillField(
+            wordCount: 1,
             sentenceWithGap: 'My brother ___ a doctor.',
             hint: 'tercera persona',
             onChanged: (_) {},
@@ -140,6 +141,7 @@ void main() {
       await tester.pumpWidget(
         wrap(
           GapFillField(
+            wordCount: 1,
             sentenceWithGap: 'My brother ___ a doctor.',
             onChanged: (_) {},
             onSubmit: () {},
@@ -158,6 +160,7 @@ void main() {
       await tester.pumpWidget(
         wrap(
           GapFillField(
+            wordCount: 1,
             sentenceWithGap: '___ a doctor.',
             onChanged: typed.add,
             onSubmit: () {},
@@ -176,6 +179,7 @@ void main() {
       await tester.pumpWidget(
         wrap(
           GapFillField(
+            wordCount: 1,
             sentenceWithGap: '___ a doctor.',
             onChanged: (_) {},
             onSubmit: () => submits++,

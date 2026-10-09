@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../core/teaching_material.dart';
+import 'listen_button.dart';
 
 class ReadingPassageView extends StatelessWidget {
   const ReadingPassageView({required this.passage, super.key});
@@ -24,7 +25,18 @@ class ReadingPassageView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(passage.title, style: text.titleMedium),
+            Row(
+              children: <Widget>[
+                Expanded(child: Text(passage.title, style: text.titleMedium)),
+                // La lectura entera, de un toque: oírla mientras se sigue con
+                // la vista es la forma de que el texto escrito y el sonido se
+                // asocien, que es media comprensión auditiva.
+                ListenButton(
+                  text: passage.paragraphs.join(' '),
+                  semanticLabel: 'Escuchar la lectura',
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             // Los párrafos vienen ya separados en el contenido, así que no hay
             // que adivinar dónde cortar: se renderizan con el espaciado que

@@ -11,9 +11,9 @@ const List<VocabularyItem> a1Module4Vocabulary = <VocabularyItem>[
   VocabularyItem(term: 'drive', translation: 'conducir', hint: '🚗'),
   VocabularyItem(term: 'cook', translation: 'cocinar', hint: '👨‍🍳'),
   VocabularyItem(term: 'draw', translation: 'dibujar', hint: '🎨'),
-  VocabularyItem(term: 'chicken', translation: 'el pollo', hint: '🍗'),
-  VocabularyItem(term: 'rice', translation: 'el arroz', hint: '🍚'),
-  VocabularyItem(term: 'beans', translation: 'los frijoles', hint: '🫘'),
-  VocabularyItem(term: 'cheese', translation: 'el queso', hint: '🧀'),
+  VocabularyItem(term: 'chicken', translation: 'pollo', hint: '🍗'),
+  VocabularyItem(term: 'rice', translation: 'arroz', hint: '🍚'),
+  VocabularyItem(term: 'beans', translation: 'frijoles', hint: '🫘'),
+  VocabularyItem(term: 'cheese', translation: 'queso', hint: '🧀'),
   VocabularyItem(term: 'spicy', translation: 'picante', hint: '🌶️'),
 ];

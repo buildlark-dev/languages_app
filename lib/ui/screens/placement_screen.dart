@@ -216,6 +216,7 @@ class _Running extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               LessonExerciseBody(
+                key: exerciseBodyKey(index),
                 exercise: exercise,
                 // Nunca «respondido»: no hay fase de corrección, así que los
                 // controles siguen activos hasta que se avanza.

@@ -29,6 +29,7 @@ import '../../fakes/fake_auth_service.dart';
 import '../../fakes/fake_catalog.dart';
 import '../../fakes/fake_progress_store.dart';
 import '../../fakes/fake_review_store.dart';
+import '../../fakes/fake_stt_service.dart';
 import '../../fakes/fake_sync_service.dart';
 import '../../fakes/fake_tts_service.dart';
 
@@ -99,6 +100,9 @@ void main() {
         syncServiceProvider.overrideWithValue(sync),
         settingsStoreProvider.overrideWithValue(settings),
         ttsServiceProvider.overrideWithValue(tts),
+        // La pantalla observa ahora la disponibilidad de voz, que consulta
+        // también el reconocedor.
+        sttServiceProvider.overrideWithValue(FakeSttService()),
         clockProvider.overrideWithValue(fixedClock(today)),
         courseCatalogProvider.overrideWithValue(const FakeCatalog()),
         selectedCourseIdProvider.overrideWith(PreselectedCourse.new),

@@ -93,6 +93,23 @@ bool isDraftComplete(Exercise exercise, AnswerDraft draft) =>
       SentenceBuilderExercise() => draft.chosenTokens.isNotEmpty,
     };
 
+/// Aviso de ortografía cuando la respuesta se aceptó pero se escribió mal.
+///
+/// Hoy solo cubre el apóstrofo, que es el caso que de verdad ocurre: un teclado
+/// de móvil no lo pone solo y `dont` sale más rápido que `don't`. Se acepta la
+/// respuesta **y** se dice cómo se escribe, porque callarlo fija la forma mala.
+String? spellingNoteFor(Exercise exercise, AnswerDraft draft) {
+  if (exercise is! GapFillExercise) return null;
+
+  final ({AnswerMatch match, String? expected}) result = checkAnswer(
+    draft.typed,
+    exercise.acceptedAnswers,
+  );
+  if (result.match != AnswerMatch.apostrophe) return null;
+
+  return 'Se escribe «${result.expected}», con apóstrofo.';
+}
+
 /// La respuesta esperada de un ejercicio, para mostrarla al fallar.
 String? expectedAnswerOf(Exercise exercise) => switch (exercise) {
   MultipleChoiceExercise(:final String correctOption) => correctOption,

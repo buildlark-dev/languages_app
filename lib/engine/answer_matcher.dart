@@ -26,15 +26,60 @@ String normalizeAnswer(String raw) => raw
     .replaceAll('´', "'")
     .replaceAll(RegExp(r'\s+'), ' ');
 
-/// Si la respuesta coincide con alguna de las aceptadas.
-bool matchesAnswer(String given, List<String> accepted) {
-  final String normalized = normalizeAnswer(given);
-  if (normalized.isEmpty) return false;
-  for (final String candidate in accepted) {
-    if (normalizeAnswer(candidate) == normalized) return true;
-  }
-  return false;
+/// Cómo encajó la respuesta con lo esperado.
+enum AnswerMatch {
+  /// No coincide con ninguna variante aceptada.
+  none,
+
+  /// Coincide tal cual.
+  exact,
+
+  /// Coincide salvo por el apóstrofo, que falta o sobra.
+  ///
+  /// Cuenta como acierto. Escribir `dont` por `don't` es un fallo de teclado,
+  /// no de inglés, y suspender por eso enseña a desconfiar del corrector antes
+  /// que del idioma. Pero **sí se dice cómo se escribe**: si nadie lo corrige,
+  /// la forma sin apóstrofo se fija.
+  apostrophe;
+
+  bool get isCorrect => this != AnswerMatch.none;
 }
+
+/// Quita los apóstrofos, para comparar ignorándolos.
+String _withoutApostrophes(String normalized) => normalized.replaceAll("'", '');
+
+/// Compara la respuesta con las aceptadas, distinguiendo el caso del apóstrofo.
+///
+/// Devuelve la variante esperada junto al tipo de coincidencia, para que la
+/// interfaz pueda decir «se escribe `aren't`» sin volver a buscarla.
+({AnswerMatch match, String? expected}) checkAnswer(
+  String given,
+  List<String> accepted,
+) {
+  final String normalized = normalizeAnswer(given);
+  if (normalized.isEmpty) return (match: AnswerMatch.none, expected: null);
+
+  // Primero las coincidencias exactas: si alguna encaja tal cual, no hay nada
+  // que corregir aunque otra variante también encajaría sin apóstrofos.
+  for (final String candidate in accepted) {
+    if (normalizeAnswer(candidate) == normalized) {
+      return (match: AnswerMatch.exact, expected: candidate);
+    }
+  }
+
+  final String bare = _withoutApostrophes(normalized);
+  for (final String candidate in accepted) {
+    if (_withoutApostrophes(normalizeAnswer(candidate)) == bare) {
+      return (match: AnswerMatch.apostrophe, expected: candidate);
+    }
+  }
+
+  return (match: AnswerMatch.none, expected: null);
+}
+
+/// Si la respuesta coincide con alguna de las aceptadas.
+bool matchesAnswer(String given, List<String> accepted) =>
+    checkAnswer(given, accepted).match.isCorrect;
 
 /// Si una frase construida coincide con la objetivo.
 ///

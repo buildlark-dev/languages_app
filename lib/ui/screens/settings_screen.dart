@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app.dart';
 import '../../services/settings/settings_store.dart';
+import '../../services/speech/speech_availability.dart';
 import '../providers/speech_providers.dart';
 import '../widgets/backup_section.dart';
 
@@ -113,36 +114,63 @@ class _SpeechRateSlider extends ConsumerWidget {
   final ValueChanged<double> onChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Column(
-    children: <Widget>[
-      Row(
-        children: <Widget>[
-          const Icon(Icons.slow_motion_video),
-          Expanded(
-            child: Slider(
-              // Los extremos son los del almacén: por debajo de 0,3 la voz se
-              // vuelve ininteligible, y permitirlo solo daría una forma de
-              // romper los ejercicios de escucha.
-              min: minSpeechRate,
-              max: maxSpeechRate,
-              divisions: 7,
-              value: value.clamp(minSpeechRate, maxSpeechRate),
-              label: value.toStringAsFixed(1),
-              onChanged: onChanged,
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Observar la disponibilidad es lo que **prepara** la voz: el proveedor es
+    // perezoso y se inicializa al mirarlo. Esta pantalla no lo miraba, así que
+    // aquí la voz nunca llegaba a inicializarse y «Probar la voz» era un no-op
+    // silencioso: se tocaba y no pasaba nada, en la única pantalla donde el
+    // botón existe para comprobar precisamente eso.
+    final SpeechAvailability speech = ref.watch(speechAvailabilityProvider);
+
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            const Icon(Icons.slow_motion_video),
+            Expanded(
+              child: Slider(
+                // Los extremos son los del almacén: por debajo de 0,3 la voz se
+                // vuelve ininteligible, y permitirlo solo daría una forma de
+                // romper los ejercicios de escucha.
+                min: minSpeechRate,
+                max: maxSpeechRate,
+                divisions: 7,
+                value: value.clamp(minSpeechRate, maxSpeechRate),
+                label: value.toStringAsFixed(1),
+                onChanged: onChanged,
+              ),
             ),
-          ),
-          const Icon(Icons.speed),
-        ],
-      ),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          onPressed: () =>
-              ref.read(ttsServiceProvider).speak('This is the reading speed.'),
-          icon: const Icon(Icons.volume_up_outlined),
-          label: const Text('Probar la voz'),
+            const Icon(Icons.speed),
+          ],
         ),
-      ),
-    ],
-  );
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            // Deshabilitado si no hay voz, en lugar de no hacer nada al
+            // tocarlo. Un botón que no responde se toca tres veces antes de
+            // concluir que la app está rota.
+            onPressed: speech.canPlayAudio
+                ? () => ref
+                      .read(ttsServiceProvider)
+                      .speak('This is the reading speed.')
+                : null,
+            icon: const Icon(Icons.volume_up_outlined),
+            label: const Text('Probar la voz'),
+          ),
+        ),
+        if (!speech.canPlayAudio) ...<Widget>[
+          const SizedBox(height: 4),
+          // La app **no puede traer una voz incluida**: la síntesis la pone el
+          // sistema operativo, no la aplicación. Lo útil entonces no es
+          // disculparse, sino decir dónde se instala.
+          Text(
+            '${speech.audioUnavailableReason ?? ''} La voz la pone el sistema, '
+            'no la app: instálala en Ajustes de Android → Sistema → Idiomas → '
+            'Salida de texto a voz.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ],
+    );
+  }
 }

@@ -188,6 +188,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
                 const SizedBox(height: 16),
               ],
               LessonExerciseBody(
+                key: exerciseBodyKey(_session.currentIndex),
                 exercise: exercise,
                 answered: answered,
                 choice: _draft.choice,
@@ -208,6 +209,7 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
                   correct: _lastCorrect!,
                   explanation: exercise.explanation,
                   expectedAnswer: expectedAnswerOf(exercise),
+                  spellingNote: spellingNoteFor(exercise, _draft),
                 ),
               const SizedBox(height: 24),
               // La pronunciación tiene sus propios botones dentro del ejercicio,

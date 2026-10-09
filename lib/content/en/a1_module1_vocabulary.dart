@@ -9,28 +9,24 @@ library;
 import '../../core/vocabulary_item.dart';
 
 const List<VocabularyItem> a1Module1Vocabulary = <VocabularyItem>[
-  VocabularyItem(term: 'name', translation: 'el nombre', hint: '🪪'),
-  VocabularyItem(term: 'surname', translation: 'el apellido', hint: '✍️'),
-  VocabularyItem(term: 'country', translation: 'el país', hint: '🌍'),
-  VocabularyItem(term: 'city', translation: 'la ciudad', hint: '🏙️'),
-  VocabularyItem(term: 'job', translation: 'el trabajo', hint: '💼'),
-  VocabularyItem(term: 'teacher', translation: 'el/la docente', hint: '👩‍🏫'),
-  VocabularyItem(term: 'student', translation: 'el/la estudiante', hint: '🎒'),
-  VocabularyItem(
-    term: 'friend',
-    translation: 'el amigo / la amiga',
-    hint: '🤝',
-  ),
+  VocabularyItem(term: 'name', translation: 'nombre', hint: '🪪'),
+  VocabularyItem(term: 'surname', translation: 'apellido', hint: '✍️'),
+  VocabularyItem(term: 'country', translation: 'país', hint: '🌍'),
+  VocabularyItem(term: 'city', translation: 'ciudad', hint: '🏙️'),
+  VocabularyItem(term: 'job', translation: 'trabajo', hint: '💼'),
+  VocabularyItem(term: 'teacher', translation: 'docente', hint: '👩‍🏫'),
+  VocabularyItem(term: 'student', translation: 'estudiante', hint: '🎒'),
+  VocabularyItem(term: 'friend', translation: 'amigo / amiga', hint: '🤝'),
   VocabularyItem(
     term: 'neighbour',
-    translation: 'el vecino / la vecina',
+    translation: 'vecino / vecina',
     hint: '🏘️',
   ),
-  VocabularyItem(term: 'age', translation: 'la edad', hint: '🎂'),
-  VocabularyItem(term: 'address', translation: 'la dirección', hint: '📮'),
+  VocabularyItem(term: 'age', translation: 'edad', hint: '🎂'),
+  VocabularyItem(term: 'address', translation: 'dirección', hint: '📮'),
   VocabularyItem(
     term: 'phone number',
-    translation: 'el número de teléfono',
+    translation: 'número de teléfono',
     hint: '📱',
   ),
 ];

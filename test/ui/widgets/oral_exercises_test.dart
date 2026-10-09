@@ -240,7 +240,7 @@ void main() {
       );
     });
 
-    testWidgets('SIN micrófono muestra la alternativa escrita y el motivo', (
+    testWidgets('SIN micrófono en el aparato muestra la alternativa escrita', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -252,17 +252,14 @@ void main() {
           ),
           availability: const SpeechAvailability(
             tts: TtsAvailability.available,
-            stt: SttAvailability.permissionDenied,
+            stt: SttAvailability.noMicrophone,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Escríbelo'), findsOne);
-      expect(
-        find.textContaining('No concediste permiso de micrófono'),
-        findsOne,
-      );
+      expect(find.textContaining('No detectamos micrófono'), findsOne);
       expect(find.widgetWithText(FilledButton, 'Hablar'), findsNothing);
     });
 
@@ -284,6 +281,13 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
+
+      // Con el permiso aún sin conceder, el micrófono SÍ se ofrece —de otro
+      // modo no habría forma de concederlo— y junto a él está la salida
+      // escrita, a un toque. Esa es la ruta que SC-008 exige que exista.
+      expect(find.text('Hablar'), findsOne);
+      await tester.tap(find.text('Prefiero escribirlo'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'Nice to meet you.');

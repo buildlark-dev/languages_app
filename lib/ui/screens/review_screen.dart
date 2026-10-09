@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/review_card.dart';
 import '../../engine/review_session.dart';
 import '../providers/clock_providers.dart';
+import '../providers/content_providers.dart';
 import '../providers/review_providers.dart';
 import '../widgets/review_card_view.dart';
 
@@ -81,6 +82,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     }
     return _InProgress(
       session: session,
+      languageTag: ref.watch(activeCourseProvider)?.studyLanguageTag ?? 'en-US',
       revealed: _revealed,
       onReveal: () => setState(() => _revealed = true),
       onGrade: _grade,
@@ -92,12 +94,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 class _InProgress extends StatelessWidget {
   const _InProgress({
     required this.session,
+    required this.languageTag,
     required this.revealed,
     required this.onReveal,
     required this.onGrade,
   });
 
   final ReviewSession session;
+  final String languageTag;
   final bool revealed;
   final VoidCallback onReveal;
   final RecallGraded onGrade;
@@ -117,6 +121,7 @@ class _InProgress extends StatelessWidget {
             const SizedBox(height: 16),
             ReviewCardView(
               card: session.currentCard!,
+              languageTag: languageTag,
               revealed: revealed,
               onReveal: onReveal,
               onGrade: onGrade,
