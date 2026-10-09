@@ -46,7 +46,16 @@ class SpeechToTextService implements SttService {
       }
       return _resolveAvailability();
     } catch (_) {
-      return SttAvailability.unsupportedPlatform;
+      // Se devuelve «falta permiso» y no «plataforma no soportada», y la
+      // diferencia es la que decide si el micrófono existe en la interfaz.
+      //
+      // En el navegador, consultar el permiso antes de inicializar puede
+      // lanzar, y declarar por eso que la plataforma no sirve apagaba el
+      // micrófono en toda la PWA. Lo honesto aquí es «todavía no se sabe»: se
+      // ofrece el botón, y al tocarlo se intenta de verdad. Si entonces no hay
+      // reconocedor, la degradación de tres pasos lleva a la alternativa
+      // escrita, que es exactamente para lo que está.
+      return SttAvailability.permissionDenied;
     }
   }
 
@@ -140,7 +149,14 @@ class SpeechToTextService implements SttService {
     return SttRecognized(words);
   }
 
-  SttAvailability _resolveAvailability() => _speech.isAvailable
-      ? SttAvailability.onDeviceReady
-      : SttAvailability.noMicrophone;
+  SttAvailability _resolveAvailability() {
+    if (_speech.isAvailable) return SttAvailability.onDeviceReady;
+
+    // «No hay micrófono» solo se afirma después de haber inicializado de
+    // verdad. Antes de eso `isAvailable` es falso siempre, y tomarlo por una
+    // respuesta apagaba el micrófono sin haberlo intentado nunca.
+    return _initialized
+        ? SttAvailability.noMicrophone
+        : SttAvailability.permissionDenied;
+  }
 }

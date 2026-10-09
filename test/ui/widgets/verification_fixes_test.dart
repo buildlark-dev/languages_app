@@ -23,6 +23,7 @@ import 'package:languages_app/services/speech/tts_service.dart';
 import 'package:languages_app/ui/providers/speech_providers.dart';
 import 'package:languages_app/ui/screens/exercise_runner.dart';
 import 'package:languages_app/ui/widgets/gap_fill_field.dart';
+import 'package:languages_app/ui/widgets/listen_button.dart';
 import 'package:languages_app/ui/widgets/pronunciation_exercise_view.dart';
 
 import '../../fakes/fake_stt_service.dart';
@@ -319,6 +320,79 @@ void main() {
 
       expect(pending.canOfferMicrophone, isTrue);
       expect(pending.canRecord, isFalse, reason: 'todavía no se puede grabar');
+    });
+  });
+
+  group('7 · el audio no depende de que la detección acierte', () {
+    testWidgets('el botón de escuchar se dibuja aunque se crea que no hay voz', (
+      WidgetTester tester,
+    ) async {
+      // La detección se equivoca sola: en web la lista de voces llega vacía en
+      // la primera consulta. Cuando eso decidía si el botón existía, la
+      // función desaparecía entera y sin rastro.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ttsServiceProvider.overrideWithValue(
+              FakeTtsService(
+                initialAvailability: TtsAvailability.languageMissing,
+              ),
+            ),
+            sttServiceProvider.overrideWithValue(FakeSttService()),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: ListenButton(text: 'name')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.volume_up_outlined), findsOne);
+    });
+
+    testWidgets('al tocarlo sin voz explica dónde instalarla', (
+      WidgetTester tester,
+    ) async {
+      // La contrapartida de dibujarlo siempre: no puede callarse. Y el consejo
+      // importa tanto como el diagnóstico, porque la voz la pone el sistema y
+      // sin saber dónde la persona no tiene nada que hacer.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ttsServiceProvider.overrideWithValue(
+              FakeTtsService(
+                initialAvailability: TtsAvailability.languageMissing,
+              ),
+            ),
+            sttServiceProvider.overrideWithValue(FakeSttService()),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: ListenButton(text: 'name')),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.volume_up_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('No hay voz en inglés instalada'), findsOne);
+      expect(find.textContaining('Salida de texto a voz'), findsOne);
+    });
+
+    test('hablar reintenta la preparación antes de rendirse', () async {
+      // El caso de web: la primera consulta no encontró voces, la segunda sí.
+      // Rendirse para siempre por la primera deja la app muda toda la sesión.
+      final FakeTtsService tts = FakeTtsService(
+        initialAvailability: TtsAvailability.languageMissing,
+      );
+      await tts.initialize('en-US');
+      expect(await tts.speak('name'), SpeakOutcome.noVoice);
+
+      tts.initialAvailability = TtsAvailability.available;
+      await tts.initialize('en-US');
+
+      expect(await tts.speak('name'), SpeakOutcome.spoken);
+      expect(tts.spoken, <String>['name']);
     });
   });
 }

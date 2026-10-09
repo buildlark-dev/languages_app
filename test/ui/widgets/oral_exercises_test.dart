@@ -51,33 +51,36 @@ void main() {
     await tts.initialize('en-US');
   });
 
-  Widget wrap(Widget child, {SpeechAvailability? availability}) =>
-      ProviderScope(
-        overrides: [
-          ttsServiceProvider.overrideWithValue(tts),
-          sttServiceProvider.overrideWithValue(stt),
-          if (availability != null)
-            speechAvailabilityProvider.overrideWith(
-              () => _FixedAvailability(availability),
-            ),
-        ],
-        child: MaterialApp(
-          theme: lightTheme,
-          localizationsDelegates: const <LocalizationsDelegate<Object>>[
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: child,
-            ),
-          ),
+  Widget wrap(
+    Widget child, {
+    SpeechAvailability? availability,
+    FakeTtsService? ttsOverride,
+  }) => ProviderScope(
+    overrides: [
+      ttsServiceProvider.overrideWithValue(ttsOverride ?? tts),
+      sttServiceProvider.overrideWithValue(stt),
+      if (availability != null)
+        speechAvailabilityProvider.overrideWith(
+          () => _FixedAvailability(availability),
         ),
-      );
+    ],
+    child: MaterialApp(
+      theme: lightTheme,
+      localizationsDelegates: const <LocalizationsDelegate<Object>>[
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: child,
+        ),
+      ),
+    ),
+  );
 
   group('comprensión auditiva', () {
     testWidgets('con voz disponible ofrece el botón de escuchar', (
@@ -122,11 +125,14 @@ void main() {
       expect(tts.spoken, <String>['I am a nurse at the hospital.']);
     });
 
-    testWidgets('SIN voz muestra el transcript y explica por qué', (
+    testWidgets('la transcripción está siempre, plegada, y se puede abrir', (
       WidgetTester tester,
     ) async {
-      // T129. Lo esencial: el ejercicio sigue siendo completable, y la persona
-      // entiende que el problema es su dispositivo, no la app.
+      // T129, con el criterio corregido: el ejercicio sigue siendo completable
+      // sin sonido, pero la transcripción ya no sustituye al botón de audio.
+      // Elegir entre uno y otro según la disponibilidad detectada dejaba sin
+      // audio a todo el mundo cuando la detección fallaba, que es lo que pasa
+      // en web mientras el navegador carga sus voces.
       await tester.pumpWidget(
         wrap(
           ListeningExerciseView(
@@ -142,14 +148,48 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // El botón se ofrece aunque la detección diga que no hay voz: si de
+      // verdad no la hay, al tocarlo se explica.
+      expect(find.widgetWithText(FilledButton, 'Escuchar'), findsOne);
+      // Y la salida por lectura está a un toque.
+      expect(find.text('Ver la transcripción'), findsOne);
+      expect(find.text('I am a nurse at the hospital.'), findsNothing);
+
+      await tester.tap(find.text('Ver la transcripción'));
+      await tester.pumpAndSettle();
+
       expect(find.text('Transcripción'), findsOne);
       expect(find.text('I am a nurse at the hospital.'), findsOne);
-      expect(
-        find.text('Tu dispositivo no tiene instalada la voz en inglés.'),
-        findsOne,
+    });
+
+    testWidgets('sin voz, tocar escuchar explica el problema', (
+      WidgetTester tester,
+    ) async {
+      // La contrapartida de dibujar siempre el botón: no puede quedarse mudo
+      // sin decir nada, que era el motivo original de esconderlo.
+      await tester.pumpWidget(
+        wrap(
+          ListeningExerciseView(
+            exercise: listening,
+            selectedIndex: null,
+            onSelect: (_) {},
+          ),
+          availability: const SpeechAvailability(
+            tts: TtsAvailability.languageMissing,
+            stt: SttAvailability.onDeviceReady,
+          ),
+          ttsOverride: FakeTtsService(
+            initialAvailability: TtsAvailability.languageMissing,
+          ),
+        ),
       );
-      // Y no hay ningún botón de audio que no sonaría.
-      expect(find.widgetWithText(FilledButton, 'Escuchar'), findsNothing);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Escuchar'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('No hay voz disponible'), findsOne);
+      expect(find.textContaining('transcripción'), findsWidgets);
     });
 
     testWidgets('las opciones se pueden responder sin audio', (

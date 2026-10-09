@@ -20,11 +20,29 @@ class FlutterTtsService implements TtsService {
   @override
   TtsAvailability get availability => _availability;
 
+  /// El idioma con el que se preparó, para poder reintentar al hablar.
+  String? _languageTag;
+
   @override
   Future<TtsAvailability> initialize(String languageTag) async {
+    _languageTag = languageTag;
     try {
-      final Object? languages = await _tts.getLanguages;
-      if (languages is! List || languages.isEmpty) {
+      // Se reintenta si la lista llega vacía, y eso no es paranoia: en el
+      // navegador `speechSynthesis.getVoices()` devuelve **cero voces** en la
+      // primera llamada y las publica después, al disparar `voiceschanged`.
+      // Preguntar una sola vez al abrir el curso cae justo en esa ventana, y
+      // la app concluía que el dispositivo no tenía motor de voz.
+      List<Object?>? languages;
+      for (int attempt = 0; attempt < 5; attempt++) {
+        final Object? found = await _tts.getLanguages;
+        if (found is List && found.isNotEmpty) {
+          languages = found;
+          break;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+
+      if (languages == null) {
         return _availability = TtsAvailability.engineMissing;
       }
 
@@ -51,14 +69,23 @@ class FlutterTtsService implements TtsService {
   }
 
   @override
-  Future<void> speak(String text) async {
-    if (!_availability.canSpeak) return;
+  Future<SpeakOutcome> speak(String text) async {
+    // Si la preparación había dicho que no, se vuelve a intentar antes de
+    // rendirse. La primera consulta pudo caer antes de que el navegador
+    // publicara sus voces, y rendirse para siempre por eso deja la app muda
+    // durante toda la sesión.
+    if (!_availability.canSpeak && _languageTag != null) {
+      await initialize(_languageTag!);
+    }
+    if (!_availability.canSpeak) return SpeakOutcome.noVoice;
+
     try {
       await _tts.stop();
       await _tts.speak(text);
+      return SpeakOutcome.spoken;
     } catch (_) {
-      // Silencioso a propósito: quien llama es un botón, no un flujo que pueda
-      // decidir qué hacer con el error.
+      // Sigue sin lanzar: quien llama es un botón. Pero ahora se entera.
+      return SpeakOutcome.failed;
     }
   }
 

@@ -38,12 +38,13 @@ class FakeTtsService implements TtsService {
   }
 
   @override
-  Future<void> speak(String text) async {
-    // Mismo comportamiento que la implementación real: no-op silencioso si no
-    // está disponible. Si el doble hablara igualmente, una prueba podría pasar
-    // con audio que en producción no suena.
-    if (!_availability.canSpeak) return;
+  Future<SpeakOutcome> speak(String text) async {
+    // Mismo comportamiento que la implementación real: si no hay voz, no habla
+    // y lo dice. Si el doble hablara igualmente, una prueba podría pasar con
+    // audio que en producción no suena.
+    if (!_availability.canSpeak) return SpeakOutcome.noVoice;
     spoken.add(text);
+    return SpeakOutcome.spoken;
   }
 
   @override

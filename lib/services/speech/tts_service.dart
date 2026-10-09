@@ -26,6 +26,20 @@ enum TtsAvailability {
   bool get canSpeak => this == TtsAvailability.available;
 }
 
+/// Qué pasó al intentar hablar.
+enum SpeakOutcome {
+  /// Está sonando.
+  spoken,
+
+  /// No hay voz instalada para el idioma, o no hay motor.
+  noVoice,
+
+  /// El motor falló por otro motivo.
+  failed;
+
+  bool get ok => this == SpeakOutcome.spoken;
+}
+
 abstract interface class TtsService {
   /// Prepara la voz del idioma dado. Nunca lanza.
   Future<TtsAvailability> initialize(String languageTag);
@@ -33,12 +47,19 @@ abstract interface class TtsService {
   /// Lo último que devolvió [initialize].
   TtsAvailability get availability;
 
-  /// Lee el texto. **No-op silencioso** si no está disponible.
+  /// Lee el texto, y **dice qué pasó**. Nunca lanza.
   ///
-  /// Silencioso y no excepción porque quien llama es un widget: obligar a cada
-  /// botón de audio a envolver la llamada en `try` repartiría la misma
-  /// comprobación por toda la interfaz.
-  Future<void> speak(String text);
+  /// Devolver el resultado en lugar de callar es una corrección. Antes era un
+  /// no-op silencioso y la interfaz escondía el botón cuando [availability]
+  /// decía que no había voz; el problema es que esa detección falla sola en
+  /// web —el navegador devuelve la lista de voces **vacía** en la primera
+  /// consulta, hasta que termina de cargarlas—, y entonces el botón no se
+  /// dibujaba en ninguna parte y la función desaparecía sin dejar rastro ni
+  /// explicación.
+  ///
+  /// La regla nueva: el control existe siempre y el intento decide. Si no se
+  /// puede hablar, quien llama lo sabe y puede decir por qué.
+  Future<SpeakOutcome> speak(String text);
 
   Future<void> stop();
 
