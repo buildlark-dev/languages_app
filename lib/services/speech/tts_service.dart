@@ -1,12 +1,21 @@
 /// Contrato de síntesis de voz.
 ///
 /// Obligación central: **nunca lanza y nunca asume**. `initialize` consulta qué
-/// voces hay de verdad y lo informa; si falta la del idioma estudiado, la interfaz
-/// presenta el transcript en lugar de un botón de audio que no suena.
+/// voces hay de verdad y lo informa, y `speak` dice qué pasó al intentarlo.
 ///
-/// Un botón que no hace nada es peor que no tener botón: la persona lo toca
-/// varias veces, concluye que la app está rota y no se enteró de que el problema
-/// era su dispositivo.
+/// Lo segundo es una corrección de lo primero. Durante un tiempo esta cabecera
+/// decía que la interfaz debía presentar el transcript «en lugar de un botón de
+/// audio que no suena», y el razonamiento era bueno: un botón que no hace nada
+/// hace que la persona lo toque tres veces y concluya que la app está rota.
+///
+/// La consecuencia fue peor que el problema. `initialize` se equivoca sola —en
+/// el navegador la lista de voces llega **vacía** en la primera consulta— y
+/// entonces no se dibujaba ningún botón en ninguna parte: la función
+/// desaparecía entera, sin aviso y sin forma de averiguar por qué.
+///
+/// **La regla vigente: el control existe siempre y el intento decide.** Por eso
+/// `speak` devuelve un resultado en lugar de callar; quien llama puede decir
+/// qué pasó, y decirlo sin exigir que nadie configure su aparato.
 library;
 
 /// Qué se pudo preparar.
@@ -49,16 +58,8 @@ abstract interface class TtsService {
 
   /// Lee el texto, y **dice qué pasó**. Nunca lanza.
   ///
-  /// Devolver el resultado en lugar de callar es una corrección. Antes era un
-  /// no-op silencioso y la interfaz escondía el botón cuando [availability]
-  /// decía que no había voz; el problema es que esa detección falla sola en
-  /// web —el navegador devuelve la lista de voces **vacía** en la primera
-  /// consulta, hasta que termina de cargarlas—, y entonces el botón no se
-  /// dibujaba en ninguna parte y la función desaparecía sin dejar rastro ni
-  /// explicación.
-  ///
-  /// La regla nueva: el control existe siempre y el intento decide. Si no se
-  /// puede hablar, quien llama lo sabe y puede decir por qué.
+  /// Quien llama es un botón: necesita saber si sonó para poder explicarlo, y
+  /// no puede permitirse una excepción a mitad de una lección.
   Future<SpeakOutcome> speak(String text);
 
   Future<void> stop();

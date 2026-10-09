@@ -9,13 +9,30 @@
 ///
 /// El paso 3 **no es un error**: es una ruta válida con la que la lección se
 /// aprueba igual. De eso vive SC-008.
+///
+/// ## Dos correcciones que cambian cómo se siente usarlo
+///
+/// **Se escucha el canal de errores.** Antes el servicio pasaba
+/// `onError: (_) {}` y esperaba a que venciera su propio reloj. Medido en el
+/// navegador: `start()` informa `not-allowed` en milisegundos, y la app tardaba
+/// seis segundos más dos de pausa, repetía para el paso 2, y a los dieciséis
+/// segundos caía a la alternativa escrita sin mencionar el micrófono. Ahora el
+/// intento termina en cuanto la plataforma dice qué pasó, y lo que dijo llega
+/// hasta la pantalla.
+///
+/// **El paso 1 solo se intenta donde existe.** El plugin de web no lee
+/// `onDevice`: allí el paso 1 y el paso 2 son la misma llamada, así que
+/// intentar los dos solo duplicaba la espera antes de rendirse.
 library;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import 'stt_error_codes.dart';
 import 'stt_service.dart';
 
 /// Cuánto se espera a que alguien hable antes de darlo por silencio.
@@ -25,11 +42,22 @@ const Duration _listenWindow = Duration(seconds: 6);
 const Duration _pauseWindow = Duration(seconds: 2);
 
 class SpeechToTextService implements SttService {
-  SpeechToTextService(this._speech);
+  /// [supportsOnDevice] dice si el paso 1 tiene sentido en esta plataforma.
+  ///
+  /// Es un parámetro y no una constante para poder probar las dos rutas sin
+  /// compilar para web: la degradación es la parte del servicio con más
+  /// caminos y la que no se puede verificar a mano en cada plataforma.
+  SpeechToTextService(this._speech, {bool? supportsOnDevice})
+    : _supportsOnDevice = supportsOnDevice ?? !kIsWeb;
 
   final stt.SpeechToText _speech;
+  final bool _supportsOnDevice;
 
   bool _initialized = false;
+
+  /// El intento en curso. Lo completa el primero que llegue: un resultado, un
+  /// error del reconocedor, el fin de la sesión o el reloj.
+  Completer<SttOutcome>? _pending;
 
   @override
   Future<SttAvailability> checkAvailability() async {
@@ -52,9 +80,7 @@ class SpeechToTextService implements SttService {
       // En el navegador, consultar el permiso antes de inicializar puede
       // lanzar, y declarar por eso que la plataforma no sirve apagaba el
       // micrófono en toda la PWA. Lo honesto aquí es «todavía no se sabe»: se
-      // ofrece el botón, y al tocarlo se intenta de verdad. Si entonces no hay
-      // reconocedor, la degradación de tres pasos lleva a la alternativa
-      // escrita, que es exactamente para lo que está.
+      // ofrece el botón, y al tocarlo se intenta de verdad.
       return SttAvailability.permissionDenied;
     }
   }
@@ -63,8 +89,10 @@ class SpeechToTextService implements SttService {
   Future<bool> requestPermission() async {
     try {
       _initialized = await _speech.initialize(
-        onError: (_) {},
-        onStatus: (_) {},
+        // Aquí se cablean los dos canales. Es lo único que hacía falta para
+        // que la app dejara de esperar a ciegas.
+        onError: _onError,
+        onStatus: _onStatus,
       );
       return _initialized && await _speech.hasPermission;
     } catch (_) {
@@ -75,20 +103,23 @@ class SpeechToTextService implements SttService {
   @override
   Future<SttOutcome> listenOnce(String languageTag) async {
     if (!_initialized && !(await requestPermission())) {
-      return const SttUseAlternative(SttAvailability.permissionDenied);
+      return const SttUseAlternative(SttFailure.permissionDenied);
     }
 
-    // Paso 1: en el dispositivo. La sesión falla si no está disponible, así que el
-    // fallo es la señal para pasar al siguiente paso, no un problema.
-    final SttOutcome onDevice = await _attempt(languageTag, onDevice: true);
-    if (onDevice is! SttUseAlternative) return onDevice;
+    // Paso 1: en el dispositivo, solo donde el reconocimiento local existe.
+    if (_supportsOnDevice) {
+      final SttOutcome onDevice = await _attempt(languageTag, onDevice: true);
+      // Cualquier respuesta que no sea «no se pudo» es la respuesta final,
+      // silencio incluido: si el micrófono funcionó y no se oyó nada, repetir
+      // la escucha solo hace esperar ocho segundos más por el mismo silencio.
+      if (onDevice is! SttUseAlternative) return onDevice;
+      if (!onDevice.failure.worthRetryingOverNetwork) return onDevice;
+    }
 
     // Paso 2: el reconocedor del sistema, que normalmente necesita red.
-    final SttOutcome network = await _attempt(languageTag, onDevice: false);
-    if (network is! SttUseAlternative) return network;
-
-    // Paso 3: la alternativa accesible.
-    return const SttUseAlternative(SttAvailability.networkOnly);
+    // Paso 3 —la alternativa accesible— es lo que la interfaz hace con un
+    // `SttUseAlternative`, y ahora llega con el motivo puesto.
+    return _attempt(languageTag, onDevice: false);
   }
 
   @override
@@ -105,7 +136,8 @@ class SpeechToTextService implements SttService {
     String languageTag, {
     required bool onDevice,
   }) async {
-    final Completer<String?> completer = Completer<String?>();
+    final Completer<SttOutcome> completer = Completer<SttOutcome>();
+    _pending = completer;
 
     try {
       await _speech.listen(
@@ -120,33 +152,56 @@ class SpeechToTextService implements SttService {
           listenFor: _listenWindow,
           pauseFor: _pauseWindow,
         ),
-        onResult: (SpeechRecognitionResult result) {
-          if (result.finalResult && !completer.isCompleted) {
-            completer.complete(result.recognizedWords);
-          }
-        },
+        onResult: _onResult,
       );
     } catch (_) {
-      return const SttUseAlternative(SttAvailability.unsupportedPlatform);
+      _pending = null;
+      return const SttUseAlternative(SttFailure.noRecognizer);
     }
 
-    // Si no llega resultado final, la ventana de escucha cierra el intento.
-    final String? words = await completer.future.timeout(
+    // El reloj sigue estando, de último recurso: una plataforma que no informa
+    // ni resultado ni error no puede dejar el botón en «Escuchando…» para
+    // siempre.
+    final SttOutcome outcome = await completer.future.timeout(
       _listenWindow + _pauseWindow,
-      onTimeout: () => null,
+      onTimeout: () => const SttNoSpeech(),
     );
 
+    _pending = null;
     await cancel();
+    return outcome;
+  }
 
-    if (words == null) {
-      return onDevice
-          // En el paso 1 el silencio puede ser «no hay reconocimiento local»,
-          // así que se deja pasar al paso 2 antes de concluir nada.
-          ? const SttUseAlternative(SttAvailability.networkOnly)
-          : const SttNoSpeech();
+  void _onResult(SpeechRecognitionResult result) {
+    if (!result.finalResult) return;
+    final String words = result.recognizedWords.trim();
+    _finish(words.isEmpty ? const SttNoSpeech() : SttRecognized(words));
+  }
+
+  void _onError(SpeechRecognitionError error) {
+    // Silencio no es fallo: FR-020 prohíbe contarlo como error de contenido, y
+    // la respuesta correcta es «no se escuchó nada, prueba otra vez», no la
+    // alternativa escrita.
+    if (isSilence(error.errorMsg)) {
+      _finish(const SttNoSpeech());
+      return;
     }
-    if (words.trim().isEmpty) return const SttNoSpeech();
-    return SttRecognized(words);
+    _finish(SttUseAlternative(failureForCode(error.errorMsg)));
+  }
+
+  void _onStatus(String status) {
+    // `done` y `doneNoResult` significan que la sesión terminó. Si a estas
+    // alturas no hay resultado ni error, no se oyó nada.
+    if (status == 'done' || status == 'doneNoResult') {
+      _finish(const SttNoSpeech());
+    }
+  }
+
+  /// Cierra el intento en curso con el primer veredicto que llegue.
+  void _finish(SttOutcome outcome) {
+    final Completer<SttOutcome>? pending = _pending;
+    if (pending == null || pending.isCompleted) return;
+    pending.complete(outcome);
   }
 
   SttAvailability _resolveAvailability() {

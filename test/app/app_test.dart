@@ -12,9 +12,11 @@ import 'package:languages_app/app/app.dart';
 import 'package:languages_app/app/theme.dart';
 import 'package:languages_app/services/auth/auth_service.dart';
 import 'package:languages_app/services/settings/settings_store.dart';
+import 'package:languages_app/services/update/update_checker.dart';
 import 'package:languages_app/ui/providers/auth_providers.dart';
 import 'package:languages_app/ui/providers/content_providers.dart';
 import 'package:languages_app/ui/providers/progress_providers.dart';
+import 'package:languages_app/ui/providers/update_providers.dart';
 
 import '../fakes/fake_auth_service.dart';
 import '../fakes/fake_catalog.dart';
@@ -42,6 +44,10 @@ void main() {
           authServiceProvider.overrideWithValue(auth),
           syncServiceProvider.overrideWithValue(sync),
           storageDegradedProvider.overrideWithValue(storageDegraded),
+          // En pruebas no hay nada publicado con qué comparar, y el
+          // proveedor lanza si falta: es la regla que destapó que
+          // `settingsStoreProvider` no estaba cableado.
+          updateCheckerProvider.overrideWithValue(const NoUpdateChecker()),
           if (themeMode != null) themeModeProvider.overrideWithValue(themeMode),
         ],
         child: const LanguagesApp(),

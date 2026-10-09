@@ -138,3 +138,92 @@ apunta a Squarespace (198.185.159.x y 198.49.23.x).
   puede subir. Hace falta generar un `keystore` de publicación, guardarlo fuera
   del repositorio y referenciarlo desde un `key.properties` ignorado por git.
   No afecta al despliegue web ni a las pruebas en emulador.
+
+---
+
+## Despliegue web, 9 de octubre de 2026 (Fase 17)
+
+Esta sección corrige la anterior. Lo que decía sobre la caché era falso, y el
+error no se veía desde el navegador: hay que leer las cabeceras.
+
+### Lo que estaba roto
+
+Medido con `curl -I` sobre el sitio publicado:
+
+```
+/flutter_bootstrap.js  →  cache-control: public, max-age=31536000, immutable
+/main.dart.js          →  public, max-age=31536000, immutable
+/version.json          →  public, max-age=31536000, immutable
+/flutter_service_worker.js → public, max-age=31536000, immutable
+```
+
+La regla `no-cache` de `flutter_service_worker.js` estaba escrita **antes** de
+la comodín `**/*.@(js|wasm|json|…)`, y Firebase aplica la **última**
+coincidencia, no la primera. Flutter no pone hash de contenido en esos nombres,
+así que un navegador que ya los tenía no volvía a pedirlos durante un año: la
+PWA instalada quedó congelada y ningún despliegue llegaba a ella.
+
+Además, `navigator.serviceWorker.getRegistrations()` devolvía lista vacía. El
+`flutter_service_worker.js` que genera Flutter 3.44 son treinta líneas cuyo
+único trabajo es **desregistrarse**: no guarda nada. La web no tenía con qué
+abrirse sin conexión y tampoco canal para enterarse de una versión nueva.
+
+Y la consola de la app cargada escribía
+`MissingPluginException(No implementation found for method getAll on channel
+plugins.flutter.io/shared_preferences)`: el registro de plugins web generado el
+8 de octubre a las 07:28 era anterior a la entrada de `shared_preferences` en
+`pubspec.yaml` (12:58), y el build desplegado (21:49) lo reutilizó. En web el
+tema y la velocidad de voz no se guardaban.
+
+### Lo que se verificó después
+
+Cabeceras, con `curl -I`:
+
+```
+/                       Cache-Control: no-cache
+/flutter_bootstrap.js   Cache-Control: no-cache
+/main.dart.js           Cache-Control: no-cache
+/build-id.json          Cache-Control: no-store
+/app_service_worker.js  Cache-Control: no-cache
+```
+
+Nada se sirve ya con `immutable`: lo que Flutter no versiona por contenido se
+revalida por ETag, que cuesta una petición condicional y evita que un arreglo
+tarde un año en llegar. El modo sin conexión lo da el service worker, no la
+caché HTTP, así que no se pierde nada.
+
+En el navegador, tras una carga limpia:
+
+```
+service worker:  app_service_worker.js — scope "/", estado "activated"
+caché:           9 entradas, con "/", flutter_bootstrap.js, main.dart.js,
+                 sqlite3.wasm, drift_worker.js, las fuentes y
+                 canvaskit/chromium/canvaskit.{js,wasm}
+build-id.json:   a2a2e2f-20261009-0916, servido con no-store
+registro web:    6 plugins, shared_preferences_web incluido
+```
+
+`--no-web-resources-cdn` hizo falta para lo último: por defecto Flutter pide
+canvaskit a `www.gstatic.com`, y un recurso de otro origen no se puede guardar
+—la respuesta es opaca—, así que sin red no había con qué dibujar.
+
+### Lo que sigue sin funcionar, y es medible
+
+**La web todavía no arranca sin conexión.** Queda fuera de nuestro dominio lo
+que el SDK de Firebase carga en tiempo de ejecución:
+
+```
+www.gstatic.com/firebasejs/12.19.0/firebase-app.js
+www.gstatic.com/firebasejs/12.19.0/firebase-auth.js
+www.gstatic.com/firebasejs/12.19.0/firebase-firestore-pipelines.js
+fonts.gstatic.com/… (Roboto)
+```
+
+`Firebase.initializeApp` es lo primero que hace `main()`, así que sin esos
+archivos la app no llega a pintar. Las fuentes no importan —hay respaldo del
+sistema—; el SDK sí. Servirlo desde nuestro dominio significa versionar unos
+cientos de kilobytes de JavaScript de terceros en el repositorio y fijar su
+versión a mano, que es una decisión de proyecto y no un detalle de despliegue:
+queda anotada como trabajo aparte. Hasta entonces **FR-039 y SC-003 se cumplen
+en Android y no en web**, y decirlo es preferible a seguir contándolo como
+hecho.

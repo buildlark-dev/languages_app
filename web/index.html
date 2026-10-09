@@ -1,46 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
+    El valor de `base href` lo reemplaza `flutter build` con el argumento
+    `--base-href`. Debe empezar y terminar con "/".
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Curso de inglés en español, con lecciones, repaso espaciado y pronunciación.">
 
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="languages_app">
+  <meta name="apple-mobile-web-app-title" content="Idiomas">
+  <meta name="theme-color" content="#2E6F6B">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>languages_app</title>
+  <title>Idiomas</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
+
+  <!--
+    Las dos piezas que la app necesita del navegador y que Flutter ya no pone.
+
+    1. El registro del service worker. El de Flutter dejó de guardar nada en la
+       3.44 —se desregistra a sí mismo—, así que sin esto la web no abre sin
+       conexión. `web/flutter_bootstrap.js` llama a `load()` sin ajustes de
+       service worker para que no haya dos registros peleando por el mismo
+       ámbito.
+
+    2. `appUpdate`, que es cómo la app sabe que hay una versión nueva. Pide
+       `build-id.json` **siempre por red** y lo compara con el identificador
+       compilado dentro del paquete. Hizo falta porque una PWA instalada no se
+       cierra nunca, y sin cerrarla no hay momento en que el navegador cambie de
+       versión por su cuenta.
+
+    Se queda en JavaScript y no en Dart porque tiene que funcionar también
+    cuando el paquete de Dart que se está ejecutando es el viejo.
+  -->
+  <script>
+    (function () {
+      'use strict';
+
+      // Lo que la página acabó de pedir, para que el service worker lo guarde.
+      //
+      // Hace falta esta vuelta porque el service worker se activa **después**
+      // de que la página pidiera el programa: esas peticiones no pasan por él.
+      // Sin esto, la primera visita dejaba en la caché tres archivos y ninguno
+      // era `main.dart.js`, así que «funciona sin conexión» era falso hasta la
+      // segunda visita.
+      function usedResources() {
+        // La raíz, además de la dirección actual: el service worker usa "/"
+        // como respaldo de navegación sin conexión, y si la app se abrió con
+        // algo detrás —un parámetro, un enlace compartido— esa clave no
+        // estaría guardada.
+        var urls = [window.location.origin + '/', window.location.href];
+        try {
+          performance.getEntriesByType('resource').forEach(function (entry) {
+            if (entry.name.indexOf(window.location.origin) !== 0) return;
+            if (entry.name.indexOf('build-id.json') !== -1) return;
+            urls.push(entry.name);
+          });
+        } catch (error) {
+          // Sin `performance` queda el runtime caching de siempre.
+        }
+        return urls;
+      }
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async function () {
+          try {
+            await navigator.serviceWorker.register('app_service_worker.js');
+            const registration = await navigator.serviceWorker.ready;
+            // Un poco después: Flutter sigue pidiendo fuentes y recursos del
+            // motor de dibujo mientras pinta la primera pantalla, y lo que
+            // interesa guardar es todo eso, no solo lo de los primeros
+            // milisegundos.
+            setTimeout(function () {
+              const worker = registration.active;
+              if (worker) {
+                worker.postMessage({ type: 'precache', urls: usedResources() });
+              }
+            }, 4000);
+          } catch (error) {
+            // Sin service worker la app funciona: pierde el modo sin
+            // conexión, no el curso. Nunca debe impedir el arranque.
+            console.warn('No se pudo registrar el service worker:', error);
+          }
+        });
+      }
+
+      window.appUpdate = {
+        /// El identificador de la versión publicada ahora mismo, o "" si no se
+        /// puede saber.
+        currentBuildId: async function () {
+          try {
+            const response = await fetch('build-id.json', { cache: 'no-store' });
+            if (!response.ok) return '';
+            const data = await response.json();
+            return typeof data.buildId === 'string' ? data.buildId : '';
+          } catch (error) {
+            // Sin conexión no hay nada que comparar, y no saberlo no es un
+            // problema: se vuelve a preguntar al reanudar.
+            return '';
+          }
+        },
+
+        /// Se queda con la versión publicada: borra lo guardado y recarga.
+        apply: async function () {
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+              if (registration.active) registration.active.postMessage('clearCache');
+            }
+          } catch (error) {
+            // Da igual: lo que decide es el `reload` de abajo.
+          }
+          try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(function (key) { return caches.delete(key); }));
+          } catch (error) {
+            // Igual.
+          }
+          window.location.reload();
+        },
+      };
+    })();
+  </script>
 </body>
 </html>

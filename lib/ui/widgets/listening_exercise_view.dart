@@ -1,7 +1,9 @@
 /// Ejercicio de comprensión auditiva.
 ///
-/// Si hay voz: botón para oír el audio, repetible cuantas veces se quiera. Si no:
-/// el transcript, con el motivo.
+/// Botón para oír el audio, repetible cuantas veces se quiera, **y** la
+/// transcripción plegada. Los dos, siempre: antes se elegía entre uno y otra
+/// según la voz detectada, y cuando la detección se equivocaba el ejercicio se
+/// quedaba sin audio para todo el mundo.
 ///
 /// Repetir sin límite es deliberado. En un examen de certificación el audio suena
 /// una vez, pero esto es aprendizaje: oír tres veces una frase de A1 es
@@ -15,6 +17,7 @@ import '../../core/exercise.dart';
 import '../../services/speech/tts_service.dart';
 import '../providers/speech_providers.dart';
 import 'accessible_alternative.dart';
+import 'listen_button.dart';
 import 'multiple_choice_question.dart';
 
 class ListeningExerciseView extends ConsumerWidget {
@@ -109,14 +112,9 @@ class ListeningExerciseView extends ConsumerWidget {
         .speak(exercise.spokenText);
     if (outcome.ok || !context.mounted) return;
 
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      const SnackBar(
-        content: Text(
-          "No hay voz disponible para reproducir el audio. Abre «Ver la "
-          "transcripción» para responder leyendo.",
-        ),
-        duration: Duration(seconds: 6),
-      ),
-    );
+    // El mismo aviso que el botón de escuchar, por la misma razón: el texto
+    // que se lee en el peor momento tiene que ser uno, no tres variantes que
+    // divergen.
+    showAudioUnavailable(context, outcome);
   }
 }

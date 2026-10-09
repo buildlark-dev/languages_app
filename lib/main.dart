@@ -32,12 +32,14 @@ import 'services/settings/settings_store.dart';
 import 'services/speech/flutter_tts_service.dart';
 import 'services/speech/speech_to_text_service.dart';
 import 'services/sync/firestore_sync_service.dart';
+import 'services/update/platform_update_checker.dart';
 import 'ui/providers/auth_providers.dart';
 import 'ui/providers/backup_providers.dart';
 import 'ui/providers/content_providers.dart';
 import 'ui/providers/progress_providers.dart';
 import 'ui/providers/review_providers.dart';
 import 'ui/providers/speech_providers.dart';
+import 'ui/providers/update_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -117,6 +119,10 @@ Future<void> main() async {
         sttServiceProvider.overrideWithValue(
           SpeechToTextService(stt.SpeechToText()),
         ),
+        // En web pregunta por `build-id.json`; en las demás plataformas
+        // contesta que no hay nada, porque allí la versión la cambia el
+        // paquete y no la app.
+        updateCheckerProvider.overrideWithValue(createUpdateChecker()),
       ],
       child: const LanguagesApp(),
     ),

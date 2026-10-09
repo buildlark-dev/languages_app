@@ -350,12 +350,13 @@ void main() {
       expect(find.byIcon(Icons.volume_up_outlined), findsOne);
     });
 
-    testWidgets('al tocarlo sin voz explica dónde instalarla', (
+    testWidgets('al tocarlo sin voz dice que se puede seguir, sin exigir nada', (
       WidgetTester tester,
     ) async {
-      // La contrapartida de dibujarlo siempre: no puede callarse. Y el consejo
-      // importa tanto como el diagnóstico, porque la voz la pone el sistema y
-      // sin saber dónde la persona no tiene nada que hacer.
+      // La contrapartida de dibujarlo siempre: no puede callarse. Pero lo que
+      // dice **no puede ser una tarea de configuración**: «instala una voz»
+      // echa de la app a quien solo quería estudiar. Los pasos siguen
+      // existiendo, detrás de un «¿Cómo?» opcional y para la plataforma real.
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -375,8 +376,19 @@ void main() {
       await tester.tap(find.byIcon(Icons.volume_up_outlined));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('No hay voz en inglés instalada'), findsOne);
+      expect(find.textContaining('se aprueba igual'), findsOne);
+      expect(
+        find.textContaining('Ajustes'),
+        findsNothing,
+        reason: 'El aviso informa; no manda a configurar el aparato',
+      );
+
+      // Y para quien sí quiera instalarla, los pasos están a un toque.
+      await tester.tap(find.text('¿Cómo?'));
+      await tester.pumpAndSettle();
+
       expect(find.textContaining('Salida de texto a voz'), findsOne);
+      expect(find.textContaining('No es obligatorio'), findsOne);
     });
 
     test('hablar reintenta la preparación antes de rendirse', () async {

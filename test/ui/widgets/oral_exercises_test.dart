@@ -188,7 +188,9 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Escuchar'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('No hay voz disponible'), findsOne);
+      // El mismo aviso que el botón de escuchar de cualquier otra pantalla:
+      // informa, dice que se puede seguir y no exige configurar nada.
+      expect(find.textContaining('se aprueba igual'), findsOne);
       expect(find.textContaining('transcripción'), findsWidgets);
     });
 
@@ -419,7 +421,7 @@ void main() {
       WidgetTester tester,
     ) async {
       // Paso 3 de la degradación. No es un error: es la ruta válida.
-      stt.outcome = const SttUseAlternative(SttAvailability.networkOnly);
+      stt.outcome = const SttUseAlternative(SttFailure.needsNetwork);
       final List<PronunciationAttempt> attempts = <PronunciationAttempt>[];
 
       await tester.pumpWidget(

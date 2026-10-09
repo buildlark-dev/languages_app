@@ -9,6 +9,7 @@ library;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import 'tts_service.dart';
+import 'voice_pick.dart';
 
 class FlutterTtsService implements TtsService {
   FlutterTtsService(this._tts);
@@ -60,11 +61,42 @@ class FlutterTtsService implements TtsService {
       if (!hasLanguage) return _availability = TtsAvailability.languageMissing;
 
       await _tts.setLanguage(languageTag);
+      await _selectVoice(languageTag);
       await _tts.setSpeechRate(0.9);
       return _availability = TtsAvailability.available;
     } catch (_) {
       // Un fallo al inicializar no debe impedir estudiar: se degrada a texto.
       return _availability = TtsAvailability.engineMissing;
+    }
+  }
+
+  /// La voz elegida, para poder decir cuál suena.
+  ///
+  /// Se guarda porque «el inglés se oye con acento español» es un fallo que no
+  /// se puede diagnosticar a ciegas: sin saber qué voz se fijó, lo único que se
+  /// puede hacer es volver a adivinar.
+  String? get selectedVoice => _selectedVoice;
+  String? _selectedVoice;
+
+  /// Fija una voz **concreta** del idioma, no solo el idioma.
+  ///
+  /// `setLanguage` debería bastar y en el navegador no basta: la voz por
+  /// defecto es la del idioma del documento —español, aquí— y nada garantiza
+  /// que fijar el idioma la cambie. Elegir la voz por nombre quita la
+  /// ambigüedad.
+  Future<void> _selectVoice(String languageTag) async {
+    try {
+      final Object? voices = await _tts.getVoices;
+      if (voices is! List) return;
+
+      final VoiceChoice? choice = pickVoice(voices, languageTag);
+      if (choice == null) return;
+
+      await _tts.setVoice(choice);
+      _selectedVoice = choice['name'];
+    } catch (_) {
+      // Sin voz elegida queda lo que hiciera `setLanguage`. Es peor, no es
+      // fatal, y rendirse aquí no debe impedir que la app hable.
     }
   }
 

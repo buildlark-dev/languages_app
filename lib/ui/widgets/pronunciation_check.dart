@@ -5,14 +5,21 @@
 /// el repaso, donde la nota la pone la persona eligiendo cómo lo recordó, y la
 /// pronunciación es una comprobación aparte que ofrecer sin obligar.
 ///
-/// Si no hay micrófono disponible no se dibuja: un botón que no graba hace que
-/// la persona lo toque tres veces y concluya que la app está rota.
+/// **Se dibuja siempre, y no se borra al fallar.** Antes desaparecía: tras el
+/// primer intento sin permiso o sin reconocedor devolvía un hueco vacío, así
+/// que el botón se iba de la tarjeta sin decir nada y no había forma de volver
+/// a intentarlo. Era el mismo patrón que había borrado los botones de escuchar,
+/// una capa más abajo.
+///
+/// La regla es la de toda la app: el control existe, el intento decide, y lo
+/// que pasó se dice en el sitio donde se tocó.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../engine/pronunciation_matcher.dart';
+import '../../services/speech/speech_help.dart';
 import '../../services/speech/stt_service.dart';
 import '../providers/speech_providers.dart';
 
@@ -36,7 +43,9 @@ class _PronunciationCheckState extends ConsumerState<PronunciationCheck> {
   bool _listening = false;
   PronunciationMatch? _match;
   bool _noSpeech = false;
-  bool _unavailable = false;
+
+  /// Por qué no se pudo escuchar, si no se pudo.
+  SttFailure? _failure;
 
   Future<void> _listen() async {
     final SpeechAvailabilityController controller = ref.read(
@@ -47,7 +56,7 @@ class _PronunciationCheckState extends ConsumerState<PronunciationCheck> {
     if (!ref.read(speechAvailabilityProvider).canRecord) {
       final bool granted = await controller.requestMicrophone();
       if (!granted) {
-        setState(() => _unavailable = true);
+        setState(() => _failure = SttFailure.permissionDenied);
         return;
       }
     }
@@ -56,6 +65,7 @@ class _PronunciationCheckState extends ConsumerState<PronunciationCheck> {
       _listening = true;
       _noSpeech = false;
       _match = null;
+      _failure = null;
     });
 
     final SttOutcome outcome = await ref
@@ -74,20 +84,18 @@ class _PronunciationCheckState extends ConsumerState<PronunciationCheck> {
         );
       case SttNoSpeech():
         setState(() => _noSpeech = true);
-      case SttUseAlternative():
-        setState(() => _unavailable = true);
+      case SttUseAlternative(:final SttFailure failure):
+        setState(() => _failure = failure);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Se ofrece mientras quede algo que pedir. Antes del primer permiso
-    // `canRecord` es falso, y esconder el botón lo dejaría inconcedible.
-    final bool canOffer = ref
-        .watch(speechAvailabilityProvider)
-        .canOfferMicrophone;
-    if (_unavailable || !canOffer) return const SizedBox.shrink();
-
+    // No se consulta ninguna disponibilidad para decidir si el botón existe.
+    // Esa consulta es justo lo que hacía desaparecer el control cuando la
+    // detección se equivocaba, y se equivoca sola: en el navegador la lista de
+    // voces llega vacía en la primera consulta y el permiso de micrófono no se
+    // conoce hasta que se pide. El permiso se sigue pidiendo al tocar (FR-018).
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -99,6 +107,19 @@ class _PronunciationCheckState extends ConsumerState<PronunciationCheck> {
         if (_noSpeech) ...<Widget>[
           const SizedBox(height: 8),
           const Text('No se escuchó nada. Prueba otra vez, más cerca.'),
+        ],
+        if (_failure != null) ...<Widget>[
+          const SizedBox(height: 8),
+          // Se queda escrito debajo del botón, que sigue ahí: el repaso no
+          // depende de esto —la nota la pone la persona— y lo único que hace
+          // falta es que sepa por qué no se oyó y pueda volver a intentarlo.
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              microphoneFailureMessage(_failure!),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
         ],
         if (_match != null) ...<Widget>[
           const SizedBox(height: 8),

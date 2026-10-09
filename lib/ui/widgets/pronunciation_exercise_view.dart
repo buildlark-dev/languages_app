@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/exercise.dart';
 import '../../engine/pronunciation_matcher.dart';
+import '../../services/speech/speech_help.dart';
 import '../../services/speech/stt_service.dart';
 import '../providers/speech_providers.dart';
 import 'accessible_alternative.dart';
@@ -64,6 +65,13 @@ class _PronunciationExerciseViewState
   int _failedAttempts = 0;
   PronunciationMatch? _lastMatch;
 
+  /// Por qué no se pudo escuchar el último intento, si no se pudo.
+  ///
+  /// Antes esto no se guardaba porque no llegaba: el servicio tiraba el
+  /// diagnóstico de la plataforma y la vista solo sabía «usa la alternativa».
+  /// Decir *por qué* es lo que FR-017 y FR-018 piden.
+  SttFailure? _failure;
+
   /// Tras tres intentos fallidos se ofrece continuar sin penalización.
   static const int _attemptsBeforeOffer = 3;
 
@@ -82,7 +90,10 @@ class _PronunciationExerciseViewState
     if (!ref.read(speechAvailabilityProvider).canRecord) {
       final bool granted = await controller.requestMicrophone();
       if (!granted) {
-        setState(() => _showWritten = true);
+        setState(() {
+          _showWritten = true;
+          _failure = SttFailure.permissionDenied;
+        });
         return;
       }
     }
@@ -113,9 +124,13 @@ class _PronunciationExerciseViewState
           _failedAttempts++;
         });
 
-      case SttUseAlternative():
-        // Paso 3 de la degradación: la ruta escrita. No es un error.
-        setState(() => _showWritten = true);
+      case SttUseAlternative(:final SttFailure failure):
+        // Paso 3 de la degradación: la ruta escrita. No es un error, y ahora
+        // llega con el motivo puesto en lugar de aparecer sin explicación.
+        setState(() {
+          _showWritten = true;
+          _failure = failure;
+        });
     }
   }
 
@@ -197,7 +212,11 @@ class _PronunciationExerciseViewState
           AccessibleAlternative(
             title: 'Escríbelo',
             content: widget.exercise.writtenFallback,
-            reason: canRecord ? null : micReason,
+            // Lo que falló en el intento manda sobre lo que se sabía del
+            // aparato: es más reciente y más concreto.
+            reason: _failure != null
+                ? microphoneFailureMessage(_failure!)
+                : (canRecord ? null : micReason),
           ),
           const SizedBox(height: 16),
           TextField(

@@ -11,6 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/settings/settings_store.dart';
+import '../ui/widgets/update_overlay.dart';
 import 'auth_gate.dart';
 import 'sync_lifecycle.dart';
 import 'l10n/app_localizations.dart';
@@ -52,6 +53,12 @@ class LanguagesApp extends ConsumerWidget {
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: AppLocalizations.supportedLocales,
+    // El aviso de versión nueva va en `builder` y no dentro de una pantalla:
+    // así queda por encima de todas, incluidas las que se abren con
+    // `Navigator.push`, y una publicación a mitad de lección se puede ofrecer
+    // sin interrumpirla.
+    builder: (BuildContext context, Widget? child) =>
+        UpdateOverlay(child: child ?? const SizedBox.shrink()),
     home: const SyncLifecycle(child: AuthGate()),
   );
 }
