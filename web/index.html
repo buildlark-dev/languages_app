@@ -95,6 +95,35 @@
         });
       }
 
+      // Despertar el motor de voz con el primer gesto de la persona.
+      //
+      // En iOS `speechSynthesis.getVoices()` devuelve lista vacía hasta que
+      // algo ha hablado dentro de un gesto, y lo que despierta el motor es
+      // precisamente hablar. Resultado reportado en un iPhone: la app decía
+      // «no hay voz», se tocaba «Probar la voz» en Ajustes, y a partir de ahí
+      // todo sonaba. Esto hace ese primer toque invisible: una frase muda en
+      // el primer toque que la persona dé en cualquier sitio.
+      //
+      // Es un apaño y se le nota, pero es el apaño que WebKit obliga a hacer.
+      // Si falla, no se pierde nada: hablar sigue funcionando al tocar el
+      // botón de altavoz, que también es un gesto.
+      var vozDespierta = false;
+      function despertarVoz() {
+        if (vozDespierta) return;
+        vozDespierta = true;
+        try {
+          if (!('speechSynthesis' in window)) return;
+          var muda = new SpeechSynthesisUtterance(' ');
+          muda.volume = 0;
+          window.speechSynthesis.speak(muda);
+        } catch (error) {
+          // Nada: el botón de altavoz vuelve a intentarlo con su propio gesto.
+        }
+      }
+      ['pointerdown', 'touchend', 'keydown'].forEach(function (evento) {
+        window.addEventListener(evento, despertarVoz, { capture: true });
+      });
+
       window.appUpdate = {
         /// El identificador de la versión publicada ahora mismo, o "" si no se
         /// puede saber.

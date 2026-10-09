@@ -40,20 +40,18 @@ const String audioFailedMessage =
 /// mejor que un párrafo vago: una indicación que no corresponde al aparato que
 /// se tiene delante hace perder más tiempo que no dar ninguna.
 String? get voiceInstallSteps {
-  if (kIsWeb) {
-    return 'En el navegador las voces las pone el sistema operativo. En '
-        'Windows se añaden en Configuración → Hora e idioma → Voz; en Android, '
-        'en Ajustes → Sistema → Idiomas → Salida de texto a voz. Después hay '
-        'que recargar la página.';
-  }
-
-  return switch (defaultTargetPlatform) {
+  // En web **también** se mira la plataforma, no se da un párrafo genérico.
+  // Flutter deduce `defaultTargetPlatform` del navegador, así que en un
+  // iPhone sale la ruta de iOS. La versión anterior listaba Windows y Android
+  // pase lo que pase, y eso fue lo que vio una persona en un iPhone: una
+  // instrucción para un sistema que no es el suyo.
+  final String? steps = switch (defaultTargetPlatform) {
     TargetPlatform.android =>
       'En Ajustes → Sistema → Idiomas → Salida de texto a voz puedes instalar '
           'la voz en inglés del motor que uses.',
     TargetPlatform.iOS =>
-      'En Ajustes → Accesibilidad → Contenido leído → Voces puedes descargar '
-          'una voz en inglés.',
+      'En Ajustes → Accesibilidad → Contenido leído → Voces → English puedes '
+          'descargar una voz en inglés.',
     TargetPlatform.windows =>
       'En Configuración → Hora e idioma → Voz puedes añadir una voz en inglés.',
     TargetPlatform.macOS =>
@@ -61,6 +59,10 @@ String? get voiceInstallSteps {
           'descargar una voz en inglés.',
     TargetPlatform.linux || TargetPlatform.fuchsia => null,
   };
+
+  if (steps == null) return null;
+  // En el navegador las voces las publica el sistema al cargar la página.
+  return kIsWeb ? '$steps Después, recarga la página.' : steps;
 }
 
 /// Qué pasó con el micrófono, dicho de forma que se pueda seguir.
@@ -93,9 +95,15 @@ String microphoneFailureMessage(SttFailure failure) => switch (failure) {
 /// nada que conceder y mostrar unos pasos sería mandar a alguien a buscar un
 /// ajuste que no existe.
 String? get microphonePermissionSteps {
+  // Aquí el navegador sí manda sobre el sistema: el permiso lo concede la
+  // página, no el aparato. En una PWA instalada en iOS se gestiona desde
+  // Ajustes de Safari, por eso se distingue.
   if (kIsWeb) {
-    return 'En el navegador, el permiso se gestiona en el candado de la barra '
-        'de direcciones, en «Permisos del sitio».';
+    return defaultTargetPlatform == TargetPlatform.iOS
+        ? 'En iPhone, el permiso del micrófono para esta app se concede al '
+              'tocar el botón, y se cambia en Ajustes → Safari → Micrófono.'
+        : 'En el navegador, el permiso se gestiona en el candado de la barra '
+              'de direcciones, en «Permisos del sitio».';
   }
 
   return switch (defaultTargetPlatform) {

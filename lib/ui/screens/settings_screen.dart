@@ -12,8 +12,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/app.dart';
 import '../../services/settings/settings_store.dart';
 import '../../services/speech/speech_availability.dart';
+import '../../services/speech/speech_help.dart';
+import '../../services/speech/tts_service.dart';
 import '../providers/speech_providers.dart';
 import '../widgets/backup_section.dart';
+import '../widgets/listen_button.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -145,32 +148,44 @@ class _SpeechRateSlider extends ConsumerWidget {
         ),
         Align(
           alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            // Deshabilitado si no hay voz, en lugar de no hacer nada al
-            // tocarlo. Un botón que no responde se toca tres veces antes de
-            // concluir que la app está rota.
-            onPressed: speech.canPlayAudio
-                ? () => ref
-                      .read(ttsServiceProvider)
-                      .speak('This is the reading speed.')
-                : null,
-            icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Probar la voz'),
+          child: Builder(
+            // **Siempre habilitado.** Estaba deshabilitado cuando la
+            // disponibilidad decía que no había voz, y en un iPhone eso lo
+            // dejaba muerto justo cuando hacía falta: en iOS la lista de voces
+            // llega vacía hasta que algo habla, y lo que despierta el motor es
+            // tocar este botón. Deshabilitarlo cerraba la única puerta que
+            // abría la voz.
+            builder: (BuildContext context) => TextButton.icon(
+              onPressed: () => _test(context, ref),
+              icon: const Icon(Icons.volume_up_outlined),
+              label: const Text('Probar la voz'),
+            ),
           ),
         ),
         if (!speech.canPlayAudio) ...<Widget>[
           const SizedBox(height: 4),
-          // La app **no puede traer una voz incluida**: la síntesis la pone el
-          // sistema operativo, no la aplicación. Lo útil entonces no es
-          // disculparse, sino decir dónde se instala.
+          // Ni una exigencia: se dice qué pasa y que el curso se completa
+          // igual. Los pasos de instalación, si los hay para esta plataforma,
+          // salen al tocar y fallar, no antes de haberlo intentado.
           Text(
-            '${speech.audioUnavailableReason ?? ''} La voz la pone el sistema, '
-            'no la app: instálala en Ajustes de Android → Sistema → Idiomas → '
-            'Salida de texto a voz.',
+            audioUnavailableMessage,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ],
     );
+  }
+
+  /// Prueba la voz y dice qué pasó.
+  ///
+  /// Se intenta siempre, y el resultado decide el mensaje. Antes el botón ni
+  /// siquiera se podía tocar si la detección decía que no había voz, que en
+  /// iOS es lo que dice **hasta que algo habla**.
+  Future<void> _test(BuildContext context, WidgetRef ref) async {
+    final SpeakOutcome outcome = await ref
+        .read(ttsServiceProvider)
+        .speak('This is the reading speed.');
+    if (outcome.ok || !context.mounted) return;
+    showAudioUnavailable(context, outcome);
   }
 }
