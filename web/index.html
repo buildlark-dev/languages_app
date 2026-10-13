@@ -124,6 +124,45 @@
         window.addEventListener(evento, despertarVoz, { capture: true });
       });
 
+      // El micrófono, preguntado de verdad antes de intentar reconocer.
+      //
+      // La API de reconocimiento del navegador no pide permiso de forma
+      // fiable: en iOS, dentro de una PWA instalada, `start()` puede terminar
+      // sin resultado y sin diálogo, de modo que la persona no llega ni a
+      // tener la oportunidad de conceder nada. `getUserMedia` sí lo pide, y
+      // además **dice por qué** falla, que es lo que faltaba para poder
+      // explicarlo en lugar de esperar a que venza un reloj.
+      //
+      // Se suelta la pista inmediatamente: aquí no se graba nada, solo se pide
+      // permiso y se comprueba que hay entrada de audio.
+      window.appMic = {
+        /// '' si se puede escuchar; si no, el motivo.
+        probe: async function () {
+          if (!('SpeechRecognition' in window) &&
+              !('webkitSpeechRecognition' in window)) {
+            return 'no-recognizer';
+          }
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            return 'no-microphone';
+          }
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(function (track) { track.stop(); });
+            return '';
+          } catch (error) {
+            const name = (error && error.name) || '';
+            if (name === 'NotAllowedError' || name === 'SecurityError') {
+              return 'not-allowed';
+            }
+            if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+              return 'no-microphone';
+            }
+            if (name === 'NotSupportedError') return 'no-recognizer';
+            return 'unknown';
+          }
+        },
+      };
+
       window.appUpdate = {
         /// El identificador de la versión publicada ahora mismo, o "" si no se
         /// puede saber.

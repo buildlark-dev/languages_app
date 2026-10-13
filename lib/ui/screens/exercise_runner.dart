@@ -13,6 +13,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/activity_score.dart';
 import '../../core/exercise.dart';
@@ -21,6 +22,7 @@ import '../../core/teaching_material.dart';
 import '../../engine/answer_check.dart';
 import '../../engine/lesson_session.dart';
 import '../../engine/scoring.dart';
+import '../providers/speech_providers.dart';
 import '../widgets/feedback_panel.dart';
 import '../widgets/pronunciation_exercise_view.dart';
 import '../widgets/reading_passage_view.dart';
@@ -29,7 +31,7 @@ import 'lesson_exercise_body.dart';
 /// Se invoca **solo** cuando la tanda está completa.
 typedef ExercisesCompleted = Future<void> Function(ScoreResult result);
 
-class ExerciseRunner extends StatefulWidget {
+class ExerciseRunner extends ConsumerStatefulWidget {
   const ExerciseRunner({
     required this.exercises,
     required this.kind,
@@ -55,10 +57,10 @@ class ExerciseRunner extends StatefulWidget {
   final ReadingPassage? supportingPassage;
 
   @override
-  State<ExerciseRunner> createState() => _ExerciseRunnerState();
+  ConsumerState<ExerciseRunner> createState() => _ExerciseRunnerState();
 }
 
-class _ExerciseRunnerState extends State<ExerciseRunner> {
+class _ExerciseRunnerState extends ConsumerState<ExerciseRunner> {
   late LessonSession _session;
   AnswerDraft _draft = const AnswerDraft();
   bool? _lastCorrect;
@@ -108,6 +110,13 @@ class _ExerciseRunnerState extends State<ExerciseRunner> {
   Future<void> _advance() async {
     final bool? correct = _lastCorrect;
     if (correct == null) return;
+
+    // Callar antes de pasar de ejercicio. El observador de rutas cubre el
+    // cambio de pantalla, pero aquí la pantalla es la misma y solo cambia el
+    // contenido: sin esto, el audio del ejercicio anterior —una lectura larga,
+    // sobre todo— sigue sonando encima del siguiente, y el botón que lo
+    // arrancó ya no está para pararlo.
+    await ref.read(ttsServiceProvider).stop();
 
     _session.answer(
       correct ? ExerciseOutcome.correct : ExerciseOutcome.incorrect,

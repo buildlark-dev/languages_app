@@ -12,10 +12,12 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../core/activity_score.dart';
 import '../../core/exam.dart';
 import '../../core/lesson.dart';
 import '../../core/module.dart';
 import '../../core/student_progress.dart';
+import '../widgets/exam_result_label.dart';
 import '../widgets/grammar_panel.dart';
 
 class ModuleDetailScreen extends StatelessWidget {
@@ -88,6 +90,7 @@ class ModuleDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _ModuleExamCard(
               examPassed: examPassed,
+              score: progress.activityScores[module.moduleExam.id],
               passedLessons: passedLessons,
               totalLessons: module.lessons.length,
               onOpen: () => onOpenModuleExam(module.moduleExam),
@@ -135,12 +138,16 @@ class _LessonTile extends StatelessWidget {
 class _ModuleExamCard extends StatelessWidget {
   const _ModuleExamCard({
     required this.examPassed,
+    required this.score,
     required this.passedLessons,
     required this.totalLessons,
     required this.onOpen,
   });
 
   final bool examPassed;
+
+  /// El mejor intento, para poder decir con qué nota se aprobó.
+  final ActivityScore? score;
   final int passedLessons;
   final int totalLessons;
   final VoidCallback onOpen;
@@ -176,7 +183,7 @@ class _ModuleExamCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               examPassed
-                  ? 'Aprobado. Puedes repetirlo cuando quieras.'
+                  ? '${passedExamLabel(score)} Puedes repetirlo cuando quieras.'
                   : 'Necesitas 80 % para aprobarlo. Llevas $passedLessons de '
                         '$totalLessons lecciones.',
             ),

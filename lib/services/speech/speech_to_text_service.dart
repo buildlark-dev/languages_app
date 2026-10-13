@@ -32,6 +32,8 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import 'mic_probe.dart';
+import 'platform_mic_probe.dart';
 import 'stt_error_codes.dart';
 import 'stt_service.dart';
 
@@ -85,8 +87,17 @@ class SpeechToTextService implements SttService {
     }
   }
 
+  /// Lo último que dijo la sonda, para poder explicarlo al caer a la escritura.
+  SttFailure? _probedFailure;
+
   @override
   Future<bool> requestPermission() async {
+    // Primero la sonda del navegador, que es la que de verdad pide el permiso
+    // en iOS. En Android y escritorio no hace nada y el plugin sigue mandando.
+    final MicProbe probe = await probeMicrophone();
+    _probedFailure = probe.failure;
+    if (probe.failure != null) return false;
+
     try {
       _initialized = await _speech.initialize(
         // Aquí se cablean los dos canales. Es lo único que hacía falta para
@@ -103,7 +114,11 @@ class SpeechToTextService implements SttService {
   @override
   Future<SttOutcome> listenOnce(String languageTag) async {
     if (!_initialized && !(await requestPermission())) {
-      return const SttUseAlternative(SttFailure.permissionDenied);
+      // Lo que dijo la sonda manda sobre la suposición: «no hay micrófono» y
+      // «este navegador no reconoce voz» llevan a mensajes distintos, y
+      // mandar a conceder un permiso que ya está concedido es peor que no
+      // decir nada.
+      return SttUseAlternative(_probedFailure ?? SttFailure.permissionDenied);
     }
 
     // Paso 1: en el dispositivo, solo donde el reconocimiento local existe.

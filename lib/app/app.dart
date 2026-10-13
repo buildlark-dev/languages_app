@@ -11,8 +11,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/settings/settings_store.dart';
+import '../ui/providers/speech_providers.dart';
 import '../ui/widgets/update_overlay.dart';
 import 'auth_gate.dart';
+import 'speech_route_observer.dart';
 import 'sync_lifecycle.dart';
 import 'l10n/app_localizations.dart';
 import 'theme.dart';
@@ -36,11 +38,25 @@ final Provider<ThemeMode> themeModeProvider = Provider<ThemeMode>(
   (Ref ref) => ref.watch(settingsStoreProvider).themeMode,
 );
 
-class LanguagesApp extends ConsumerWidget {
+class LanguagesApp extends ConsumerStatefulWidget {
   const LanguagesApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp(
+  ConsumerState<LanguagesApp> createState() => _LanguagesAppState();
+}
+
+class _LanguagesAppState extends ConsumerState<LanguagesApp> {
+  /// Se crea **una vez**, no en cada construcción: un `NavigatorObserver` se
+  /// registra en el navegador al montarse, y entregar uno nuevo en cada
+  /// reconstrucción —el tema cambia, la app se reconstruye— lo dejaría
+  /// enganchado dos veces o ninguna.
+  late final SpeechRouteObserver _speechObserver = SpeechRouteObserver(
+    () => ref.read(ttsServiceProvider).stop(),
+  );
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    navigatorObservers: <NavigatorObserver>[_speechObserver],
     onGenerateTitle: (BuildContext context) =>
         AppLocalizations.of(context).appTitle,
     theme: lightTheme,

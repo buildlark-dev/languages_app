@@ -227,3 +227,82 @@ versión a mano, que es una decisión de proyecto y no un detalle de despliegue:
 queda anotada como trabajo aparte. Hasta entonces **FR-039 y SC-003 se cumplen
 en Android y no en web**, y decirlo es preferible a seguir contándolo como
 hecho.
+
+---
+
+## Verificación en iPhone, 13 de octubre de 2026 (segunda ronda)
+
+Recorrido hecho por el responsable del proyecto sobre la PWA instalada en un
+iPhone, contra las tareas T163 a T177. Lo que sigue es lo que se vio, no lo que
+se esperaba ver.
+
+### Aprobadas
+
+| Tarea | Criterio | Resultado |
+|---|---|---|
+| T168 | SC-006 · duración de una lección | **Cumple**: cada lección cae en la franja de 5 a 10 minutos |
+| T172 | SC-010 · 360 dp con la fuente al 130 % | **Verificado** |
+| T175 | FR-047 a FR-049 · lector de pantalla | **Verificado** |
+| T177 | persistencia en navegador tras recargar | **Verificado**: el progreso sigue ahí |
+
+### Falladas, y corregidas
+
+**T163 — SC-001, crear cuenta y llegar al primer ejercicio.** Deja crear la
+cuenta, pero la pantalla se queda estática: hay que volver atrás y entrar con la
+cuenta recién creada. El flujo esperado es que crear la cuenta lleve directo a
+la pantalla de inicio.
+
+Causa: la puerta de autenticación cambia **su** contenido al aparecer la sesión,
+pero no puede hacer nada contra lo que haya encima, y el registro se abre con
+`Navigator.push` sobre el acceso. La pantalla de inicio aparecía **debajo** de
+la de registro, que seguía tapándola. El mismo fallo en espejo al cerrar sesión
+desde Ajustes.
+
+Corregido: la puerta cierra ahora todo lo que se haya abierto encima cuando la
+sesión aparece o desaparece. Hay prueba, y se comprobó que falla sin el arreglo.
+
+**T164 — SC-002, el progreso sobrevive al reinicio.** El progreso sobrevive: se
+ven todas las lecciones aprobadas. Lo que no se veía era el resultado del examen
+de A1, que solo ofrecía volver a presentarlo.
+
+El puntaje estaba guardado —hay una prueba de persistencia que lo fija—; faltaba
+enseñarlo. Las dos tarjetas de examen decían «Aprobado» y nada más, y sin la
+nota «aprobado» y «aprobado raspando» se ven igual, de modo que no hay forma de
+saber si conviene repetir. Ahora dicen «Aprobado con un 85 %».
+
+**Audio que no se detiene.** Hallazgo nuevo, fuera de las tareas: un texto largo
+sigue sonando al cambiar de ejercicio o al salir a otra pantalla, sin ningún
+control a mano para pararlo —el botón que lo arrancó ya no está—. Corregido en
+dos sitios: un observador de rutas calla la voz en cualquier navegación, y el
+recorrido de ejercicios calla antes de pasar al siguiente, donde la pantalla es
+la misma y el observador no llega.
+
+### Falladas, con el arreglo sin verificar
+
+**El micrófono no reconoce en el ejercicio de pronunciación.** La API de
+reconocimiento del navegador no pide el permiso de forma fiable: en iOS, dentro
+de una PWA instalada, `start()` puede terminar sin resultado y **sin diálogo**,
+de modo que la persona no llega a tener la oportunidad de conceder nada.
+
+Se añadió una sonda que pide el permiso con `getUserMedia` antes de intentar
+reconocer —que sí dispara el diálogo del sistema— y que devuelve el motivo real
+cuando falla: permiso denegado, sin micrófono, o sin reconocedor en esta
+plataforma. En Android y escritorio no cambia nada.
+
+**No está verificado y no se puede verificar desde aquí**: el cambio es una
+llamada al navegador que no existe en la VM de Dart, así que una prueba en este
+entorno solo recorrería el camino que ya funcionaba. Hace falta un iPhone.
+
+Si tras esto el micrófono sigue sin reconocer, el dato que decide es **cuál de
+los tres mensajes aparece**: si sale el del permiso, el diálogo se está negando;
+si sale el de «sin reconocedor», WebKit no expone reconocimiento de voz dentro de
+una PWA instalada y la salida es la alternativa escrita, no un arreglo.
+
+### Pendientes, declaradas como tales
+
+| Tarea | Estado |
+|---|---|
+| T165 | SC-003 · navega y suena el audio en modo avión; **falta** comprobar que el progreso se guarda |
+| T166 | SC-004 · sin verificar |
+| T167 | SC-005 · sin verificar |
+| T170 | SC-008 · sin verificar |

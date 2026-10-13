@@ -376,16 +376,16 @@ el porcentaje de avance.
 - [ ] T165 **SC-003** · Recorrer una lección completa en modo avión, **incluido el audio**, tras haber iniciado sesión una vez. Ninguna pantalla en blanco ni espera indefinida
 - [ ] T166 **SC-004** · Dos destinos abiertos en primer plano con la misma cuenta: aprobar una lección en el emulador y comprobar que aparece en Chrome en menos de 30 s **sin recargar ni reiniciar**
 - [ ] T167 **SC-005** · Avanzar **distinto** en los dos destinos en modo avión, restaurar la conexión en ambos y verificar que se conserva lo mejor de cada uno
-- [ ] T168 **SC-006** · Cronometrar cada lección de A1 y confirmar que cae entre 5 y 10 minutos
+- [X] T168 **SC-006** · Cronometrar cada lección de A1 y confirmar que cae entre 5 y 10 minutos
 - [X] T169 **SC-007** · Responder mal a propósito en cada tipo de ejercicio y comprobar que la explicación dice por qué
 - [ ] T170 **SC-008** · Revocar el permiso de micrófono y silenciar el dispositivo; recorrer y **aprobar** una lección completa con las alternativas accesibles
 - [X] T171 **SC-009** · Intentar todas las rutas de acceso a un nivel bloqueado y a un nivel anunciado; ninguna debe abrir
-- [ ] T172 **SC-010** · `adb shell wm size 360x800` y `font_scale 1.3`; recorrer **todas** las pantallas con atención a la gramática larga y las tablas; restaurar al terminar
+- [X] T172 **SC-010** · `adb shell wm size 360x800` y `font_scale 1.3`; recorrer **todas** las pantallas con atención a la gramática larga y las tablas; restaurar al terminar
 - [X] T173 **SC-011** · Crear un curso de prueba de un módulo, registrarlo, comprobar que es recorrible, y verificar con `git status --short lib/core lib/engine lib/services lib/ui` que la salida está **vacía**; descartar el curso al terminar
 - [X] T174 **SC-012** · Cubierto por `streak_tracker_test.dart`; confirmar que la prueba recorre la semana completa con el reloj inyectado
-- [ ] T175 **FR-047 a FR-049** · Activar TalkBack y recorrer una lección **solo escuchando**; verificar etiquetas semánticas en todo control, objetivos táctiles de 48 dp y contraste WCAG AA en claro **y** oscuro
+- [X] T175 **FR-047 a FR-049** · Activar TalkBack y recorrer una lección **solo escuchando**; verificar etiquetas semánticas en todo control, objetivos táctiles de 48 dp y contraste WCAG AA en claro **y** oscuro
 - [X] T176 **FR-045 y FR-046** · Exportar, seguir avanzando, importar el respaldo viejo y confirmar que no se pierde nada; importar un archivo corrupto; borrar con confirmación
-- [ ] T177 Verificar persistencia en navegador: aprobar una lección, recargar con F5 y comprobar que el progreso sigue. Confirma que `sqlite3.wasm` y `drift_worker.js` están bien instalados
+- [X] T177 Verificar persistencia en navegador: aprobar una lección, recargar con F5 y comprobar que el progreso sigue. Confirma que `sqlite3.wasm` y `drift_worker.js` están bien instalados
 - [X] T178 Ejecutar `flutter build web --release` y `firebase deploy --only hosting`
 - [ ] T179 Añadir el dominio personalizado `languages.buildlark.com` en la consola de Firebase Hosting y configurar los registros DNS que entregue
 - [ ] T180 Verificar la app publicada en `languages.buildlark.com`: registro, lección completa y persistencia tras recargar
