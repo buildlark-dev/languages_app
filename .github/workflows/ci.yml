@@ -1,0 +1,110 @@
+# Las dos primeras puertas de calidad de la constitución, automáticas.
+#
+# El flujo de desarrollo dice: «1. `flutter analyze` sin errores ni advertencias
+# nuevas. 2. `flutter test` en verde». Hasta ahora eso solo se cumplía cuando
+# alguien se acordaba de ejecutarlo en su máquina, y en un PR de 262 archivos
+# que va a `main` eso significa que nada impide fusionar algo roto.
+#
+# El tercer trabajo —compilar para web— no está por costumbre: este proyecto se
+# ha roto **dos veces** de formas que solo aparecen al compilar para ese
+# destino y que `flutter test` no ve, porque las pruebas corren en la VM de
+# Dart:
+#
+#   * un `import` de `package:drift/native.dart` que arrastra `dart:ffi`, que
+#     en web no existe;
+#   * un registro de plugins reutilizado de un build anterior a una
+#     dependencia, que se publicó y dejó la app sin `shared_preferences` en
+#     silencio.
+#
+# Por eso aquí se compila y además se comprueba el registro generado, igual que
+# hace `tool/build_web.ps1` antes de publicar.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Si se empuja dos veces seguidas, la primera ejecución sobra.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # La misma que usa el proyecto. Fijarla es deliberado: «la última estable»
+  # convierte una actualización de Flutter en un fallo de CI sin que nadie haya
+  # tocado el código, y la constitución fija el SDK en `pubspec.yaml`.
+  FLUTTER_VERSION: '3.44.2'
+
+jobs:
+  quality:
+    name: analyze y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # Las pruebas de la base de datos abren sqlite de verdad con
+      # `NativeDatabase.memory()`, así que necesitan la biblioteca del sistema.
+      # Suele venir en la imagen; pedirla explícitamente quita el «suele».
+      - name: Instalar sqlite
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+
+      - run: flutter pub get
+
+      # Falla con cualquier aviso, no solo con errores: es lo que pide el
+      # Principio V.
+      - run: flutter analyze
+
+      - run: flutter test
+
+  web:
+    name: build web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # `--no-web-resources-cdn` sirve canvaskit desde el propio dominio, que es
+      # lo que permite guardarlo para funcionar sin conexión. Se compila igual
+      # que se publica: un build de CI que no se parece al de producción no
+      # demuestra nada sobre producción.
+      - name: Compilar
+        run: >
+          flutter build web --release --no-web-resources-cdn
+          --dart-define=BUILD_ID=ci-${{ github.sha }}
+
+      # La comprobación que faltaba el día que se publicó un paquete sin
+      # `shared_preferences`: cada plugin que el proyecto declara para web tiene
+      # que aparecer en el registro que generó **este** build.
+      - name: Comprobar el registro de plugins web
+        run: |
+          registrant=$(find .dart_tool/flutter_build -name web_plugin_registrant.dart | head -1)
+          if [ -z "$registrant" ]; then
+            echo "El build no generó web_plugin_registrant.dart"
+            exit 1
+          fi
+          echo "Registro: $registrant"
+          missing=0
+          for plugin in $(jq -r '.plugins.web[].name' .flutter-plugins-dependencies); do
+            if grep -q "package:$plugin/" "$registrant"; then
+              echo "  ok      $plugin"
+            else
+              echo "  FALTA   $plugin"
+              missing=1
+            fi
+          done
+          exit $missing
