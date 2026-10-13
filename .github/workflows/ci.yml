@@ -22,8 +22,12 @@
 name: CI
 
 on:
+  # `push` solo en `main`, y las ramas de trabajo por su pull request. Con
+  # `push` en todas las ramas, cada empujón a una rama con PR abierto lanzaba
+  # **dos** ejecuciones idénticas: se vio en la primera, y gastar el doble de
+  # minutos para saber lo mismo dos veces no es redundancia útil.
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
 
 # Si se empuja dos veces seguidas, la primera ejecución sobra.
@@ -35,14 +39,20 @@ env:
   # La misma que usa el proyecto. Fijarla es deliberado: «la última estable»
   # convierte una actualización de Flutter en un fallo de CI sin que nadie haya
   # tocado el código, y la constitución fija el SDK en `pubspec.yaml`.
+  #
+  # Por el mismo motivo la imagen es `ubuntu-24.04` y no `ubuntu-latest`:
+  # GitHub avisó en la primera ejecución de que `ubuntu-latest` pasa a Ubuntu
+  # 26 el 19 de octubre. Una CI que se pone roja sola, la semana en que se está
+  # verificando la app, cuesta más explicarla que actualizar la línea cuando
+  # toque.
   FLUTTER_VERSION: '3.44.2'
 
 jobs:
   quality:
     name: analyze y pruebas
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: subosito/flutter-action@v2
         with:
@@ -66,9 +76,9 @@ jobs:
 
   web:
     name: build web
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: subosito/flutter-action@v2
         with:
