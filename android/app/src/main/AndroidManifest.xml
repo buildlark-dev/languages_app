@@ -1,4 +1,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Red. Flutter la añade sola a los manifiestos de depuración y de perfil,
+         pero NO a este, así que una compilación de publicación se quedaba sin
+         internet: la cuenta no se podía crear y la sincronización no existía.
+         No se nota probando en depuración, que es justo donde se prueba. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Micrófono, para los ejercicios de pronunciación (FR-016). Sin esta
+         línea, pedir el permiso en tiempo de ejecución se deniega de inmediato
+         y sin diálogo, así que el reconocimiento no se activaba nunca. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- Visibilidad de paquetes, obligatoria desde Android 11 (API 30).
+         Sin declarar estas consultas, la app **no ve** el motor de síntesis ni
+         el de reconocimiento aunque estén instalados: `flutter_tts` informa de
+         que no hay voces y `speech_to_text` de que no hay reconocedor. Ese era
+         el motivo de que «Probar la voz» no sonara y de que el micrófono no se
+         detectara en las lecciones. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH"/>
+        </intent>
+    </queries>
+
     <application
         android:label="languages_app"
         android:name="${applicationName}"

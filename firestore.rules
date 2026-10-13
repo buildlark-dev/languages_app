@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// Security rules for languages_app.
+//
+// These are the piece that actually protects a student's data: the Firebase
+// configuration files (firebase_options.dart, google-services.json) are public client
+// identifiers and anyone can pull them out of a published APK. See
+// specs/001-english-a1-core/contracts/firestore.md
+//
+// Verified by running them, not by reading them: tool/verify_firestore_rules.sh
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Each person reaches only their own progress.
+    match /users/{uid}/courses/{courseId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid;
+    }
+
+    // Everything else is denied. Deny by default, so no new path is left open by
+    // forgetting about it.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

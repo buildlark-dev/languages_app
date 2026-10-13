@@ -1,122 +1,130 @@
+/// Raíz de composición.
+///
+/// Es el **único** archivo autorizado a importar contenido concreto
+/// (`content/catalog.dart`), según el Principio II de la constitución v1.1.0. Su
+/// trabajo es exactamente ese: unir las piezas que las demás capas solo conocen
+/// como contratos.
+library;
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-void main() {
-  runApp(const MyApp());
-}
+import 'app/app.dart';
+import 'content/catalog.dart';
+import 'core/clock.dart';
+import 'firebase_options.dart';
+import 'services/auth/firebase_auth_service.dart';
+import 'services/db/app_database.dart';
+import 'services/db/database_opener.dart';
+import 'services/db/memory_database.dart';
+import 'services/db/progress_dao.dart';
+import 'services/db/review_dao.dart';
+import 'services/backup/json_backup_service.dart';
+import 'services/progress/drift_progress_store.dart';
+import 'services/review/drift_review_store.dart';
+import 'services/settings/prefs_settings_store.dart';
+import 'services/settings/settings_store.dart';
+import 'services/speech/flutter_tts_service.dart';
+import 'services/speech/speech_to_text_service.dart';
+import 'services/sync/firestore_sync_service.dart';
+import 'services/update/platform_update_checker.dart';
+import 'ui/providers/auth_providers.dart';
+import 'ui/providers/backup_providers.dart';
+import 'ui/providers/content_providers.dart';
+import 'ui/providers/progress_providers.dart';
+import 'ui/providers/review_providers.dart';
+import 'ui/providers/speech_providers.dart';
+import 'ui/providers/update_providers.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Se desactiva la caché local de Firestore a propósito.
+  //
+  // El almacén autoritativo es Drift. Dejar activa la persistencia de Firestore
+  // crearía una segunda caché que resuelve conflictos por última escritura gana,
+  // y entonces estudiar sin red en el teléfono y abrir después el PC borraría el
+  // avance del teléfono. FR-042 lo prohíbe, y la fusión monotónica de
+  // `progress_merger` existe precisamente para no depender de esa resolución.
+  //
+  // Desactivarla NO impide escuchar cambios en vivo: lo que se apaga es la caché
+  // en disco, no la suscripción de la que vive SC-004.
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: false,
+  );
+
+  // El almacén local es la fuente de verdad del progreso. Si falla, la app sigue
+  // siendo usable sobre una base volátil y lo dice (FR-043).
+  //
+  // La reserva llega por importación condicional (`memory_database.dart`) y no
+  // se construye aquí: importar `drift/native.dart` desde la raíz arrastra
+  // `dart:ffi`, que no existe en web, y el build web falla con un error que
+  // apunta a sqlite3 en lugar de a la línea culpable.
+  final DatabaseOpenResult store = await openAppDatabase(
+    openPrimary: AppDatabase.new,
+    openFallback: openMemoryDatabase,
+  );
+
+  // El mismo almacén para el progreso y para el respaldo: el respaldo lee y
+  // escribe exactamente lo que la app usa, no una copia paralela.
+  final DriftProgressStore progressStore = DriftProgressStore(
+    ProgressDao(store.database),
+  );
+
+  // Las preferencias se cargan antes de la interfaz porque el tema se lee al
+  // construir el primer widget. Si el almacenamiento falla, se sigue con la
+  // reserva en memoria: perder el modo oscuro es un inconveniente, no una razón
+  // para no arrancar.
+  SettingsStore settings;
+  try {
+    settings = await PrefsSettingsStore.open();
+  } catch (error) {
+    // La reserva deja constancia en lugar de caer en silencio. Una reserva
+    // callada es exactamente lo que hizo que durante cuatro revisiones nadie
+    // viera que las preferencias no se guardaban: funcionaba casi bien.
+    debugPrint('Preferencias no disponibles, se usará la reserva: $error');
+    settings = InMemorySettingsStore();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+  runApp(
+    ProviderScope(
+      overrides: [
+        courseCatalogProvider.overrideWithValue(const AppCourseCatalog()),
+        settingsStoreProvider.overrideWithValue(settings),
+        authServiceProvider.overrideWithValue(
+          FirebaseAuthService(fb.FirebaseAuth.instance),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
+        syncServiceProvider.overrideWithValue(
+          FirestoreSyncService(FirebaseFirestore.instance),
+        ),
+        storageDegradedProvider.overrideWithValue(store.degraded),
+        reviewStoreProvider.overrideWithValue(
+          DriftReviewStore(ReviewDao(store.database)),
+        ),
+        progressStoreProvider.overrideWithValue(progressStore),
+        backupServiceProvider.overrideWithValue(
+          JsonBackupService(progressStore, clock: systemClock),
+        ),
+        // La voz se inicializa de forma perezosa, al preparar el curso: consultar
+        // las voces del sistema tarda, y hacerlo en el arranque retrasaría la
+        // primera pantalla sin que nadie lo necesite todavía.
+        ttsServiceProvider.overrideWithValue(FlutterTtsService(FlutterTts())),
+        sttServiceProvider.overrideWithValue(
+          SpeechToTextService(stt.SpeechToText()),
+        ),
+        // En web pregunta por `build-id.json`; en las demás plataformas
+        // contesta que no hay nada, porque allí la versión la cambia el
+        // paquete y no la app.
+        updateCheckerProvider.overrideWithValue(createUpdateChecker()),
+      ],
+      child: const LanguagesApp(),
+    ),
+  );
 }

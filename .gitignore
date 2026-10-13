@@ -52,5 +52,3 @@ firestore-debug.log
 .env.*
 !.env.example
 *-service-account*.json
-google-services.json
-GoogleService-Info.plist

@@ -50,13 +50,30 @@ Reglas:
   `lib/engine/` (lógica de aprendizaje), `lib/ui/` (pantallas y widgets),
   `lib/content/<codigo_idioma>/` (datos didácticos), `lib/services/` (persistencia,
   audio, Firebase).
-- El sentido de las dependencias es `ui → engine → core` y `content → core`. Ninguna
-  flecha en sentido contrario: `core` no importa `ui`, el motor no importa contenido
-  concreto.
+- El sentido de las dependencias es el siguiente, y ninguna flecha admite sentido
+  contrario:
+
+  ```
+  ui       →  engine  →  core
+  ui       →  services →  engine  →  core
+  content  →  core
+  ```
+
+  En concreto: `core` NO DEBE importar ninguna otra capa; `engine` NO DEBE importar
+  `ui`, `services` ni `content`; `services` implementa contratos de `core`, PUEDE
+  importar `engine` y NO DEBE importar `ui` ni `content`; `content` NO DEBE importar
+  nada salvo `core`; `ui` PUEDE importar `engine` y `services`, y NO DEBE importar
+  `content`. El único archivo autorizado a importar contenido concreto es la raíz de
+  composición (`main.dart`).
+- Esta regla DEBE verificarse con una prueba automatizada que inspeccione los `import`
+  de cada archivo, no por revisión visual. Una violación DEBE romper la suite.
 
 Rationale: el requisito explícito es poder abrir un archivo y saber qué hace sin leer
 todo el proyecto de corrido; esa navegabilidad solo se sostiene si la regla es
-estructural, no una buena intención.
+estructural, no una buena intención. El grafo se enuncia capa por capa porque una
+formulación parcial deja código sin regla aplicable: la versión anterior omitía
+`services`, que es aproximadamente un tercio del proyecto, y por tanto la prueba de
+arquitectura no tenía nada que exigirle.
 
 ### III. Rigor pedagógico verificable (MCER)
 
@@ -260,4 +277,4 @@ Cumplimiento:
   `CLAUDE.md` en la raíz del repositorio. Ese archivo guía la ejecución, pero nunca
   contradice esta constitución.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-06
+**Version**: 1.1.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-06
