@@ -37,6 +37,32 @@ void main() {
       expect(passedExamLabel(null), 'Aprobado.');
     });
 
+    test('un examen suspendido dice cuánto se sacó', () {
+      // Visto en el emulador Pixel 7: el examen de A1 nunca se aprobó, y la
+      // tarjeta solo decía «Necesitas 80 % para superar el nivel». Quien
+      // suspendió por poco y quien suspendió por mucho veían lo mismo, y es
+      // justo lo que se reportó como «no muestra el resultado que se obtuvo».
+      final ActivityScore score = ActivityScore(
+        kind: ActivityKind.levelExam,
+        bestScore: 0.65,
+        lastAttemptAt: DateTime(2026, 10, 13),
+      );
+
+      expect(
+        pendingExamLabel(score, pending: 'Necesitas 80 %.'),
+        'Tu mejor intento: 65 %. Necesitas 80 %.',
+      );
+    });
+
+    test('sin intentos no se inventa ningún resultado', () {
+      // Antes de presentarse por primera vez no hay nada que contar, y un
+      // «0 %» sería una nota que nadie sacó.
+      expect(
+        pendingExamLabel(null, pending: 'Necesitas 80 %.'),
+        'Necesitas 80 %.',
+      );
+    });
+
     test('un 80 % justo se dice como 80 y no como 79', () {
       // El umbral de los exámenes. Si el redondeo de la tarjeta no coincide
       // con el de la pantalla de resultados, el mismo examen parece aprobado

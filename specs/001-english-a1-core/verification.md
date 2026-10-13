@@ -230,79 +230,66 @@ hecho.
 
 ---
 
-## Verificación en iPhone, 13 de octubre de 2026 (segunda ronda)
+## T191 · Recorrido en el emulador Pixel 7, 13 de octubre de 2026
 
-Recorrido hecho por el responsable del proyecto sobre la PWA instalada en un
-iPhone, contra las tareas T163 a T177. Lo que sigue es lo que se vio, no lo que
-se esperaba ver.
+Primera vez que la app se abre en Android. Hasta hoy se compilaba, se corregía
+su manifiesto y se verificaba el APK, pero **ninguna pantalla se había visto
+corriendo ahí**. La sesión la inició el responsable del proyecto; el recorrido
+lo hizo Claude por `adb`, sin tocar el borrado de progreso.
 
-### Aprobadas
+### Lo que se vio, pantalla por pantalla
 
-| Tarea | Criterio | Resultado |
+| # | Pantalla | Qué se vio |
 |---|---|---|
-| T168 | SC-006 · duración de una lección | **Cumple**: cada lección cae en la franja de 5 a 10 minutos |
-| T172 | SC-010 · 360 dp con la fuente al 130 % | **Verificado** |
-| T175 | FR-047 a FR-049 · lector de pantalla | **Verificado** |
-| T177 | persistencia en navegador tras recargar | **Verificado**: el progreso sigue ahí |
+| 1 | Acceso | Correo, contraseña, «Entrar», «¿No tienes cuenta? Créala» y «Olvidé mi contraseña» |
+| 4 | Inicio | Correo de la sesión, catálogo con «Inglés · 1 nivel(es) · 5 próximo»; tras elegir curso, la tarjeta de repaso |
+| 5 | Mapa de niveles | Oferta de nivelación, A1 «Fundamentos» con su barra, A2 a C2 como «Próximo» y bloqueados |
+| 6 | Módulos del nivel | Los cuatro módulos con su check de aprobado y la tarjeta del examen de A1 |
+| 7 | Detalle de módulo | Objetivo «Al terminar podrás», dos lecciones aprobadas, gramática plegable y examen del módulo |
+| 8 | Lección | Vocabulario con emoji, traducción sin artículo y **botón de altavoz en cada ítem** |
+| 9 | Examen | «Ejercicio 1 de 10», opción múltiple, barra de avance, «Comprobar» deshabilitado hasta elegir |
+| 12 | Progreso | 100 % de A1, 4 de 4 módulos, 48 palabras al día, 1 día seguido, 504 XP, niveles con su estado |
+| 13 | Ajustes | Tema, velocidad de voz con «Probar la voz», respaldo y borrado en rojo con su alcance escrito |
 
-### Falladas, y corregidas
+### Lo que no se pudo ver, y por qué
 
-**T163 — SC-001, crear cuenta y llegar al primer ejercicio.** Deja crear la
-cuenta, pero la pantalla se queda estática: hay que volver atrás y entrar con la
-cuenta recién creada. El flujo esperado es que crear la cuenta lleve directo a
-la pantalla de inicio.
+| # | Pantalla | Qué lo impide |
+|---|---|---|
+| 2 | Registro | Solo se llega desde el acceso, y llegar exige cerrar la sesión |
+| 3 | Restablecer contraseña | Igual |
+| 10 | Repaso | No hay nada vencido: la tarjeta dice «estás al día» y no se abre |
+| 11 | Nivelación | La oferta se oculta cuando ya hay avance, que es el comportamiento correcto |
 
-Causa: la puerta de autenticación cambia **su** contenido al aparecer la sesión,
-pero no puede hacer nada contra lo que haya encima, y el registro se abre con
-`Navigator.push` sobre el acceso. La pantalla de inicio aparecía **debajo** de
-la de registro, que seguía tapándola. El mismo fallo en espejo al cerrar sesión
-desde Ajustes.
+Son cuatro de trece. **T191 queda abierta**: declarar «recorrido» un recorrido
+incompleto es exactamente lo que el Principio V prohíbe.
 
-Corregido: la puerta cierra ahora todo lo que se haya abierto encima cuando la
-sesión aparece o desaparece. Hay prueba, y se comprobó que falla sin el arreglo.
+### Lo que el recorrido encontró
 
-**T164 — SC-002, el progreso sobrevive al reinicio.** El progreso sobrevive: se
-ven todas las lecciones aprobadas. Lo que no se veía era el resultado del examen
-de A1, que solo ofrecía volver a presentarlo.
+**La sincronización trae el progreso en vivo.** A las 8:08 el nivel A1 marcaba
+`0/4` —instalación nueva, base local vacía—. A las 8:09, sin reiniciar la app ni
+tocar nada, marcaba `4/4` y la oferta de nivelación había desaparecido sola. Es
+evidencia directa de SC-004 en un dispositivo recién instalado, aunque no
+sustituye a T166, que pide el caso de dos destinos en primer plano a la vez.
 
-El puntaje estaba guardado —hay una prueba de persistencia que lo fija—; faltaba
-enseñarlo. Las dos tarjetas de examen decían «Aprobado» y nada más, y sin la
-nota «aprobado» y «aprobado raspando» se ven igual, de modo que no hay forma de
-saber si conviene repetir. Ahora dicen «Aprobado con un 85 %».
+**El audio funciona en Android.** Al tocar el altavoz de «name», con `logcat`:
 
-**Audio que no se detiene.** Hallazgo nuevo, fuera de las tareas: un texto largo
-sigue sonando al cambiar de ejercicio o al salir a otra pantalla, sin ningún
-control a mano para pararlo —el botón que lo arrancó ya no está—. Corregido en
-dos sitios: un observador de rutas calla la voz en cualquier navegación, y el
-recorrido de ejercicios calla antes de pasar al siguiente, donde la pantalla es
-la misma y el observador no llega.
+```
+GoogleTTSServiceImpl: Synthesis request for locale eng-USA and name en-US-language
+GoogleTTSServiceImpl: TTS dispatch: en-us-x-iog-seanet-embedded
+TTS: Utterance ID has started → has completed
+```
 
-### Falladas, con el arreglo sin verificar
+**El arreglo de T164 se ve funcionando**: «Aprobado con un 100 %. Puedes
+repetirlo cuando quieras.»
 
-**El micrófono no reconoce en el ejercicio de pronunciación.** La API de
-reconocimiento del navegador no pide el permiso de forma fiable: en iOS, dentro
-de una PWA instalada, `start()` puede terminar sin resultado y **sin diálogo**,
-de modo que la persona no llega a tener la oportunidad de conceder nada.
+**Fallo nuevo: el título de la gramática salía con el HTML en crudo** — «El
+verbo `<i>to be</i>` y los pronombres». El cuerpo sí se renderizaba, así que el
+mismo texto se veía bien dentro del panel y mal en su encabezado. Corregido.
 
-Se añadió una sonda que pide el permiso con `getUserMedia` antes de intentar
-reconocer —que sí dispara el diálogo del sistema— y que devuelve el motivo real
-cuando falla: permiso denegado, sin micrófono, o sin reconocedor en esta
-plataforma. En Android y escritorio no cambia nada.
-
-**No está verificado y no se puede verificar desde aquí**: el cambio es una
-llamada al navegador que no existe en la VM de Dart, así que una prueba en este
-entorno solo recorrería el camino que ya funcionaba. Hace falta un iPhone.
-
-Si tras esto el micrófono sigue sin reconocer, el dato que decide es **cuál de
-los tres mensajes aparece**: si sale el del permiso, el diálogo se está negando;
-si sale el de «sin reconocedor», WebKit no expone reconocimiento de voz dentro de
-una PWA instalada y la salida es la alternativa escrita, no un arreglo.
-
-### Pendientes, declaradas como tales
-
-| Tarea | Estado |
-|---|---|
-| T165 | SC-003 · navega y suena el audio en modo avión; **falta** comprobar que el progreso se guarda |
-| T166 | SC-004 · sin verificar |
-| T167 | SC-005 · sin verificar |
-| T170 | SC-008 · sin verificar |
+**Y el diagnóstico de T164 era incompleto.** El examen de A1 **nunca se ha
+aprobado**: la pantalla de progreso marca A1 como «En curso», no como superado,
+y la tarjeta ofrece «Presentar el examen». Así que lo que faltaba no era solo
+enseñar la nota al aprobar, sino **no esconder el intento que no aprobó**: la
+tarjeta decía «Necesitas 80 % para superar el nivel» y nada más, de modo que
+quien suspendió por poco y quien suspendió por mucho veían lo mismo. Ahora dice
+«Tu mejor intento: 65 %. Necesitas 80 % para superar el nivel.»

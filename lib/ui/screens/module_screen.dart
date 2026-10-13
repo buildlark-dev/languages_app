@@ -167,7 +167,10 @@ class _LevelExamCard extends StatelessWidget {
               passed
                   ? '${passedExamLabel(score)} Ya superaste el nivel.'
                   : available
-                  ? 'Necesitas 80 % para superar el nivel.'
+                  ? pendingExamLabel(
+                      score,
+                      pending: 'Necesitas 80 % para superar el nivel.',
+                    )
                   : 'Aprueba los $total módulos para presentarlo. '
                         'Llevas $passedModules.',
             ),

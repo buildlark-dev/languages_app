@@ -19,6 +19,7 @@ import '../../core/module.dart';
 import '../../core/student_progress.dart';
 import '../widgets/exam_result_label.dart';
 import '../widgets/grammar_panel.dart';
+import '../widgets/simple_html_text.dart';
 
 class ModuleDetailScreen extends StatelessWidget {
   const ModuleDetailScreen({
@@ -83,7 +84,12 @@ class ModuleDetailScreen extends StatelessWidget {
             // practica, y tener que entrar en una lección para releerla
             // obligaría a empezar un recorrido solo para consultar.
             ExpansionTile(
-              title: Text(module.grammar.title),
+              // El título lleva marcado —`<i>to be</i>`— porque los nombres de
+              // las formas gramaticales van en cursiva. Un `Text` lo enseñaba
+              // en crudo: «El verbo <i>to be</i> y los pronombres», visto en el
+              // emulador Pixel 7. Dentro del panel sí se renderizaba, así que
+              // el mismo texto salía bien en un sitio y mal en el otro.
+              title: SimpleHtmlText(module.grammar.title),
               tilePadding: EdgeInsets.zero,
               children: <Widget>[GrammarPanel(grammar: module.grammar)],
             ),
@@ -184,8 +190,12 @@ class _ModuleExamCard extends StatelessWidget {
             Text(
               examPassed
                   ? '${passedExamLabel(score)} Puedes repetirlo cuando quieras.'
-                  : 'Necesitas 80 % para aprobarlo. Llevas $passedLessons de '
-                        '$totalLessons lecciones.',
+                  : pendingExamLabel(
+                      score,
+                      pending:
+                          'Necesitas 80 % para aprobarlo. Llevas '
+                          '$passedLessons de $totalLessons lecciones.',
+                    ),
             ),
             const SizedBox(height: 16),
             examPassed

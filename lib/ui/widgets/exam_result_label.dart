@@ -27,6 +27,21 @@ String passedExamLabel(ActivityScore? score) {
   return 'Aprobado con un ${percentageOf(score)} %.';
 }
 
+/// Qué se dice del examen que **todavía no** está aprobado.
+///
+/// Si hubo intentos, lo primero es el resultado: «Tu mejor intento: 65 %».
+/// Callarlo era el fallo que se reportó verificando —«no muestra el resultado
+/// que se obtuvo»— y es el peor de los silencios posibles, porque quien
+/// suspendió por poco y quien suspendió por mucho ven exactamente lo mismo y
+/// no saben si les falta repasar media hora o media semana.
+///
+/// Sin intentos no se inventa nada: se devuelve solo [pending], que es lo que
+/// hace falta saber antes de presentarse por primera vez.
+String pendingExamLabel(ActivityScore? score, {required String pending}) {
+  if (score == null) return pending;
+  return 'Tu mejor intento: ${percentageOf(score)} %. $pending';
+}
+
 /// La nota del mejor intento, redondeada a entero.
 ///
 /// Se redondea igual que en la pantalla de resultados, para que el número que
