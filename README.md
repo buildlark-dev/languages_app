@@ -1,69 +1,29 @@
-# languages_app
+## Languages App
+A language-learning app built with Flutter/Dart that takes a Spanish speaker from absolute zero to fluency, following a CEFR path (A1 to C2).
 
-Aplicación de aprendizaje de idiomas construida en Flutter/Dart. Lleva a una persona
-hispanohablante desde cero absoluto hasta hablar con fluidez, siguiendo una ruta por
-niveles del Marco Común Europeo de Referencia (A1 → C2).
+# Problem
+Most language apps lock you into one language and mix content with logic, so adding a new language means rebuilding the app.
 
-**Idiomas iniciales:** inglés, francés y portugués. La arquitectura está diseñada para
-añadir idiomas nuevos sin tocar el motor de aprendizaje.
+# Solution
+A language-agnostic learning engine: all teaching content lives in lib/content/<language>/ and implements shared contracts, so new languages are added without touching the engine.
 
-## Estado
+## Key features
+- Initial languages: English, French, Portuguese
+- CEFR-based progression (A1 to C2)
+- Scoring, spaced repetition (SRS) and unlocks in a dedicated engine
+- Clean, one-directional architecture
+- Tech stack
+- Flutter/Dart - Firebase Hosting - Android + Web
 
-En desarrollo inicial. La gobernanza del proyecto está definida en
-[`.specify/memory/constitution.md`](.specify/memory/constitution.md) y es de lectura
-obligatoria antes de contribuir.
+# Architecture
+**ui -> engine -> core <- content.** Dependencies flow one way; the engine knows no specific language.
 
-## Stack
+# Status
+Early development.
 
-| Pieza | Elección |
-|---|---|
-| Lenguaje | Dart |
-| Framework | Flutter (SDK `^3.12.2`) |
-| Editor | Visual Studio Code |
-| Plataformas primarias | Android y Web |
-| Hosting | Firebase Hosting → `languages.buildlark.com` |
+# Demo
+languages-buildlark.web.app
 
-## Arquitectura
+# Screenshots: Pending...
 
-Las dependencias fluyen en un solo sentido: `ui → engine → core ← content`.
-
-```
-lib/
-  core/                  modelos y contratos compartidos
-  engine/                lógica de aprendizaje (puntuación, SRS, desbloqueos)
-  ui/                    pantallas y widgets
-  content/<idioma>/      datos didácticos por idioma (en, fr, pt, ...)
-  services/              persistencia, audio, Firebase
-  main.dart              punto de entrada
-```
-
-El motor no conoce ningún idioma concreto: todo el contenido vive en
-`lib/content/<idioma>/` implementando los contratos de `lib/core/`.
-
-## Comandos
-
-Instalar dependencias:
-
-```bash
-flutter pub get
-```
-
-Ejecutar en el dispositivo o emulador conectado:
-
-```bash
-flutter run
-```
-
-Puertas de calidad obligatorias antes de cada commit:
-
-```bash
-flutter analyze && flutter test
-```
-
-## Flujo de trabajo
-
-El desarrollo sigue [Spec Kit](https://github.com/github/spec-kit):
-`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`.
-
-`main` avanza por pull request fusionado. Es una convención de equipo, sostenida por
-disciplina: no hay protección de rama en el servidor ni hooks que la impongan.
+### For local setup and deployment, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
