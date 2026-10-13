@@ -1,16 +1,16 @@
 #!/bin/sh
-# Verifica las reglas de seguridad de Firestore contra el emulador.
+# Verifies the Firestore security rules against the emulator.
 #
-# Una revisión visual de firestore.rules no sustituye esto: las reglas son el
-# único mecanismo que protege el progreso de un estudiante frente a otro, y su
-# comportamiento solo se conoce ejecutándolas.
+# Reading firestore.rules is no substitute for this: the rules are the only mechanism
+# protecting one student's progress from another, and their behaviour is only known by
+# running them.
 #
-# Uso:
+# Usage:
 #   firebase emulators:start --only firestore --project languages-buildlark
 #   sh tool/verify_firestore_rules.sh
 #
-# El emulador acepta JWT **sin firmar**, que es la forma documentada de probar
-# reglas por HTTP sin depender de las bibliotecas de JavaScript.
+# The emulator accepts **unsigned** JWTs, which is the documented way to test rules over
+# HTTP without depending on the JavaScript libraries.
 
 set -e
 
@@ -40,11 +40,11 @@ status() { # method url [token]
   fi
 }
 
-check() { # descripción esperado real
+check() { # description expected actual
   if [ "$2" = "$3" ]; then
-    printf '  OK   %s (%s)\n' "$1" "$3"
+    printf '  OK    %s (%s)\n' "$1" "$3"
   else
-    printf '  FALLA %s: esperaba %s, obtuvo %s\n' "$1" "$2" "$3"
+    printf '  FAIL  %s: expected %s, got %s\n' "$1" "$2" "$3"
     FAILED=1
   fi
 }
@@ -54,16 +54,16 @@ T2=$(mktoken u2)
 DOC="$BASE/users/u1/courses/en"
 FAILED=0
 
-echo "Reglas de Firestore contra $HOST (proyecto $PROJ)"
-check "u1 escribe su propio progreso"        200 "$(status PATCH "$DOC" "$T1")"
-check "u1 lee su propio progreso"            200 "$(status GET   "$DOC" "$T1")"
-check "u2 NO puede leer el de u1"            403 "$(status GET   "$DOC" "$T2")"
-check "u2 NO puede escribir el de u1"        403 "$(status PATCH "$DOC" "$T2")"
-check "sin sesión NO puede leer"             403 "$(status GET   "$DOC")"
-check "ninguna otra ruta queda abierta"      403 "$(status PATCH "$BASE/admin/secrets" "$T1")"
+echo "Firestore rules against $HOST (project $PROJ)"
+check "u1 writes its own progress"           200 "$(status PATCH "$DOC" "$T1")"
+check "u1 reads its own progress"            200 "$(status GET   "$DOC" "$T1")"
+check "u2 can NOT read u1's"                 403 "$(status GET   "$DOC" "$T2")"
+check "u2 can NOT write u1's"                403 "$(status PATCH "$DOC" "$T2")"
+check "signed out can NOT read"              403 "$(status GET   "$DOC")"
+check "no other path is left open"           403 "$(status PATCH "$BASE/admin/secrets" "$T1")"
 
 if [ "$FAILED" = "1" ]; then
-  echo "Hay reglas que no se comportan como deben."
+  echo "Some rules do not behave as they must."
   exit 1
 fi
-echo "Las seis comprobaciones pasan."
+echo "All six checks pass."

@@ -1,53 +1,52 @@
 <!--
-  La constitución pide dos cosas de cada pull request: que enuncie qué
-  principios ejercita y cómo se verificó. Esta plantilla existe para que eso
-  salga solo, en lugar de depender de que alguien se acuerde — que es lo que
-  falló con el PR #2, cuya descripción siguió diciendo «No application code
-  yet» durante treinta y tantos commits.
+  The constitution asks two things of every pull request: that it names the principles
+  it exercises and says how it was verified. This template exists so that happens by
+  default instead of depending on someone remembering — which is what failed on PR #2,
+  whose description kept saying "No application code yet" for thirty-odd commits after
+  it stopped being true.
 
-  Borra las secciones que no apliquen. Una plantilla que obliga a rellenar
-  casillas vacías se acaba rellenando en falso, y entonces no verifica nada.
+  Delete the sections that do not apply. A template that forces you to fill empty boxes
+  gets filled in falsely, and then it verifies nothing.
 -->
 
 ## What this changes
 
-<!-- Dos o tres líneas: qué hace distinto la app después de esto, no qué
-     archivos se tocaron. El diff ya dice los archivos. -->
+<!-- Two or three lines: what the app does differently now, not which files were
+     touched. The diff already lists the files. -->
 
 ## Why
 
-<!-- El problema que resuelve. Si viene de un fallo observado, la evidencia:
-     el mensaje de error, la medición, los pasos para reproducirlo. Una causa
-     medida vale más que una explicada. -->
+<!-- The problem it solves. If it comes from an observed failure, give the evidence:
+     the error message, the measurement, the steps to reproduce. A measured cause is
+     worth more than an explained one. -->
 
 ## How it was verified
 
-- [ ] `flutter analyze` — sin errores ni advertencias
-- [ ] `flutter test` — en verde (N pruebas)
-- [ ] Pantallas afectadas abiertas y revisadas a mano
-- [ ] Comprobado en el despliegue, si el cambio toca web o el despliegue
+- [ ] `flutter analyze` — no errors, no warnings
+- [ ] `flutter test` — green (N tests)
+- [ ] Affected screens opened and looked at by hand
+- [ ] Checked on the deployment, if this touches web or the deploy
 
-<!-- Principio V: si una prueba falla o se omite, se dice explícitamente.
-     Está prohibido reportar «listo» sobre trabajo no verificado, así que
-     escribe aquí qué NO se comprobó y por qué. -->
+<!-- Principle V: if a test fails or is skipped, say so explicitly. Reporting "done"
+     over unverified work is forbidden, so write here what was NOT checked, and why. -->
 
 ## Constitution
 
-<!-- Marca solo los que este cambio ejercita de verdad, y di cómo se
-     demuestra. «Lo cumple» sin prueba no es una respuesta. -->
+<!-- Tick only the ones this change really exercises, and say how it is demonstrated.
+     "It complies" without evidence is not an answer. -->
 
-| | Principio | Cómo se demuestra en este PR |
+| | Principle | How this PR demonstrates it |
 |---|---|---|
-| ☐ | I — Contenido desacoplado del motor | |
-| ☐ | II — Un archivo, una responsabilidad | |
-| ☐ | III — Rigor pedagógico verificable | |
-| ☐ | IV — El progreso del estudiante es sagrado | |
-| ☐ | V — Sin prueba no está terminado | |
-| ☐ | VI — Código didáctico y socializado | |
-| ☐ | VII — Móvil primero y accesible | |
+| ☐ | I — Content decoupled from the engine | |
+| ☐ | II — One file, one responsibility | |
+| ☐ | III — Verifiable pedagogical rigour | |
+| ☐ | IV — Student progress is sacred | |
+| ☐ | V — Nothing is finished without proof | |
+| ☐ | VI — Didactic, socialised code | |
+| ☐ | VII — Mobile first and accessible | |
 
 ## Known limitations
 
-<!-- Lo que queda fuera, lo que se degradó a propósito y lo que no se pudo
-     comprobar. Declararlo aquí es parte del trabajo: un límite escrito es una
-     decisión; un límite callado es una sorpresa para quien lo encuentre. -->
+<!-- What is left out, what was deliberately degraded, and what could not be checked.
+     Stating it here is part of the work: a written limit is a decision, a silent one
+     is a surprise for whoever finds it. -->

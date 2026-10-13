@@ -1,55 +1,52 @@
-# Las dos primeras puertas de calidad de la constitución, automáticas.
+# The constitution's first two quality gates, automated.
 #
-# El flujo de desarrollo dice: «1. `flutter analyze` sin errores ni advertencias
-# nuevas. 2. `flutter test` en verde». Hasta ahora eso solo se cumplía cuando
-# alguien se acordaba de ejecutarlo en su máquina, y en un PR de 262 archivos
-# que va a `main` eso significa que nada impide fusionar algo roto.
+# The development workflow says: "1. `flutter analyze` with no new errors or warnings.
+# 2. `flutter test` green". Until now that only happened when someone remembered to run
+# it on their own machine, and on a branch of 262 files heading for `main` that means
+# nothing stops a broken merge.
 #
-# El tercer trabajo —compilar para web— no está por costumbre: este proyecto se
-# ha roto **dos veces** de formas que solo aparecen al compilar para ese
-# destino y que `flutter test` no ve, porque las pruebas corren en la VM de
-# Dart:
+# The third job — building for web — is not there out of habit. This project has broken
+# twice in ways that only appear on that target and that `flutter test` cannot see,
+# because the tests run on the Dart VM:
 #
-#   * un `import` de `package:drift/native.dart` que arrastra `dart:ffi`, que
-#     en web no existe;
-#   * un registro de plugins reutilizado de un build anterior a una
-#     dependencia, que se publicó y dejó la app sin `shared_preferences` en
-#     silencio.
+#   * an import of `package:drift/native.dart` pulling in `dart:ffi`, which does not
+#     exist on the web;
+#   * a plugin registry reused from a build older than a dependency, which shipped and
+#     left the deployed app without `shared_preferences`, in silence.
 #
-# Por eso aquí se compila y además se comprueba el registro generado, igual que
-# hace `tool/build_web.ps1` antes de publicar.
+# So this builds the same way the deploy script does, and checks the generated registry
+# the same way too.
 
 name: CI
 
 on:
-  # `push` solo en `main`, y las ramas de trabajo por su pull request. Con
-  # `push` en todas las ramas, cada empujón a una rama con PR abierto lanzaba
-  # **dos** ejecuciones idénticas: se vio en la primera, y gastar el doble de
-  # minutos para saber lo mismo dos veces no es redundancia útil.
+  # `push` only on `main`; working branches are covered by their pull request. With
+  # `push` on every branch, each push to a branch with an open PR started **two**
+  # identical runs — visible on the very first one. Spending twice the minutes to learn
+  # the same thing twice is not useful redundancy.
   push:
     branches: [main]
   pull_request:
 
-# Si se empuja dos veces seguidas, la primera ejecución sobra.
+# If two pushes land in a row, the first run is already obsolete.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  # La misma que usa el proyecto. Fijarla es deliberado: «la última estable»
-  # convierte una actualización de Flutter en un fallo de CI sin que nadie haya
-  # tocado el código, y la constitución fija el SDK en `pubspec.yaml`.
+  # The version the project uses. Pinning is deliberate: "latest stable" turns an
+  # upstream release into a CI failure nobody caused, and the constitution pins the SDK
+  # in `pubspec.yaml`.
   #
-  # Por el mismo motivo la imagen es `ubuntu-24.04` y no `ubuntu-latest`:
-  # GitHub avisó en la primera ejecución de que `ubuntu-latest` pasa a Ubuntu
-  # 26 el 19 de octubre. Una CI que se pone roja sola, la semana en que se está
-  # verificando la app, cuesta más explicarla que actualizar la línea cuando
-  # toque.
+  # The runner image is pinned for the same reason: GitHub warned on the first run that
+  # `ubuntu-latest` becomes Ubuntu 26 on 19 October. CI that turns red on its own, in
+  # the week the app is being verified, costs more to explain than a version bump costs
+  # to make.
   FLUTTER_VERSION: '3.44.2'
 
 jobs:
   quality:
-    name: analyze y pruebas
+    name: analyze and tests
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
@@ -60,22 +57,21 @@ jobs:
           channel: stable
           cache: true
 
-      # Las pruebas de la base de datos abren sqlite de verdad con
-      # `NativeDatabase.memory()`, así que necesitan la biblioteca del sistema.
-      # Suele venir en la imagen; pedirla explícitamente quita el «suele».
-      - name: Instalar sqlite
+      # The database tests open a real sqlite with `NativeDatabase.memory()`, so they
+      # need the system library. The image usually ships it; asking for it explicitly
+      # removes the "usually".
+      - name: Install sqlite
         run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
 
       - run: flutter pub get
 
-      # Falla con cualquier aviso, no solo con errores: es lo que pide el
-      # Principio V.
+      # Fails on any warning, not just on errors: that is what Principle V asks for.
       - run: flutter analyze
 
       - run: flutter test
 
   web:
-    name: build web
+    name: web build
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
@@ -88,32 +84,31 @@ jobs:
 
       - run: flutter pub get
 
-      # `--no-web-resources-cdn` sirve canvaskit desde el propio dominio, que es
-      # lo que permite guardarlo para funcionar sin conexión. Se compila igual
-      # que se publica: un build de CI que no se parece al de producción no
-      # demuestra nada sobre producción.
-      - name: Compilar
+      # `--no-web-resources-cdn` serves canvaskit from our own domain, which is what
+      # makes it cacheable for offline use. Built the same way it is published: a CI
+      # build that does not resemble the production one proves nothing about production.
+      - name: Build
         run: >
           flutter build web --release --no-web-resources-cdn
           --dart-define=BUILD_ID=ci-${{ github.sha }}
 
-      # La comprobación que faltaba el día que se publicó un paquete sin
-      # `shared_preferences`: cada plugin que el proyecto declara para web tiene
-      # que aparecer en el registro que generó **este** build.
-      - name: Comprobar el registro de plugins web
+      # The check that was missing the day a bundle shipped without
+      # `shared_preferences`: every plugin the project declares for web has to appear in
+      # the registry **this** build generated.
+      - name: Check the web plugin registry
         run: |
           registrant=$(find .dart_tool/flutter_build -name web_plugin_registrant.dart | head -1)
           if [ -z "$registrant" ]; then
-            echo "El build no generó web_plugin_registrant.dart"
+            echo "The build did not generate web_plugin_registrant.dart"
             exit 1
           fi
-          echo "Registro: $registrant"
+          echo "Registry: $registrant"
           missing=0
           for plugin in $(jq -r '.plugins.web[].name' .flutter-plugins-dependencies); do
             if grep -q "package:$plugin/" "$registrant"; then
-              echo "  ok      $plugin"
+              echo "  ok       $plugin"
             else
-              echo "  FALTA   $plugin"
+              echo "  MISSING  $plugin"
               missing=1
             fi
           done

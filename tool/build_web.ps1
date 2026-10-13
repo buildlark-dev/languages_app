@@ -1,31 +1,30 @@
-# Compila la versión web para publicar.
+# Builds the web release for publishing.
 #
-# No es un atajo para escribir menos: existe porque `flutter build web` a secas
-# publicó un paquete roto y nadie lo notó.
+# This is not a shortcut for typing less: it exists because a plain
+# `flutter build web` published a broken bundle and nobody noticed.
 #
-# Lo que pasó, con fechas: el registro de plugins web
-# (`.dart_tool/flutter_build/<hash>/web_plugin_registrant.dart`) se generó a las
-# 07:28, `shared_preferences` entró en `pubspec.yaml` a las 12:58, y el build
-# que se desplegó se compiló a las 21:49 **reutilizando el registro viejo**. La
-# app desplegada escribía `MissingPluginException` en la consola y perdía el
-# tema y la velocidad de voz en silencio. Un build incremental conservó una
-# tabla de plugins anterior a una dependencia.
+# What happened, with timestamps: the web plugin registry
+# (`.dart_tool/flutter_build/<hash>/web_plugin_registrant.dart`) was generated at 07:28,
+# `shared_preferences` entered `pubspec.yaml` at 12:58, and the bundle that was deployed
+# compiled at 21:49 **reusing the old registry**. The deployed app wrote
+# `MissingPluginException` to the console and silently lost the theme and the speech
+# rate. An incremental build had kept a plugin table older than a dependency.
 #
-# De ahí los tres trabajos de este script:
+# Hence this script's three jobs:
 #
-#   1. Borrar el estado incremental antes de compilar.
-#   2. Inyectar un identificador de compilación, que es cómo una PWA ya
-#      instalada se entera de que hay una versión nueva.
-#   3. Comprobar, **después** de compilar, que el registro de plugins contiene
-#      todos los que el proyecto declara para web. Si falta uno, se para aquí y
-#      no se publica.
+#   1. Wipe the incremental state before building.
+#   2. Inject a build id, which is how an already-installed PWA learns that a new
+#      version exists.
+#   3. Check, **after** building, that the plugin registry contains every plugin the
+#      project declares for web. If one is missing it stops here and nothing is
+#      published.
 #
-# Uso:  pwsh -File tool/build_web.ps1
-#       pwsh -File tool/build_web.ps1 -Deploy
+# Usage:  pwsh -File tool/build_web.ps1
+#         pwsh -File tool/build_web.ps1 -Deploy
 
 [CmdletBinding()]
 param(
-    # Publica en Firebase Hosting si el build y las comprobaciones pasan.
+    # Publish to Firebase Hosting if the build and the checks pass.
     [switch]$Deploy
 )
 
@@ -33,36 +32,35 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $projectRoot
 
-# --- 1. Identificador de la compilación -------------------------------------
+# --- 1. Build id -------------------------------------------------------------
 
 $shortSha = (& git rev-parse --short HEAD).Trim()
-if (-not $shortSha) { throw 'No se pudo leer el commit actual' }
+if (-not $shortSha) { throw 'Could not read the current commit' }
 $buildId = '{0}-{1}' -f $shortSha, (Get-Date -Format 'yyyyMMdd-HHmm')
-Write-Host "Identificador de compilacion: $buildId"
+Write-Host "Build id: $buildId"
 
-# --- 2. Build en limpio ------------------------------------------------------
+# --- 2. Clean build ----------------------------------------------------------
 
 foreach ($stale in @('build/web', '.dart_tool/flutter_build')) {
     if (Test-Path $stale) {
-        Write-Host "Borrando $stale"
+        Write-Host "Removing $stale"
         Remove-Item -Recurse -Force $stale
     }
 }
 
-# `--no-web-resources-cdn` sirve canvaskit desde nuestro propio dominio.
+# `--no-web-resources-cdn` serves canvaskit from our own domain.
 #
-# Por defecto Flutter lo pide a `www.gstatic.com`, y medido en el sitio
-# desplegado era así: `canvaskit.wasm` y `canvaskit.js` venían de alli. Un
-# recurso de otro origen no lo puede guardar nuestro service worker —la
-# respuesta es opaca—, de modo que sin red la app no tenia con que dibujar y no
-# arrancaba, que es lo contrario de FR-039 y SC-003.
+# By default Flutter fetches it from `www.gstatic.com`, and that is what was measured on
+# the deployed site: `canvaskit.wasm` and `canvaskit.js` came from there. A cross-origin
+# resource cannot be stored by our service worker — the response is opaque — so with no
+# network the app had nothing to draw with and would not start, which is the opposite of
+# FR-039 and SC-003.
 #
-# Cuesta unos megabytes servidos por nosotros. Los paga el service worker una
-# vez.
+# It costs a few megabytes served by us. The service worker pays that once.
 & flutter build web --release --no-web-resources-cdn "--dart-define=BUILD_ID=$buildId"
-if ($LASTEXITCODE -ne 0) { throw 'flutter build web fallo' }
+if ($LASTEXITCODE -ne 0) { throw 'flutter build web failed' }
 
-# --- 3. El registro de plugins web, que es lo que falló ----------------------
+# --- 3. The web plugin registry, which is what failed ------------------------
 
 $declared = (Get-Content '.flutter-plugins-dependencies' -Raw | ConvertFrom-Json).plugins.web |
     ForEach-Object { $_.name }
@@ -71,7 +69,7 @@ $registrants = @(Get-ChildItem -Path '.dart_tool/flutter_build' -Recurse `
         -Filter 'web_plugin_registrant.dart' -ErrorAction SilentlyContinue)
 
 if ($registrants.Count -eq 0) {
-    throw 'El build no genero web_plugin_registrant.dart: no se puede comprobar que los plugins web esten dentro'
+    throw 'The build did not generate web_plugin_registrant.dart: cannot verify that the web plugins are in the bundle'
 }
 
 $missing = @()
@@ -79,50 +77,50 @@ foreach ($registrant in $registrants) {
     $source = Get-Content $registrant.FullName -Raw
     foreach ($plugin in $declared) {
         if ($source -notmatch [regex]::Escape("package:$plugin/")) {
-            $missing += "$plugin (en $($registrant.Name))"
+            $missing += "$plugin (in $($registrant.Name))"
         }
     }
 }
 
 if ($missing.Count -gt 0) {
-    Write-Host 'Plugins web declarados que NO estan en el registro generado:' -ForegroundColor Red
+    Write-Host 'Declared web plugins missing from the generated registry:' -ForegroundColor Red
     $missing | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
-    throw 'El paquete web se compilo sin algun plugin: no se publica'
+    throw 'The web bundle compiled without a plugin: not publishing'
 }
 
-Write-Host "Registro de plugins web completo ($($declared.Count) plugins)" -ForegroundColor Green
+Write-Host "Web plugin registry complete ($($declared.Count) plugins)" -ForegroundColor Green
 
-# --- 4. El identificador, junto al paquete -----------------------------------
+# --- 4. The build id, next to the bundle -------------------------------------
 
-# La app lo pide **siempre por red** y lo compara con el que lleva compilado
-# dentro. Es todo el mecanismo de «hay una version nueva».
+# The app always fetches this over the network and compares it with the id compiled
+# into itself. That is the whole "a new version exists" mechanism.
 $payload = [ordered]@{
     buildId = $buildId
     builtAt = (Get-Date).ToUniversalTime().ToString('o')
 }
-# Sin BOM: `Set-Content -Encoding utf8` pone uno en PowerShell 5.1, y un BOM
-# delante de un JSON es la clase de detalle que rompe un parser y no otro.
+# No BOM: `Set-Content -Encoding utf8` writes one on PowerShell 5.1, and a BOM in front
+# of JSON is the kind of detail that breaks one parser and not another.
 [System.IO.File]::WriteAllText(
     (Join-Path $projectRoot 'build/web/build-id.json'),
     ($payload | ConvertTo-Json),
     (New-Object System.Text.UTF8Encoding $false)
 )
-Write-Host 'Escrito build/web/build-id.json'
+Write-Host 'Wrote build/web/build-id.json'
 
-# --- 5. Publicar -------------------------------------------------------------
+# --- 5. Publish --------------------------------------------------------------
 
 if (-not $Deploy) {
-    Write-Host 'Listo. Para publicar: pwsh -File tool/build_web.ps1 -Deploy'
+    Write-Host 'Done. To publish: pwsh -File tool/build_web.ps1 -Deploy'
     exit 0
 }
 
 & firebase deploy --only hosting
-if ($LASTEXITCODE -ne 0) { throw 'firebase deploy fallo' }
+if ($LASTEXITCODE -ne 0) { throw 'firebase deploy failed' }
 
-# Las cabeceras son lo unico que demuestra que la PWA instalada podra
-# actualizarse, y no se ven desde el navegador: hay que leerlas.
+# The headers are the only proof that an installed PWA will be able to update, and they
+# are invisible from a browser: they have to be read.
 Write-Host ''
-Write-Host 'Cabeceras de los archivos que Flutter NO versiona por contenido:'
+Write-Host 'Cache headers of the files Flutter does not content-hash:'
 foreach ($path in @('/', '/flutter_bootstrap.js', '/main.dart.js', '/build-id.json')) {
     $url = "https://languages-buildlark.web.app$path"
     try {
@@ -130,6 +128,6 @@ foreach ($path in @('/', '/flutter_bootstrap.js', '/main.dart.js', '/build-id.js
         $cache = $response.Headers['Cache-Control']
         Write-Host ("  {0,-24} {1}" -f $path, $cache)
     } catch {
-        Write-Host ("  {0,-24} no se pudo consultar" -f $path) -ForegroundColor Yellow
+        Write-Host ("  {0,-24} could not be read" -f $path) -ForegroundColor Yellow
     }
 }
