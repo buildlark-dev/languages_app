@@ -293,3 +293,30 @@ enseñar la nota al aprobar, sino **no esconder el intento que no aprobó**: la
 tarjeta decía «Necesitas 80 % para superar el nivel» y nada más, de modo que
 quien suspendió por poco y quien suspendió por mucho veían lo mismo. Ahora dice
 «Tu mejor intento: 65 %. Necesitas 80 % para superar el nivel.»
+
+### Segunda pasada por el emulador, mismo día
+
+Con la sesión cerrada a propósito se alcanzaron las dos pantallas que faltaban,
+y se comprobó en el dispositivo el arreglo del título de gramática.
+
+| # | Pantalla | Qué se vio |
+|---|---|---|
+| 1 | Acceso | Campos vacíos, «Entrar», «¿No tienes cuenta? Créala», «Olvidé mi contraseña» |
+| 2 | Registro | «Crear cuenta» con **«Solo pedimos correo y contraseña. Nada más.»** a la vista, que es FR-006 hecho comprobable por quien se registra |
+| 3 | Restablecer contraseña | «Recuperar el acceso»: correo y «Enviar instrucciones» |
+| — | Confirmación de cierre de sesión | «¿Cerrar sesión? Tu progreso está respaldado en la nube. Podrás recuperarlo al volver a entrar», con Cancelar primero |
+
+**El título de la gramática ya se renderiza**: «El verbo *to be* y los
+pronombres», en cursiva, donde antes salían las etiquetas en crudo.
+
+**Cerrar sesión deja la app en la pantalla de acceso, sin nada encima.** Es la
+otra mitad del arreglo de T163, la que no se reportó pero tenía el mismo fallo.
+
+Quedan **2 de 13**: repaso y nivelación. Ninguna por un defecto —no hay nada
+vencido que repasar, y la oferta de nivelación se oculta cuando ya hay avance—,
+así que las dos solo aparecen en una cuenta recién creada. Se capturarán la
+próxima vez que se cree una cuenta de prueba.
+
+**Observación menor:** «Recuperar el acceso» no explica qué va a pasar al tocar
+el botón. La pantalla de registro sí se explica sola; esta no dice que llegará
+un correo con un enlace.
