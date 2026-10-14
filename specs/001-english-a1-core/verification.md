@@ -320,3 +320,32 @@ próxima vez que se cree una cuenta de prueba.
 **Observación menor:** «Recuperar el acceso» no explica qué va a pasar al tocar
 el botón. La pantalla de registro sí se explica sola; esta no dice que llegará
 un correo con un enlace.
+
+### Tercera pasada: las dos últimas, con una cuenta nueva
+
+El responsable del proyecto creó una cuenta de prueba, que es lo único que
+faltaba: las dos pantallas pendientes solo existen cuando no hay avance.
+
+| # | Pantalla | Qué se vio |
+|---|---|---|
+| 11 | Nivelación | «¿Ya sabes algo del idioma? Son 10 preguntas y no se aprueba ni se suspende», con «Hacer la prueba» y «Empezar desde cero». Dentro: «Pregunta 1 de 10», y el aviso de que no se corrige sobre la marcha |
+| 10 | Repaso | «Tarjeta 1 de 12 · ¿Cómo se dice…? **nombre**» y «Mostrar la respuesta». Revelada: «name» con altavoz, **«Pronunciar la palabra»** y los tres botones de calificación con su intervalo escrito —«vuelve mañana», «vuelve pronto», «vuelve más adelante»— |
+
+Con esto **T191 queda cerrada: trece de trece**.
+
+Tres cosas más que confirmó esta pasada:
+
+* **La cola de repaso se siembra al entrar en un módulo** (FR-028): la cuenta
+  pasó de «Todavía no hay repaso» a «12 palabras para repasar» por el solo
+  hecho de abrir el módulo 1.
+* **`PronunciationCheck` se dibuja** en la tarjeta de repaso, que es el arreglo
+  de T199 visto en el dispositivo.
+* **La tarjeta del examen sin intentos no inventa una nota**: con la cuenta
+  nueva dice «Necesitas 80 % para aprobarlo. Llevas 0 de 2 lecciones», sin
+  «Tu mejor intento». Es la otra mitad del cambio de T164.
+
+**Incidencia del entorno, no de la app:** a mitad del recorrido el emulador
+reinició su `system_server` —`adb` devolvió `Can't find service: input`— y se
+llevó la app por delante. El `logcat` quedó vacío, así que no hubo excepción de
+Dart ni ANR: fue el emulador, no la aplicación. Al relanzarla, la sesión y el
+progreso seguían ahí.
