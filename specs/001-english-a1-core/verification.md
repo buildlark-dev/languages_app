@@ -415,3 +415,33 @@ escrita, que es lo que T170 acaba de verificar que funciona. Lo que sí importa
 es que la app **lo diga**: desde el arreglo del canal de errores debería salir
 «El reconocimiento de voz de este dispositivo necesita conexión». Queda por
 confirmar que ese es el mensaje que aparece.
+
+### T165 en modo avión: funciona, y dejó tres cosas
+
+Repetido tras el arreglo de la precarga: **el audio y el micrófono funcionan
+sin conexión, y con la voz que debe ser**. T165 queda cerrada.
+
+Lo que la prueba dejó a la vista:
+
+**El audio empezaba por la segunda sílaba.** Piper arranca la palabra en la
+muestra cero y el reproductor empieza antes de haber arrancado del todo, así
+que se comía el principio; el retardo propio del codificador MP3 lo empeora.
+Corregido en el generador: 200 ms de silencio delante y otros 200 detrás. El
+clip de «name» pasó de 0,641 s a 1,041 s y pesa 1 KB más. No hay forma de que
+un reproductor se coma un silencio.
+
+**La velocidad de los ajustes no movía nada, y por dos motivos distintos.**
+Uno era una limitación que yo había aceptado demasiado deprisa —escrita en el
+código: «un clip grabado suena a la velocidad a la que se grabó»— cuando los
+reproductores saben estirar el tiempo sin cambiar el tono. El otro era un fallo
+sin más: `initialize` fijaba la velocidad a 0,9 **en cada preparación**, de modo
+que la preferencia guardada se perdía al abrir la app aunque sí estuviera
+almacenada. Ahora la velocidad vale para las dos fuentes y sobrevive al
+arranque.
+
+**El micrófono reconoce con dificultad y daba poco tiempo para hablar.** La
+ventana de escucha pasa de 6 a 10 segundos y la pausa que cierra la frase de 2
+a 3, que es la mitad barata del problema. La otra mitad —que no recoge todo lo
+que se dice— es calidad de reconocimiento y necesita trabajo aparte; queda
+anotada por decisión del responsable del proyecto, que prefirió no detenerse
+aquí.

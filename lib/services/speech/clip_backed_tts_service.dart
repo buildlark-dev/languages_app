@@ -26,9 +26,22 @@
 /// silencioso más.
 library;
 
+import '../settings/settings_store.dart';
 import 'clip_key.dart';
 import 'clip_player.dart';
 import 'tts_service.dart';
+
+/// Traduce la velocidad del ajuste a un multiplicador de reproducción.
+///
+/// La escala del ajuste va de [minSpeechRate] a [maxSpeechRate] y su valor
+/// normal es [defaultSpeechRate]: ahí el clip tiene que sonar **tal cual se
+/// grabó**, porque a esa velocidad se grabó. De ahí la división.
+///
+/// Se acota a la mitad y a vez y media. Por debajo, estirar tanto el tiempo
+/// produce un sonido metálico que deja de servir como modelo de pronunciación,
+/// que es justo para lo que está.
+double playbackRateFor(double speechRate) =>
+    (speechRate / defaultSpeechRate).clamp(0.5, 1.5);
 
 class ClipBackedTtsService implements TtsService {
   ClipBackedTtsService({
@@ -75,11 +88,21 @@ class ClipBackedTtsService implements TtsService {
     await _voice.stop();
   }
 
-  /// La velocidad solo afecta a la síntesis.
+  /// La velocidad vale para las dos fuentes.
   ///
-  /// Un clip grabado suena a la velocidad a la que se grabó, y cambiar eso
-  /// exigiría procesar el audio en el dispositivo. Queda así, dicho en voz
-  /// alta: el ajuste de Ajustes no mueve los clips.
+  /// Aquí decía que los clips sonarían siempre a la velocidad a la que se
+  /// grabaron, y era una limitación aceptada demasiado deprisa: los
+  /// reproductores saben estirar el tiempo sin cambiar el tono. Reportado al
+  /// verificar: «tampoco reconoce la velocidad que uno modifica en los
+  /// ajustes», y tenía toda la razón — un ajuste que solo mueve la mitad del
+  /// audio parece que no funciona.
+  ///
+  /// Las dos escalas no son la misma: la síntesis usa la del motor, donde la
+  /// velocidad normal del curso es [defaultSpeechRate]; el reproductor usa un
+  /// multiplicador donde 1,0 es la del archivo. [playbackRateFor] traduce.
   @override
-  Future<void> setRate(double rate) => _voice.setRate(rate);
+  Future<void> setRate(double rate) async {
+    await _voice.setRate(rate);
+    await _clips.setRate(playbackRateFor(rate));
+  }
 }

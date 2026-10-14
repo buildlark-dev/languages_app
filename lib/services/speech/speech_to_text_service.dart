@@ -38,10 +38,10 @@ import 'stt_error_codes.dart';
 import 'stt_service.dart';
 
 /// Cuánto se espera a que alguien hable antes de darlo por silencio.
-const Duration _listenWindow = Duration(seconds: 6);
+const Duration _listenWindow = Duration(seconds: 10);
 
 /// Cuánto silencio basta para dar la frase por terminada.
-const Duration _pauseWindow = Duration(seconds: 2);
+const Duration _pauseWindow = Duration(seconds: 3);
 
 class SpeechToTextService implements SttService {
   /// [supportsOnDevice] dice si el paso 1 tiene sentido en esta plataforma.

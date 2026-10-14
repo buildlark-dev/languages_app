@@ -31,4 +31,16 @@ abstract interface class ClipPlayer {
 
   /// Calla lo que esté sonando. Nunca lanza.
   Future<void> stop();
+
+  /// A qué velocidad se reproduce, donde 1,0 es la del archivo.
+  ///
+  /// Existe porque el ajuste de velocidad **tiene que valer también para los
+  /// clips**. Se escribió que no valdría —«un clip grabado suena a la
+  /// velocidad a la que se grabó»— y era una limitación aceptada demasiado
+  /// deprisa: los reproductores saben estirar el tiempo sin cambiar el tono,
+  /// que es justo lo que hace falta para escuchar una palabra despacio.
+  ///
+  /// Reportado al verificar: «tampoco reconoce la velocidad que uno modifica
+  /// en los ajustes».
+  Future<void> setRate(double rate);
 }

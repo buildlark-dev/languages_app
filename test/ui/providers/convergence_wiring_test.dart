@@ -8,6 +8,8 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:languages_app/app/app.dart';
+import 'package:languages_app/services/settings/settings_store.dart';
 import 'package:languages_app/core/clock.dart';
 import 'package:languages_app/core/level_state.dart';
 import 'package:languages_app/core/student_progress.dart';
@@ -69,6 +71,10 @@ void main() {
         syncServiceProvider.overrideWithValue(sync),
         ttsServiceProvider.overrideWithValue(tts),
         sttServiceProvider.overrideWithValue(stt),
+        // Preparar la voz aplica ahora la velocidad guardada, así que el
+        // almacén de preferencias hace falta: antes se perdía en cada
+        // arranque porque nadie la volvía a aplicar.
+        settingsStoreProvider.overrideWithValue(InMemorySettingsStore()),
         clockProvider.overrideWithValue(fixedClock(today)),
         courseCatalogProvider.overrideWithValue(const FakeCatalog()),
         if (withCourse)

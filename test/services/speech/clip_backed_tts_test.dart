@@ -9,6 +9,7 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:languages_app/services/speech/clip_backed_tts_service.dart';
+import 'package:languages_app/services/settings/settings_store.dart';
 import 'package:languages_app/services/speech/clip_player.dart';
 import 'package:languages_app/services/speech/tts_service.dart';
 
@@ -16,6 +17,7 @@ import '../../fakes/fake_tts_service.dart';
 
 class _FakeClipPlayer implements ClipPlayer {
   ClipOutcome outcome = ClipOutcome.played;
+  double? lastRate;
   final List<String> played = <String>[];
   int stopCount = 0;
 
@@ -27,6 +29,9 @@ class _FakeClipPlayer implements ClipPlayer {
 
   @override
   Future<void> stop() async => stopCount++;
+
+  @override
+  Future<void> setRate(double rate) async => lastRate = rate;
 }
 
 void main() {
@@ -108,11 +113,29 @@ void main() {
     expect(voice.stopCount, 1);
   });
 
-  test('la velocidad solo afecta a la síntesis', () async {
-    // Un clip grabado suena a la velocidad a la que se grabó. Queda dicho en
-    // la prueba para que nadie lo descubra creyendo que el ajuste está roto.
+  test('la velocidad mueve también los clips', () async {
+    // Reportado al verificar: «tampoco reconoce la velocidad que uno modifica
+    // en los ajustes». Un ajuste que solo mueve la mitad del audio parece
+    // que no funciona.
     await service.setRate(0.6);
 
     expect(voice.lastRate, 0.6);
+    expect(clips.lastRate, isNotNull);
+    expect(clips.lastRate, lessThan(1.0), reason: 'Más lento que el archivo');
+  });
+
+  test('a la velocidad normal el clip suena tal cual se grabó', () async {
+    // El curso se grabó a esa velocidad: estirarlo ahí sería degradar el
+    // audio para no cambiar nada.
+    await service.setRate(defaultSpeechRate);
+
+    expect(clips.lastRate, 1.0);
+  });
+
+  test('la velocidad del reproductor se acota', () async {
+    // Por debajo de la mitad, estirar el tiempo suena metálico y deja de
+    // servir como modelo de pronunciación, que es para lo que está.
+    expect(playbackRateFor(minSpeechRate), 0.5);
+    expect(playbackRateFor(maxSpeechRate), closeTo(1.11, 0.01));
   });
 }

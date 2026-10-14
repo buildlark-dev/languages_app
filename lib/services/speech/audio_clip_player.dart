@@ -20,6 +20,13 @@ class AudioClipPlayer implements ClipPlayer {
 
   final AudioPlayer _player;
 
+  /// La última velocidad pedida, en la escala del reproductor.
+  ///
+  /// Se guarda y se vuelve a aplicar después de cada `play`: el reproductor la
+  /// olvida al cambiar de fuente, y una velocidad que solo vale para la
+  /// primera palabra es peor que ninguna.
+  double _rate = 1;
+
   @override
   Future<ClipOutcome> play(String assetPath) async {
     try {
@@ -33,6 +40,7 @@ class AudioClipPlayer implements ClipPlayer {
 
       await _player.stop();
       await _player.play(AssetSource(source));
+      if (_rate != 1) await _player.setPlaybackRate(_rate);
       return ClipOutcome.played;
     } catch (_) {
       // Quien llama es un botón: no puede recibir una excepción a mitad de una
@@ -47,6 +55,17 @@ class AudioClipPlayer implements ClipPlayer {
       await _player.stop();
     } catch (_) {
       // Nada que hacer si ni parar funciona.
+    }
+  }
+
+  @override
+  Future<void> setRate(double rate) async {
+    _rate = rate;
+    try {
+      await _player.setPlaybackRate(rate);
+    } catch (_) {
+      // La velocidad es una preferencia: perderla no rompe nada, y el clip
+      // sigue sonando a la suya.
     }
   }
 }

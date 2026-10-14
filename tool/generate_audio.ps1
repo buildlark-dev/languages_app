@@ -116,7 +116,16 @@ foreach ($entry in $entries) {
 
     # 48 kbps mono: speech, and consonants matter more here than in music --
     # this is what someone is going to imitate.
-    & ffmpeg -y -loglevel error -i $wav -ac 1 -ar 22050 -b:a 48k $target 2>&1 | Out-Null
+    #
+    # The 200 ms of silence in front is not padding for its own sake. Piper
+    # starts the word on sample zero, and a player that begins before it has
+    # fully started swallows the first syllable: reported as "the audio starts
+    # on the second syllable, so you cannot hear it properly". MP3 encoder
+    # delay makes it worse. A little silence costs 1 KB and removes the whole
+    # class of problem on every player. The 200 ms at the end stop the last
+    # consonant being cut the same way.
+    & ffmpeg -y -loglevel error -i $wav -af "adelay=200:all=1,apad=pad_dur=0.2" `
+        -ac 1 -ar 22050 -b:a 48k $target 2>&1 | Out-Null
     if (-not (Test-Path $target)) { throw "ffmpeg failed on: $($entry.text)" }
 
     Remove-Item $wav -ErrorAction SilentlyContinue

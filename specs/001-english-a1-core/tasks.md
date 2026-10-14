@@ -373,7 +373,7 @@ el porcentaje de avance.
 - [X] T162 Ejecutar `flutter test` y confirmar la suite completa en verde
 - [X] T163 **SC-001** · Cronometrar en emulador limpio: crear cuenta y llegar al primer ejercicio en menos de 3 minutos
 - [X] T164 **SC-002** · Aprobar una lección, cerrar la app, `adb reboot`, reabrir y comparar XP, racha y lecciones aprobadas
-- [ ] T165 **SC-003** · Recorrer una lección completa en modo avión, **incluido el audio**, tras haber iniciado sesión una vez. Ninguna pantalla en blanco ni espera indefinida
+- [X] T165 **SC-003** · Recorrer una lección completa en modo avión, **incluido el audio**, tras haber iniciado sesión una vez. Ninguna pantalla en blanco ni espera indefinida
 - [X] T166 **SC-004** · Dos destinos abiertos en primer plano con la misma cuenta: aprobar una lección en el emulador y comprobar que aparece en Chrome en menos de 30 s **sin recargar ni reiniciar**
 - [X] T167 **SC-005** · Avanzar **distinto** en los dos destinos en modo avión, restaurar la conexión en ambos y verificar que se conserva lo mejor de cada uno
 - [X] T168 **SC-006** · Cronometrar cada lección de A1 y confirmar que cae entre 5 y 10 minutos
