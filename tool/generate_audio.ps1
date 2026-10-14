@@ -1,4 +1,4 @@
-# Generates the English audio clips that ship with the app.
+﻿# Generates the English audio clips that ship with the app.
 #
 # Why clips at all, when the device already has a speech engine: because
 # depending on it cost three rounds of fixes. The voice list arrives empty on
@@ -31,6 +31,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $projectRoot
+
+# The text reaches Piper through a pipe, and PowerShell 5.1 encodes that pipe
+# with the console code page unless told otherwise. Without this, "Bogotá"
+# arrives at the synthesiser already broken.
+$OutputEncoding = New-Object System.Text.UTF8Encoding $false
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
 
 # Pinned on purpose. "Latest" would mean the voice can change under us, and a
 # different voice halfway through the vocabulary is worse than an older one.
@@ -75,9 +81,14 @@ foreach ($needed in @('ffmpeg')) {
 # cannot drift from what the app will ask for. The same function backs the test
 # that fails when a clip is missing.
 Write-Host 'Reading the spoken texts from the content'
-$json = & dart run tool/list_spoken_texts.dart
-if ($LASTEXITCODE -ne 0) { throw 'Could not read the spoken texts' }
-$entries = $json | ConvertFrom-Json
+$inventory = Join-Path $projectRoot 'build/spoken_texts.json'
+& dart run tool/list_spoken_texts.dart $inventory | Out-Null
+if (-not (Test-Path $inventory)) { throw 'Could not read the spoken texts' }
+
+# Read as UTF-8 explicitly. Taking the JSON from the pipe instead decoded it
+# with the console code page, which turned "Bogotá" and an em dash into
+# mojibake -- two clips generated under keys the app would never look up.
+$entries = (Get-Content $inventory -Raw -Encoding UTF8) | ConvertFrom-Json
 Write-Host "  $($entries.Count) texts"
 
 # --- 3. One clip per text -----------------------------------------------------
@@ -85,6 +96,12 @@ Write-Host "  $($entries.Count) texts"
 New-Item -ItemType Directory -Force -Path $assetsDir | Out-Null
 $generated = 0
 $kept = 0
+
+# Piper and ffmpeg both write progress to stderr, and PowerShell 5.1 turns a
+# native command's stderr into terminating errors under `Stop`. Success is
+# judged by the file appearing, which is the only thing that actually matters.
+$strict = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 
 foreach ($entry in $entries) {
     $target = Join-Path $assetsDir "$($entry.file).mp3"
@@ -94,18 +111,19 @@ foreach ($entry in $entries) {
     $wav = Join-Path $toolsDir 'current.wav'
     # The text goes in on stdin: passing it as an argument would break on every
     # apostrophe, and the content is full of them ("What's your name?").
-    $entry.text | & $piperExe --model $voiceModel --output_file $wav 2>$null
+    $entry.text | & $piperExe --model $voiceModel --output_file $wav 2>&1 | Out-Null
     if (-not (Test-Path $wav)) { throw "Piper produced nothing for: $($entry.text)" }
 
     # 48 kbps mono: speech, and consonants matter more here than in music --
     # this is what someone is going to imitate.
-    & ffmpeg -y -loglevel error -i $wav -ac 1 -ar 22050 -b:a 48k $target
-    if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed on: $($entry.text)" }
+    & ffmpeg -y -loglevel error -i $wav -ac 1 -ar 22050 -b:a 48k $target 2>&1 | Out-Null
+    if (-not (Test-Path $target)) { throw "ffmpeg failed on: $($entry.text)" }
 
     Remove-Item $wav -ErrorAction SilentlyContinue
     $generated++
 }
 
+$ErrorActionPreference = $strict
 Write-Host "  $generated generated, $kept already there"
 
 # --- 4. The manifest the app reads -------------------------------------------

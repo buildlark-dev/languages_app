@@ -153,6 +153,30 @@ accesible (FR-019). En web depende de las voces del navegador, que varían.
 - Audio pregrabado como assets: calidad y consistencia superiores, pero exige producir y
   versionar cientos de archivos por idioma, y multiplica el peso de la app. Contradice la
   extensibilidad que pide el Principio I.
+
+  **Revisado el 13 de octubre de 2026: esta alternativa es ahora la principal** (T196).
+  La estimación de «cientos de archivos» no se había contado: A1 entero son **98 clips y
+  1,5 MB**. Y lo que la decisión original daba por bueno —que el motor del sistema basta—
+  falló de tres formas distintas, todas invisibles hasta que alguien tocaba un botón:
+  en el navegador `getVoices()` devuelve la lista vacía en la primera consulta; en iOS la
+  devuelve vacía **hasta que algo ha hablado**, de modo que preguntar antes de hablar no
+  puede responder nunca que sí; y cuando sí hay voces, la que el sistema elige por defecto
+  es la del idioma del documento —español— leyendo inglés: suena, así que ninguna
+  detección lo nota, y enseña una pronunciación equivocada.
+
+  Los clips los genera `tool/generate_audio.ps1` con **Piper** y la voz
+  `en_US-joe-medium`, **licencia CC0**. La licencia fue el criterio decisivo, no la
+  calidad: las voces de Piper no son uniformes —`ryan` es CC BY-NC-SA, `lessac` viene de
+  un dataset de investigación de Blizzard, `hfc_female` es CC BY-NC-SA—, y CC0 es la
+  única categoría que no deja ninguna pregunta abierta sobre distribuir el audio generado
+  dentro de una app publicada.
+
+  La extensibilidad no sufre: el generador lee los textos del propio contenido a través
+  de `spokenTextsOf`, así que añadir francés es ejecutarlo otra vez, y una prueba de
+  integridad falla si al contenido le falta un clip o al manifiesto le sobra uno.
+
+  `flutter_tts` **se queda** como respaldo. El contenido nuevo no tiene clip hasta que
+  alguien ejecuta el generador, y sin respaldo olvidarlo sería otro fallo silencioso.
 - Síntesis en la nube (Google Cloud TTS): mejor voz, pero rompe FR-014 (audio sin
   conexión) y añade costo por uso.
 

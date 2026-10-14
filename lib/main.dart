@@ -11,11 +11,13 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'app/app.dart';
 import 'content/catalog.dart';
+import 'content/en/a1_audio_manifest.dart';
 import 'core/clock.dart';
 import 'firebase_options.dart';
 import 'services/auth/firebase_auth_service.dart';
@@ -29,6 +31,8 @@ import 'services/progress/drift_progress_store.dart';
 import 'services/review/drift_review_store.dart';
 import 'services/settings/prefs_settings_store.dart';
 import 'services/settings/settings_store.dart';
+import 'services/speech/audio_clip_player.dart';
+import 'services/speech/clip_backed_tts_service.dart';
 import 'services/speech/flutter_tts_service.dart';
 import 'services/speech/speech_to_text_service.dart';
 import 'services/sync/firestore_sync_service.dart';
@@ -115,7 +119,17 @@ Future<void> main() async {
         // La voz se inicializa de forma perezosa, al preparar el curso: consultar
         // las voces del sistema tarda, y hacerlo en el arranque retrasaría la
         // primera pantalla sin que nadie lo necesite todavía.
-        ttsServiceProvider.overrideWithValue(FlutterTtsService(FlutterTts())),
+        // El clip manda y la síntesis cubre lo que no tiene clip. Es el único
+        // sitio donde se unen: el catálogo es contenido —vive en
+        // `lib/content/en/`— y esta es la raíz de composición, el único
+        // archivo autorizado a conocerlo (Principio I).
+        ttsServiceProvider.overrideWithValue(
+          ClipBackedTtsService(
+            voice: FlutterTtsService(FlutterTts()),
+            clips: AudioClipPlayer(AudioPlayer()),
+            catalog: a1AudioClips,
+          ),
+        ),
         sttServiceProvider.overrideWithValue(
           SpeechToTextService(stt.SpeechToText()),
         ),
