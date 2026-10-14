@@ -52,3 +52,6 @@ firestore-debug.log
 .env.*
 !.env.example
 *-service-account*.json
+
+# Piper y su voz: ~85 MB que el generador de audio vuelve a descargar solo.
+.piper/

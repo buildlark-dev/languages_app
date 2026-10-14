@@ -97,8 +97,53 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Los elementos `<audio>` no piden el archivo entero: piden un rango de
+  // bytes. Una respuesta guardada completa **no** sirve para contestar eso —
+  // Safari es especialmente estricto— así que sin este caso el clip estaría en
+  // la caché y el reproductor seguiría sin poder usarlo sin conexión, que es
+  // la mitad del fallo que se reportó en modo avión.
+  if (request.headers.has('range')) {
+    event.respondWith(rangeFromCache(request));
+    return;
+  }
+
   event.respondWith(cacheThenRevalidate(request));
 });
+
+/// Contesta un rango de bytes recortando lo que ya está guardado.
+async function rangeFromCache(request) {
+  const cache = await caches.open(CACHE);
+  const stored = await cache.match(request.url);
+
+  if (!stored) {
+    try {
+      return await fetch(request);
+    } catch (error) {
+      return new Response('', { status: 504, statusText: 'Sin conexión' });
+    }
+  }
+
+  const buffer = await stored.arrayBuffer();
+  const total = buffer.byteLength;
+  const asked = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
+
+  let start = asked && asked[1] ? parseInt(asked[1], 10) : 0;
+  let end = asked && asked[2] ? parseInt(asked[2], 10) : total - 1;
+  if (!(start >= 0) || start >= total) start = 0;
+  if (!(end >= start) || end >= total) end = total - 1;
+
+  return new Response(buffer.slice(start, end + 1), {
+    status: 206,
+    statusText: 'Partial Content',
+    headers: {
+      'Content-Type':
+        stored.headers.get('Content-Type') || 'application/octet-stream',
+      'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
+      'Content-Length': String(end - start + 1),
+      'Accept-Ranges': 'bytes',
+    },
+  });
+}
 
 /// Primero la red; si falla, lo guardado, y si tampoco, el `index.html`.
 async function networkFirst(request) {

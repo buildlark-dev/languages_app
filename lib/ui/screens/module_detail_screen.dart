@@ -12,11 +12,14 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../core/activity_score.dart';
 import '../../core/exam.dart';
 import '../../core/lesson.dart';
 import '../../core/module.dart';
 import '../../core/student_progress.dart';
+import '../widgets/exam_result_label.dart';
 import '../widgets/grammar_panel.dart';
+import '../widgets/simple_html_text.dart';
 
 class ModuleDetailScreen extends StatelessWidget {
   const ModuleDetailScreen({
@@ -81,13 +84,19 @@ class ModuleDetailScreen extends StatelessWidget {
             // practica, y tener que entrar en una lección para releerla
             // obligaría a empezar un recorrido solo para consultar.
             ExpansionTile(
-              title: Text(module.grammar.title),
+              // El título lleva marcado —`<i>to be</i>`— porque los nombres de
+              // las formas gramaticales van en cursiva. Un `Text` lo enseñaba
+              // en crudo: «El verbo <i>to be</i> y los pronombres», visto en el
+              // emulador Pixel 7. Dentro del panel sí se renderizaba, así que
+              // el mismo texto salía bien en un sitio y mal en el otro.
+              title: SimpleHtmlText(module.grammar.title),
               tilePadding: EdgeInsets.zero,
               children: <Widget>[GrammarPanel(grammar: module.grammar)],
             ),
             const SizedBox(height: 24),
             _ModuleExamCard(
               examPassed: examPassed,
+              score: progress.activityScores[module.moduleExam.id],
               passedLessons: passedLessons,
               totalLessons: module.lessons.length,
               onOpen: () => onOpenModuleExam(module.moduleExam),
@@ -135,12 +144,16 @@ class _LessonTile extends StatelessWidget {
 class _ModuleExamCard extends StatelessWidget {
   const _ModuleExamCard({
     required this.examPassed,
+    required this.score,
     required this.passedLessons,
     required this.totalLessons,
     required this.onOpen,
   });
 
   final bool examPassed;
+
+  /// El mejor intento, para poder decir con qué nota se aprobó.
+  final ActivityScore? score;
   final int passedLessons;
   final int totalLessons;
   final VoidCallback onOpen;
@@ -176,9 +189,13 @@ class _ModuleExamCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               examPassed
-                  ? 'Aprobado. Puedes repetirlo cuando quieras.'
-                  : 'Necesitas 80 % para aprobarlo. Llevas $passedLessons de '
-                        '$totalLessons lecciones.',
+                  ? '${passedExamLabel(score)} Puedes repetirlo cuando quieras.'
+                  : pendingExamLabel(
+                      score,
+                      pending:
+                          'Necesitas 80 % para aprobarlo. Llevas '
+                          '$passedLessons de $totalLessons lecciones.',
+                    ),
             ),
             const SizedBox(height: 16),
             examPassed

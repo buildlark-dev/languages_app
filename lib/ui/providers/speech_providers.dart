@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/app.dart';
 import '../../core/course.dart';
 import '../../services/speech/speech_availability.dart';
 import '../../services/speech/stt_service.dart';
@@ -62,6 +63,14 @@ class SpeechAvailabilityController extends Notifier<SpeechAvailability> {
     final TtsAvailability tts = await ref
         .read(ttsServiceProvider)
         .initialize(languageTag);
+    // La velocidad guardada, aplicada al preparar. Sin esto, preparar la voz
+    // la devolvía a la de fábrica en cada arranque: se elegía una velocidad en
+    // Ajustes y la app la olvidaba al abrirse, de modo que el ajuste parecía
+    // no funcionar aunque sí se guardaba.
+    await ref.read(ttsServiceProvider).setRate(
+      ref.read(settingsStoreProvider).speechRate,
+    );
+
     final SttAvailability stt = await ref
         .read(sttServiceProvider)
         .checkAvailability();

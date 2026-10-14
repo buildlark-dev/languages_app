@@ -286,6 +286,38 @@ void main() {
       expect(find.text(moduleAt(0).canDo), findsOne);
     });
 
+    testWidgets('el examen de nivel aprobado dice con qué nota', (
+      WidgetTester tester,
+    ) async {
+      // T164, reportado verificando tras reiniciar el dispositivo: se veían
+      // las lecciones aprobadas, pero del examen de A1 solo se ofrecía volver
+      // a presentarlo, **sin el resultado obtenido**. El puntaje estaba
+      // guardado —hay una prueba de persistencia que lo fija—; lo que faltaba
+      // era enseñarlo. Sin la nota, «aprobado» y «aprobado raspando» se ven
+      // igual y no se sabe si conviene repetir.
+      await tester.pumpWidget(
+        wrap(
+          ModuleScreen(
+            course: course,
+            level: a1,
+            progress: progressWith(passedModules: 4, levelExamPassed: true),
+            onOpenModule: (_) {},
+            onOpenLevelExam: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await scrollToLevelExam(tester);
+
+      expect(find.textContaining('Aprobado con un 85 %'), findsOne);
+      expect(
+        find.widgetWithText(OutlinedButton, 'Repetir el examen'),
+        findsOne,
+        reason: 'Aprobado no quita la posibilidad de repetirlo (FR-027)',
+      );
+    });
+
     testWidgets('el examen de nivel dice cuántos módulos faltan', (
       WidgetTester tester,
     ) async {

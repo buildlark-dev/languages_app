@@ -227,3 +227,246 @@ versión a mano, que es una decisión de proyecto y no un detalle de despliegue:
 queda anotada como trabajo aparte. Hasta entonces **FR-039 y SC-003 se cumplen
 en Android y no en web**, y decirlo es preferible a seguir contándolo como
 hecho.
+
+---
+
+## T191 · Recorrido en el emulador Pixel 7, 13 de octubre de 2026
+
+Primera vez que la app se abre en Android. Hasta hoy se compilaba, se corregía
+su manifiesto y se verificaba el APK, pero **ninguna pantalla se había visto
+corriendo ahí**. La sesión la inició el responsable del proyecto; el recorrido
+lo hizo Claude por `adb`, sin tocar el borrado de progreso.
+
+### Lo que se vio, pantalla por pantalla
+
+| # | Pantalla | Qué se vio |
+|---|---|---|
+| 1 | Acceso | Correo, contraseña, «Entrar», «¿No tienes cuenta? Créala» y «Olvidé mi contraseña» |
+| 4 | Inicio | Correo de la sesión, catálogo con «Inglés · 1 nivel(es) · 5 próximo»; tras elegir curso, la tarjeta de repaso |
+| 5 | Mapa de niveles | Oferta de nivelación, A1 «Fundamentos» con su barra, A2 a C2 como «Próximo» y bloqueados |
+| 6 | Módulos del nivel | Los cuatro módulos con su check de aprobado y la tarjeta del examen de A1 |
+| 7 | Detalle de módulo | Objetivo «Al terminar podrás», dos lecciones aprobadas, gramática plegable y examen del módulo |
+| 8 | Lección | Vocabulario con emoji, traducción sin artículo y **botón de altavoz en cada ítem** |
+| 9 | Examen | «Ejercicio 1 de 10», opción múltiple, barra de avance, «Comprobar» deshabilitado hasta elegir |
+| 12 | Progreso | 100 % de A1, 4 de 4 módulos, 48 palabras al día, 1 día seguido, 504 XP, niveles con su estado |
+| 13 | Ajustes | Tema, velocidad de voz con «Probar la voz», respaldo y borrado en rojo con su alcance escrito |
+
+### Lo que no se pudo ver, y por qué
+
+| # | Pantalla | Qué lo impide |
+|---|---|---|
+| 2 | Registro | Solo se llega desde el acceso, y llegar exige cerrar la sesión |
+| 3 | Restablecer contraseña | Igual |
+| 10 | Repaso | No hay nada vencido: la tarjeta dice «estás al día» y no se abre |
+| 11 | Nivelación | La oferta se oculta cuando ya hay avance, que es el comportamiento correcto |
+
+Son cuatro de trece. **T191 queda abierta**: declarar «recorrido» un recorrido
+incompleto es exactamente lo que el Principio V prohíbe.
+
+### Lo que el recorrido encontró
+
+**La sincronización trae el progreso en vivo.** A las 8:08 el nivel A1 marcaba
+`0/4` —instalación nueva, base local vacía—. A las 8:09, sin reiniciar la app ni
+tocar nada, marcaba `4/4` y la oferta de nivelación había desaparecido sola. Es
+evidencia directa de SC-004 en un dispositivo recién instalado, aunque no
+sustituye a T166, que pide el caso de dos destinos en primer plano a la vez.
+
+**El audio funciona en Android.** Al tocar el altavoz de «name», con `logcat`:
+
+```
+GoogleTTSServiceImpl: Synthesis request for locale eng-USA and name en-US-language
+GoogleTTSServiceImpl: TTS dispatch: en-us-x-iog-seanet-embedded
+TTS: Utterance ID has started → has completed
+```
+
+**El arreglo de T164 se ve funcionando**: «Aprobado con un 100 %. Puedes
+repetirlo cuando quieras.»
+
+**Fallo nuevo: el título de la gramática salía con el HTML en crudo** — «El
+verbo `<i>to be</i>` y los pronombres». El cuerpo sí se renderizaba, así que el
+mismo texto se veía bien dentro del panel y mal en su encabezado. Corregido.
+
+**Y el diagnóstico de T164 era incompleto.** El examen de A1 **nunca se ha
+aprobado**: la pantalla de progreso marca A1 como «En curso», no como superado,
+y la tarjeta ofrece «Presentar el examen». Así que lo que faltaba no era solo
+enseñar la nota al aprobar, sino **no esconder el intento que no aprobó**: la
+tarjeta decía «Necesitas 80 % para superar el nivel» y nada más, de modo que
+quien suspendió por poco y quien suspendió por mucho veían lo mismo. Ahora dice
+«Tu mejor intento: 65 %. Necesitas 80 % para superar el nivel.»
+
+### Segunda pasada por el emulador, mismo día
+
+Con la sesión cerrada a propósito se alcanzaron las dos pantallas que faltaban,
+y se comprobó en el dispositivo el arreglo del título de gramática.
+
+| # | Pantalla | Qué se vio |
+|---|---|---|
+| 1 | Acceso | Campos vacíos, «Entrar», «¿No tienes cuenta? Créala», «Olvidé mi contraseña» |
+| 2 | Registro | «Crear cuenta» con **«Solo pedimos correo y contraseña. Nada más.»** a la vista, que es FR-006 hecho comprobable por quien se registra |
+| 3 | Restablecer contraseña | «Recuperar el acceso»: correo y «Enviar instrucciones» |
+| — | Confirmación de cierre de sesión | «¿Cerrar sesión? Tu progreso está respaldado en la nube. Podrás recuperarlo al volver a entrar», con Cancelar primero |
+
+**El título de la gramática ya se renderiza**: «El verbo *to be* y los
+pronombres», en cursiva, donde antes salían las etiquetas en crudo.
+
+**Cerrar sesión deja la app en la pantalla de acceso, sin nada encima.** Es la
+otra mitad del arreglo de T163, la que no se reportó pero tenía el mismo fallo.
+
+Quedan **2 de 13**: repaso y nivelación. Ninguna por un defecto —no hay nada
+vencido que repasar, y la oferta de nivelación se oculta cuando ya hay avance—,
+así que las dos solo aparecen en una cuenta recién creada. Se capturarán la
+próxima vez que se cree una cuenta de prueba.
+
+**Observación menor:** «Recuperar el acceso» no explica qué va a pasar al tocar
+el botón. La pantalla de registro sí se explica sola; esta no dice que llegará
+un correo con un enlace.
+
+### Tercera pasada: las dos últimas, con una cuenta nueva
+
+El responsable del proyecto creó una cuenta de prueba, que es lo único que
+faltaba: las dos pantallas pendientes solo existen cuando no hay avance.
+
+| # | Pantalla | Qué se vio |
+|---|---|---|
+| 11 | Nivelación | «¿Ya sabes algo del idioma? Son 10 preguntas y no se aprueba ni se suspende», con «Hacer la prueba» y «Empezar desde cero». Dentro: «Pregunta 1 de 10», y el aviso de que no se corrige sobre la marcha |
+| 10 | Repaso | «Tarjeta 1 de 12 · ¿Cómo se dice…? **nombre**» y «Mostrar la respuesta». Revelada: «name» con altavoz, **«Pronunciar la palabra»** y los tres botones de calificación con su intervalo escrito —«vuelve mañana», «vuelve pronto», «vuelve más adelante»— |
+
+Con esto **T191 queda cerrada: trece de trece**.
+
+Tres cosas más que confirmó esta pasada:
+
+* **La cola de repaso se siembra al entrar en un módulo** (FR-028): la cuenta
+  pasó de «Todavía no hay repaso» a «12 palabras para repasar» por el solo
+  hecho de abrir el módulo 1.
+* **`PronunciationCheck` se dibuja** en la tarjeta de repaso, que es el arreglo
+  de T199 visto en el dispositivo.
+* **La tarjeta del examen sin intentos no inventa una nota**: con la cuenta
+  nueva dice «Necesitas 80 % para aprobarlo. Llevas 0 de 2 lecciones», sin
+  «Tu mejor intento». Es la otra mitad del cambio de T164.
+
+**Incidencia del entorno, no de la app:** a mitad del recorrido el emulador
+reinició su `system_server` —`adb` devolvió `Can't find service: input`— y se
+llevó la app por delante. El `logcat` quedó vacío, así que no hubo excepción de
+Dart ni ANR: fue el emulador, no la aplicación. Al relanzarla, la sesión y el
+progreso seguían ahí.
+
+---
+
+## Verificación del 14 de octubre de 2026
+
+Recorrido por el responsable del proyecto. Siete tareas cerradas y una fallada.
+
+| Tarea | Criterio | Resultado |
+|---|---|---|
+| T163 | SC-001 · cuenta nueva hasta el primer ejercicio | **Cumple**: alrededor de 1 minuto, con 3 de margen |
+| T164 | SC-002 · el progreso sobrevive al reinicio | **Cumple** |
+| T166 | SC-004 · aparece en el otro dispositivo en menos de 30 s | **Cumple**: fue inmediato |
+| T167 | SC-005 · avance divergente, nada se pierde | **Cumple** |
+| T168 | SC-006 · una lección entre 5 y 10 minutos | **Cumple**: unos 7 minutos sin práctica previa |
+| T170 | SC-008 · aprobar sin micrófono y sin sonido | **Cumple** |
+| T177 | persistencia en navegador con cuenta real | **Cumple** |
+
+### T165 falló, y la causa estaba medida a los diez minutos
+
+En modo avión la lección se completa, pero **el audio empaquetado no sonaba**:
+las palabras del vocabulario caían a la voz del sistema, que leía inglés con
+mala pronunciación. Es decir, el respaldo funcionando y la función principal no.
+
+La causa, medida en el sitio desplegado antes de tocar nada:
+
+```
+clips guardados en la caché tras una carga completa: 0
+el mismo clip pedido con red:                        200 OK
+```
+
+El service worker guardaba lo que la página **había pedido al cargar**, y un
+clip solo se pide cuando alguien toca una palabra. Sin conexión no existía
+ninguno, el reproductor fallaba y la síntesis cubría el hueco — justo de lo que
+T196 vino a no depender.
+
+Corregido en dos puntos, porque eran dos fallos encadenados:
+
+1. **Los clips se precargan.** `tool/generate_audio.ps1` escribe ahora
+   `web/audio_clips.json` junto a los propios archivos, y la página se la pasa
+   al service worker al arrancar. Son 1,5 MB guardados una vez. Una prueba de
+   integridad falla si esa lista se desincroniza del manifiesto.
+2. **El service worker contesta peticiones por rango.** Un elemento `<audio>`
+   no pide el archivo entero, pide bytes, y una respuesta guardada completa no
+   sirve para contestar eso —Safari es estricto—. Sin esto el clip habría
+   estado en la caché y el reproductor habría seguido sin poder usarlo, que es
+   la mitad del fallo que no se veía.
+
+Verificado tras desplegar, con el service worker al mando:
+
+```
+clips en caché:     98
+petición por rango: 206 Partial Content · bytes 0-99/4458
+elemento <audio>:   reproduce · duración 0,641 s
+```
+
+**T165 sigue abierta**: lo verificado aquí es que el clip está guardado y se
+puede reproducir desde la caché. Que la lección entera suene en modo avión hay
+que comprobarlo en modo avión, y eso necesita el dispositivo.
+
+**Sobre el micrófono en modo avión**: no es un fallo. El reconocimiento del
+navegador manda el audio a un servicio remoto, así que sin red no puede
+funcionar —está en D6 desde el principio— y la salida es la alternativa
+escrita, que es lo que T170 acaba de verificar que funciona. Lo que sí importa
+es que la app **lo diga**: desde el arreglo del canal de errores debería salir
+«El reconocimiento de voz de este dispositivo necesita conexión». Queda por
+confirmar que ese es el mensaje que aparece.
+
+### T165 en modo avión: funciona, y dejó tres cosas
+
+Repetido tras el arreglo de la precarga: **el audio y el micrófono funcionan
+sin conexión, y con la voz que debe ser**. T165 queda cerrada.
+
+Lo que la prueba dejó a la vista:
+
+**El audio empezaba por la segunda sílaba.** Piper arranca la palabra en la
+muestra cero y el reproductor empieza antes de haber arrancado del todo, así
+que se comía el principio; el retardo propio del codificador MP3 lo empeora.
+Corregido en el generador: 200 ms de silencio delante y otros 200 detrás. El
+clip de «name» pasó de 0,641 s a 1,041 s y pesa 1 KB más. No hay forma de que
+un reproductor se coma un silencio.
+
+**La velocidad de los ajustes no movía nada, y por dos motivos distintos.**
+Uno era una limitación que yo había aceptado demasiado deprisa —escrita en el
+código: «un clip grabado suena a la velocidad a la que se grabó»— cuando los
+reproductores saben estirar el tiempo sin cambiar el tono. El otro era un fallo
+sin más: `initialize` fijaba la velocidad a 0,9 **en cada preparación**, de modo
+que la preferencia guardada se perdía al abrir la app aunque sí estuviera
+almacenada. Ahora la velocidad vale para las dos fuentes y sobrevive al
+arranque.
+
+**El micrófono reconoce con dificultad y daba poco tiempo para hablar.** La
+ventana de escucha pasa de 6 a 10 segundos y la pausa que cierra la frase de 2
+a 3, que es la mitad barata del problema. La otra mitad —que no recoge todo lo
+que se dice— es calidad de reconocimiento y necesita trabajo aparte; queda
+anotada por decisión del responsable del proyecto, que prefirió no detenerse
+aquí.
+
+---
+
+## Cierre de la ronda, 14 de octubre de 2026
+
+**200 de 202 tareas cerradas.** Las dos que quedan son T179 y T180 —añadir el
+dominio `languages.buildlark.com` y verificar la app publicada ahí—, y se
+aplazan a la funcionalidad siguiente por decisión del responsable del proyecto:
+no bloquean nada, porque la app está publicada y verificada en
+`languages-buildlark.web.app`.
+
+El micrófono queda **funcionando y mejorable**: reconoce, y no recoge todo lo
+que se dice. La ventana de escucha ya se amplió; subir la calidad del
+reconocimiento es trabajo aparte, anotado aquí para que no se confunda con algo
+que nadie vio.
+
+### Lo que esta ronda deja demostrado
+
+| | Cómo se demostró |
+|---|---|
+| El progreso sobrevive al reinicio y viaja entre dispositivos | T164, T166 y T167, verificadas en dispositivos reales |
+| Una lección completa cabe en una sesión corta | T168: unos 7 minutos sin práctica previa |
+| La app se puede usar entera sin micrófono y sin sonido | T170 |
+| Y también sin conexión, con su audio | T165, tras precargar los clips y contestar peticiones por rango |
+| Las trece pantallas funcionan en Android | T191, recorridas en el emulador Pixel 7 |

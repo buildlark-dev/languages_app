@@ -13,12 +13,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/course.dart';
+import '../../core/activity_score.dart';
 import '../../core/exam.dart';
 import '../../core/level.dart';
 import '../../core/module.dart';
 import '../../core/student_progress.dart';
 import '../../engine/progression.dart';
 import '../providers/review_providers.dart';
+import '../widgets/exam_result_label.dart';
 import '../widgets/module_tile.dart';
 
 class ModuleScreen extends ConsumerWidget {
@@ -82,6 +84,7 @@ class ModuleScreen extends ConsumerWidget {
               level: level,
               available: examReady,
               passed: examPassed,
+              score: progress.activityScores[level.levelExam.id],
               passedModules: passed,
               onOpen: () => onOpenLevelExam(level.levelExam),
             ),
@@ -110,6 +113,7 @@ class _LevelExamCard extends StatelessWidget {
     required this.level,
     required this.available,
     required this.passed,
+    required this.score,
     required this.passedModules,
     required this.onOpen,
   });
@@ -117,6 +121,10 @@ class _LevelExamCard extends StatelessWidget {
   final Level level;
   final bool available;
   final bool passed;
+
+  /// El mejor intento, para poder decir con qué nota se superó el nivel.
+  final ActivityScore? score;
+
   final int passedModules;
   final VoidCallback onOpen;
 
@@ -157,9 +165,12 @@ class _LevelExamCard extends StatelessWidget {
             // El mensaje dice exactamente qué falta, no solo que está bloqueado.
             Text(
               passed
-                  ? 'Aprobado. Ya superaste el nivel.'
+                  ? '${passedExamLabel(score)} Ya superaste el nivel.'
                   : available
-                  ? 'Necesitas 80 % para superar el nivel.'
+                  ? pendingExamLabel(
+                      score,
+                      pending: 'Necesitas 80 % para superar el nivel.',
+                    )
                   : 'Aprueba los $total módulos para presentarlo. '
                         'Llevas $passedModules.',
             ),

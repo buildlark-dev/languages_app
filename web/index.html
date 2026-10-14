@@ -72,6 +72,33 @@
         return urls;
       }
 
+      // Los clips de audio, que hay que guardar **antes** de que alguien los
+      // necesite.
+      //
+      // Un clip solo se pide al tocar la palabra, así que nunca entraba en la
+      // caché por el camino normal: medido en el sitio desplegado, cero clips
+      // guardados tras una carga completa. En modo avión la primera lección se
+      // quedaba sin audio y caía a la voz del sistema, que es exactamente de lo
+      // que la app dejó de depender al empaquetarlos.
+      //
+      // Son alrededor de 1,5 MB y se guardan una vez. La lista la escribe
+      // `tool/generate_audio.ps1` junto con los propios clips, para que no haya
+      // una segunda copia que mantener a mano.
+      async function clipUrls() {
+        try {
+          const response = await fetch('audio_clips.json', { cache: 'no-store' });
+          if (!response.ok) return [];
+          const list = await response.json();
+          if (!Array.isArray(list)) return [];
+          return list.map(function (path) {
+            return new URL(path, window.location.href).href;
+          });
+        } catch (error) {
+          // Sin lista se pierde el audio sin conexión, no la app.
+          return [];
+        }
+      }
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', async function () {
           try {
@@ -81,11 +108,11 @@
             // motor de dibujo mientras pinta la primera pantalla, y lo que
             // interesa guardar es todo eso, no solo lo de los primeros
             // milisegundos.
-            setTimeout(function () {
+            setTimeout(async function () {
               const worker = registration.active;
-              if (worker) {
-                worker.postMessage({ type: 'precache', urls: usedResources() });
-              }
+              if (!worker) return;
+              const urls = usedResources().concat(await clipUrls());
+              worker.postMessage({ type: 'precache', urls: urls });
             }, 4000);
           } catch (error) {
             // Sin service worker la app funciona: pierde el modo sin
@@ -123,6 +150,45 @@
       ['pointerdown', 'touchend', 'keydown'].forEach(function (evento) {
         window.addEventListener(evento, despertarVoz, { capture: true });
       });
+
+      // El micrófono, preguntado de verdad antes de intentar reconocer.
+      //
+      // La API de reconocimiento del navegador no pide permiso de forma
+      // fiable: en iOS, dentro de una PWA instalada, `start()` puede terminar
+      // sin resultado y sin diálogo, de modo que la persona no llega ni a
+      // tener la oportunidad de conceder nada. `getUserMedia` sí lo pide, y
+      // además **dice por qué** falla, que es lo que faltaba para poder
+      // explicarlo en lugar de esperar a que venza un reloj.
+      //
+      // Se suelta la pista inmediatamente: aquí no se graba nada, solo se pide
+      // permiso y se comprueba que hay entrada de audio.
+      window.appMic = {
+        /// '' si se puede escuchar; si no, el motivo.
+        probe: async function () {
+          if (!('SpeechRecognition' in window) &&
+              !('webkitSpeechRecognition' in window)) {
+            return 'no-recognizer';
+          }
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            return 'no-microphone';
+          }
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(function (track) { track.stop(); });
+            return '';
+          } catch (error) {
+            const name = (error && error.name) || '';
+            if (name === 'NotAllowedError' || name === 'SecurityError') {
+              return 'not-allowed';
+            }
+            if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+              return 'no-microphone';
+            }
+            if (name === 'NotSupportedError') return 'no-recognizer';
+            return 'unknown';
+          }
+        },
+      };
 
       window.appUpdate = {
         /// El identificador de la versión publicada ahora mismo, o "" si no se

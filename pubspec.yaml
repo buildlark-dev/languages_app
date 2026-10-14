@@ -49,6 +49,7 @@ dependencies:
   speech_to_text: ^7.5.0
   intl: ^0.20.2
   shared_preferences: ^2.5.6
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -78,10 +79,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # El audio de A1, generado por tool/generate_audio.ps1 con Piper y la voz
+  # en_US-joe-medium (CC0). Son 98 clips y alrededor de 1,5 MB: el precio de
+  # que escuchar una palabra no dependa de que el aparato tenga voz inglesa
+  # instalada, que es lo que falló en iOS, en el navegador y en el emulador.
+  assets:
+    - assets/audio/en/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

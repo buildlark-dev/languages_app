@@ -26,6 +26,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// creer que hay una red que no hay.
 const Set<String> _requiredWebPlugins = <String>{
   'shared_preferences_web',
+  'audioplayers_web',
   'flutter_tts',
   'speech_to_text',
   'firebase_core_web',

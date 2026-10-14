@@ -31,6 +31,7 @@ import 'dart:async';
 
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../settings/settings_store.dart';
 import 'tts_service.dart';
 import 'voice_pick.dart';
 
@@ -63,6 +64,9 @@ class FlutterTtsService implements TtsService {
 
   bool _handlersWired = false;
   bool _speaking = false;
+
+  /// La velocidad vigente, para que preparar la voz no la reinicie.
+  double _rate = defaultSpeechRate;
 
   /// Se completa cuando el motor confirma que empezó a sonar.
   Completer<void>? _started;
@@ -105,7 +109,10 @@ class FlutterTtsService implements TtsService {
 
       await _tts.setLanguage(languageTag);
       await _selectVoice(languageTag);
-      await _tts.setSpeechRate(0.9);
+      // La última velocidad pedida, no una constante. Aquí había un 0,9 fijo
+      // que **pisaba la preferencia guardada en cada arranque**: se elegía una
+      // velocidad en Ajustes, se cerraba la app y volvía a la de fábrica.
+      await _tts.setSpeechRate(_rate);
       return _availability = TtsAvailability.available;
     } catch (_) {
       // Un fallo al inicializar no debe impedir estudiar: se degrada a texto.
@@ -173,8 +180,9 @@ class FlutterTtsService implements TtsService {
 
   @override
   Future<void> setRate(double rate) async {
+    _rate = rate.clamp(minSpeechRate, maxSpeechRate);
     try {
-      await _tts.setSpeechRate(rate.clamp(0.3, 1.0));
+      await _tts.setSpeechRate(_rate);
     } catch (_) {
       // La velocidad es una preferencia: perderla no rompe nada.
     }
