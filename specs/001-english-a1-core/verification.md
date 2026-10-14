@@ -445,3 +445,28 @@ a 3, que es la mitad barata del problema. La otra mitad —que no recoge todo lo
 que se dice— es calidad de reconocimiento y necesita trabajo aparte; queda
 anotada por decisión del responsable del proyecto, que prefirió no detenerse
 aquí.
+
+---
+
+## Cierre de la ronda, 14 de octubre de 2026
+
+**200 de 202 tareas cerradas.** Las dos que quedan son T179 y T180 —añadir el
+dominio `languages.buildlark.com` y verificar la app publicada ahí—, y se
+aplazan a la funcionalidad siguiente por decisión del responsable del proyecto:
+no bloquean nada, porque la app está publicada y verificada en
+`languages-buildlark.web.app`.
+
+El micrófono queda **funcionando y mejorable**: reconoce, y no recoge todo lo
+que se dice. La ventana de escucha ya se amplió; subir la calidad del
+reconocimiento es trabajo aparte, anotado aquí para que no se confunda con algo
+que nadie vio.
+
+### Lo que esta ronda deja demostrado
+
+| | Cómo se demostró |
+|---|---|
+| El progreso sobrevive al reinicio y viaja entre dispositivos | T164, T166 y T167, verificadas en dispositivos reales |
+| Una lección completa cabe en una sesión corta | T168: unos 7 minutos sin práctica previa |
+| La app se puede usar entera sin micrófono y sin sonido | T170 |
+| Y también sin conexión, con su audio | T165, tras precargar los clips y contestar peticiones por rango |
+| Las trece pantallas funcionan en Android | T191, recorridas en el emulador Pixel 7 |
