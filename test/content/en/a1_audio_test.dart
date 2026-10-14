@@ -11,6 +11,7 @@
 /// clips de contenido que ya se borró.
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -61,6 +62,25 @@ void main() {
     );
 
     expect(orphans, isEmpty, reason: 'Sobran clips: regenera el audio');
+  });
+
+  test('la lista que precarga el service worker tiene todos los clips', () {
+    // Sin esta lista los clips solo se piden al tocar una palabra, así que no
+    // entran en la caché y la primera lección sin conexión se queda sin audio
+    // —medido: cero clips guardados tras una carga completa—. Que la lista se
+    // desincronice del manifiesto reintroduce ese fallo en silencio.
+    final List<String> served =
+        (jsonDecode(File('web/audio_clips.json').readAsStringSync())
+                as List<Object?>)
+            .cast<String>();
+
+    final Set<String> expected = a1AudioClips.values
+        // Flutter sirve los assets bajo un segundo `assets/`, así que la ruta
+        // del manifiesto no es la que pide el navegador.
+        .map((String path) => 'assets/$path')
+        .toSet();
+
+    expect(served.toSet(), expected);
   });
 
   test('los clips declarados en pubspec cubren la carpeta del audio', () {

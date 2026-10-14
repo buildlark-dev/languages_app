@@ -371,14 +371,14 @@ el porcentaje de avance.
 
 - [X] T161 Ejecutar `flutter analyze` y confirmar cero errores y cero advertencias nuevas
 - [X] T162 Ejecutar `flutter test` y confirmar la suite completa en verde
-- [ ] T163 **SC-001** · Cronometrar en emulador limpio: crear cuenta y llegar al primer ejercicio en menos de 3 minutos
-- [ ] T164 **SC-002** · Aprobar una lección, cerrar la app, `adb reboot`, reabrir y comparar XP, racha y lecciones aprobadas
+- [X] T163 **SC-001** · Cronometrar en emulador limpio: crear cuenta y llegar al primer ejercicio en menos de 3 minutos
+- [X] T164 **SC-002** · Aprobar una lección, cerrar la app, `adb reboot`, reabrir y comparar XP, racha y lecciones aprobadas
 - [ ] T165 **SC-003** · Recorrer una lección completa en modo avión, **incluido el audio**, tras haber iniciado sesión una vez. Ninguna pantalla en blanco ni espera indefinida
-- [ ] T166 **SC-004** · Dos destinos abiertos en primer plano con la misma cuenta: aprobar una lección en el emulador y comprobar que aparece en Chrome en menos de 30 s **sin recargar ni reiniciar**
-- [ ] T167 **SC-005** · Avanzar **distinto** en los dos destinos en modo avión, restaurar la conexión en ambos y verificar que se conserva lo mejor de cada uno
+- [X] T166 **SC-004** · Dos destinos abiertos en primer plano con la misma cuenta: aprobar una lección en el emulador y comprobar que aparece en Chrome en menos de 30 s **sin recargar ni reiniciar**
+- [X] T167 **SC-005** · Avanzar **distinto** en los dos destinos en modo avión, restaurar la conexión en ambos y verificar que se conserva lo mejor de cada uno
 - [X] T168 **SC-006** · Cronometrar cada lección de A1 y confirmar que cae entre 5 y 10 minutos
 - [X] T169 **SC-007** · Responder mal a propósito en cada tipo de ejercicio y comprobar que la explicación dice por qué
-- [ ] T170 **SC-008** · Revocar el permiso de micrófono y silenciar el dispositivo; recorrer y **aprobar** una lección completa con las alternativas accesibles
+- [X] T170 **SC-008** · Revocar el permiso de micrófono y silenciar el dispositivo; recorrer y **aprobar** una lección completa con las alternativas accesibles
 - [X] T171 **SC-009** · Intentar todas las rutas de acceso a un nivel bloqueado y a un nivel anunciado; ninguna debe abrir
 - [X] T172 **SC-010** · `adb shell wm size 360x800` y `font_scale 1.3`; recorrer **todas** las pantallas con atención a la gramática larga y las tablas; restaurar al terminar
 - [X] T173 **SC-011** · Crear un curso de prueba de un módulo, registrarlo, comprobar que es recorrible, y verificar con `git status --short lib/core lib/engine lib/services lib/ui` que la salida está **vacía**; descartar el curso al terminar

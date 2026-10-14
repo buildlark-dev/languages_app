@@ -349,3 +349,69 @@ reinició su `system_server` —`adb` devolvió `Can't find service: input`— y
 llevó la app por delante. El `logcat` quedó vacío, así que no hubo excepción de
 Dart ni ANR: fue el emulador, no la aplicación. Al relanzarla, la sesión y el
 progreso seguían ahí.
+
+---
+
+## Verificación del 14 de octubre de 2026
+
+Recorrido por el responsable del proyecto. Siete tareas cerradas y una fallada.
+
+| Tarea | Criterio | Resultado |
+|---|---|---|
+| T163 | SC-001 · cuenta nueva hasta el primer ejercicio | **Cumple**: alrededor de 1 minuto, con 3 de margen |
+| T164 | SC-002 · el progreso sobrevive al reinicio | **Cumple** |
+| T166 | SC-004 · aparece en el otro dispositivo en menos de 30 s | **Cumple**: fue inmediato |
+| T167 | SC-005 · avance divergente, nada se pierde | **Cumple** |
+| T168 | SC-006 · una lección entre 5 y 10 minutos | **Cumple**: unos 7 minutos sin práctica previa |
+| T170 | SC-008 · aprobar sin micrófono y sin sonido | **Cumple** |
+| T177 | persistencia en navegador con cuenta real | **Cumple** |
+
+### T165 falló, y la causa estaba medida a los diez minutos
+
+En modo avión la lección se completa, pero **el audio empaquetado no sonaba**:
+las palabras del vocabulario caían a la voz del sistema, que leía inglés con
+mala pronunciación. Es decir, el respaldo funcionando y la función principal no.
+
+La causa, medida en el sitio desplegado antes de tocar nada:
+
+```
+clips guardados en la caché tras una carga completa: 0
+el mismo clip pedido con red:                        200 OK
+```
+
+El service worker guardaba lo que la página **había pedido al cargar**, y un
+clip solo se pide cuando alguien toca una palabra. Sin conexión no existía
+ninguno, el reproductor fallaba y la síntesis cubría el hueco — justo de lo que
+T196 vino a no depender.
+
+Corregido en dos puntos, porque eran dos fallos encadenados:
+
+1. **Los clips se precargan.** `tool/generate_audio.ps1` escribe ahora
+   `web/audio_clips.json` junto a los propios archivos, y la página se la pasa
+   al service worker al arrancar. Son 1,5 MB guardados una vez. Una prueba de
+   integridad falla si esa lista se desincroniza del manifiesto.
+2. **El service worker contesta peticiones por rango.** Un elemento `<audio>`
+   no pide el archivo entero, pide bytes, y una respuesta guardada completa no
+   sirve para contestar eso —Safari es estricto—. Sin esto el clip habría
+   estado en la caché y el reproductor habría seguido sin poder usarlo, que es
+   la mitad del fallo que no se veía.
+
+Verificado tras desplegar, con el service worker al mando:
+
+```
+clips en caché:     98
+petición por rango: 206 Partial Content · bytes 0-99/4458
+elemento <audio>:   reproduce · duración 0,641 s
+```
+
+**T165 sigue abierta**: lo verificado aquí es que el clip está guardado y se
+puede reproducir desde la caché. Que la lección entera suene en modo avión hay
+que comprobarlo en modo avión, y eso necesita el dispositivo.
+
+**Sobre el micrófono en modo avión**: no es un fallo. El reconocimiento del
+navegador manda el audio a un servicio remoto, así que sin red no puede
+funcionar —está en D6 desde el principio— y la salida es la alternativa
+escrita, que es lo que T170 acaba de verificar que funciona. Lo que sí importa
+es que la app **lo diga**: desde el arreglo del canal de errores debería salir
+«El reconocimiento de voz de este dispositivo necesita conexión». Queda por
+confirmar que ese es el mensaje que aparece.

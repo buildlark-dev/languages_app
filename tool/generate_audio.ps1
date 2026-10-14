@@ -149,6 +149,23 @@ $lines.Add('')
 [System.IO.File]::WriteAllLines($manifestPath, $lines, (New-Object System.Text.UTF8Encoding $false))
 Write-Host "Wrote $manifestPath"
 
+# --- 5. The list the service worker precaches ------------------------------
+
+# Without this the clips are only fetched when someone taps a word, so the
+# first offline lesson has no audio and falls back to the system voice -- which
+# is the whole thing T196 set out to stop depending on. Measured on the
+# deployed site: zero clips in the cache after a full load.
+#
+# Flutter serves assets under a second `assets/` segment, so these are the URLs
+# the browser will actually request, not the paths in the Dart manifest.
+$served = $entries | ForEach-Object { "assets/assets/audio/en/$($_.file).mp3" }
+[System.IO.File]::WriteAllText(
+    (Join-Path $projectRoot 'web/audio_clips.json'),
+    ($served | ConvertTo-Json),
+    (New-Object System.Text.UTF8Encoding $false)
+)
+Write-Host 'Wrote web/audio_clips.json'
+
 $size = (Get-ChildItem $assetsDir -Filter *.mp3 | Measure-Object -Property Length -Sum).Sum
 Write-Host ("Audio total: {0:N1} MB in {1} clips" -f ($size / 1MB), $entries.Count)
 Write-Host 'Remember: flutter pub get, then flutter test'
